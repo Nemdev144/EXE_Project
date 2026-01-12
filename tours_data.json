@@ -1,0 +1,1596 @@
+[
+  {
+    "id": "T-KONTUM-01",
+    "status": "active",
+    "listing_info": {
+      "title": "Rừng thông và thác nước Măng Đen",
+      "location": "Kon Tum - Tây Nguyên",
+      "short_desc": "Khám phá vẻ đẹp hùng vĩ của thiên nhiên và nét văn hoá độc đáo ẩn mình giữa những rừng thông bạt ngàn.",
+      "thumbnail_url": "assets/images/tours/mangden_thumb.jpg",
+      "rating": 4.8,
+      "reviews_count": 124,
+      "tags": ["Thiên nhiên", "Nghỉ dưỡng"]
+    },
+    "price_config": {
+      "adult_price": 2500000,
+      "child_price": 891000,
+      "currency": "VND",
+      "display_price": "2.500.000VND"
+    },
+    "booking_config": {
+      "duration": "3 ngày 2 đêm",
+      "start_dates": ["2025-10-10", "2025-10-17", "2025-10-24"],
+      "meeting_point": "Thành phố Kon Tum (Xe đưa đón)",
+      "max_slots": 15,
+      "available_slots": 8
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Đà Lạt thứ hai giữa đại ngàn",
+        "text": "Măng Đen được mệnh danh là Đà Lạt thứ 2 với khí hậu mát mẻ quanh năm. Nơi đây sở hữu những rừng thông nguyên sinh bạt ngàn, hồ nước thơ mộng và những ngọn thác hùng vĩ.",
+        "video_url": "https://www.youtube.com/embed/sample_mangden"
+      },
+      "highlights": [
+        {
+          "title": "Thác Pa Sỹ",
+          "desc": "Dải lụa trắng tinh khôi giữa rừng nguyên sinh.",
+          "image": "assets/images/details/pasy.jpg"
+        },
+        {
+          "title": "Hồ Đak Ke",
+          "desc": "Hồ nước trong xanh, địa điểm lý tưởng để ngắm hoa anh đào.",
+          "image": "assets/images/details/dakke.jpg"
+        },
+        {
+          "title": "Tượng Đức Mẹ Măng Đen",
+          "desc": "Địa điểm hành hương linh thiêng nổi tiếng.",
+          "image": "assets/images/details/ducme.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Gà nướng cơm lam",
+          "desc": "Gà thả đồi nướng tiêu rừng ăn kèm cơm nếp nướng ống tre.",
+          "image": "assets/images/food/ganuong.jpg"
+        },
+        {
+          "name": "Lẩu xuyên tiêu",
+          "desc": "Vị cay nồng ấm áp giữa tiết trời se lạnh.",
+          "image": "assets/images/food/lau.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-DAKLAK-01",
+    "status": "active",
+    "listing_info": {
+      "title": "Cồng Chiêng và cà phê Đại Ngàn",
+      "location": "Buôn Ma Thuột - Đắk Lắk",
+      "short_desc": "Trải nghiệm văn hóa cồng chiêng Tây Nguyên và thưởng thức hương vị cà phê trứ danh tại thủ phủ cà phê.",
+      "thumbnail_url": "assets/images/tours/daklak_thumb.jpg",
+      "rating": 5.0,
+      "reviews_count": 89,
+      "tags": ["Văn hóa", "Ẩm thực"]
+    },
+    "price_config": {
+      "adult_price": 3200000,
+      "child_price": 1500000,
+      "currency": "VND",
+      "display_price": "3.200.000VND"
+    },
+    "booking_config": {
+      "duration": "2 ngày 1 đêm",
+      "start_dates": ["2025-11-05", "2025-11-12"],
+      "meeting_point": "Trung tâm Buôn Ma Thuột",
+      "max_slots": 20,
+      "available_slots": 12
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Huyền thoại đất đỏ Bazan",
+        "text": "Hành trình đưa du khách về với thủ phủ cà phê, nơi những chú voi hiền hòa sinh sống và tiếng cồng chiêng vang vọng núi rừng.",
+        "video_url": "https://www.youtube.com/embed/sample_daklak"
+      },
+      "highlights": [
+        {
+          "title": "Bảo tàng Thế giới Cà phê",
+          "desc": "Kiến trúc độc bản, lưu giữ lịch sử văn hóa cà phê toàn cầu.",
+          "image": "assets/images/details/museum.jpg"
+        },
+        {
+          "title": "Thác Dray Nur",
+          "desc": "Ngọn thác hùng vĩ nhất Tây Nguyên gắn liền với truyền thuyết tình yêu.",
+          "image": "assets/images/details/draynur.jpg"
+        },
+        {
+          "title": "Buôn Đôn",
+          "desc": "Cưỡi voi và tìm hiểu văn hóa săn bắt voi cổ xưa.",
+          "image": "assets/images/details/buondon.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Bún đỏ",
+          "desc": "Món ăn bình dân với màu đỏ đặc trưng của hạt điều.",
+          "image": "assets/images/food/bundo.jpg"
+        },
+        {
+          "name": "Cà phê trứng",
+          "desc": "Hương vị đậm đà khó quên của Robusta Đắk Lắk.",
+          "image": "assets/images/food/coffee.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-GIALAI-01",
+    "status": "active",
+    "listing_info": {
+      "title": "Đôi mắt Pleiku & Miệng núi lửa",
+      "location": "Pleiku - Gia Lai",
+      "short_desc": "Chiêm ngưỡng Biển Hồ T'Nung và vẻ đẹp hoang sơ của núi lửa Chư Đăng Ya mùa hoa dã quỳ.",
+      "thumbnail_url": "assets/images/tours/gialai_thumb.jpg",
+      "rating": 4.5,
+      "reviews_count": 45,
+      "tags": ["Trekking", "Săn ảnh"]
+    },
+    "price_config": {
+      "adult_price": 1900000,
+      "child_price": 950000,
+      "currency": "VND",
+      "display_price": "1.900.000VND"
+    },
+    "booking_config": {
+      "duration": "1 ngày",
+      "start_dates": ["Hàng ngày"],
+      "meeting_point": "Sân bay Pleiku",
+      "max_slots": 10,
+      "available_slots": 5
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Phố núi sương mù",
+        "text": "Pleiku quyến rũ du khách bởi vẻ đẹp hoang sơ, những con đường dốc và những miệng núi lửa đã tắt hàng triệu năm.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Biển Hồ (T'Nung)",
+          "desc": "Được mệnh danh là Đôi mắt Pleiku, hồ nước tự nhiên trên miệng núi lửa.",
+          "image": "assets/images/details/bienho.jpg"
+        },
+        {
+          "title": "Chư Đăng Ya",
+          "desc": "Thiên đường hoa dã quỳ nở rộ vào tháng 11.",
+          "image": "assets/images/details/chudangya.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Phở khô hai tô",
+          "desc": "Đặc sản Gia Lai với bánh phở và nước lèo để riêng.",
+          "image": "assets/images/food/phokho.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-DAKNONG-01",
+    "status": "active",
+    "listing_info": {
+      "title": "Hồ Tà Đùng - Vịnh Hạ Long trên cao",
+      "location": "Đắk Nông",
+      "short_desc": "Chiêm ngưỡng kiệt tác thiên nhiên với hàng chục đảo nhỏ nhấp nhô giữa mặt hồ xanh biếc.",
+      "thumbnail_url": "assets/images/tours/tadung_thumb.jpg",
+      "rating": 4.7,
+      "reviews_count": 62,
+      "tags": ["Camping", "Thiên nhiên"]
+    },
+    "price_config": {
+      "adult_price": 2200000,
+      "child_price": 1100000,
+      "currency": "VND",
+      "display_price": "2.200.000VND"
+    },
+    "booking_config": {
+      "duration": "2 ngày 1 đêm",
+      "start_dates": ["2025-09-15", "2025-09-22"],
+      "meeting_point": "Thành phố Gia Nghĩa",
+      "max_slots": 12,
+      "available_slots": 4
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Bản giao hưởng của Nước và Đá",
+        "text": "Tà Đùng là điểm đến mới nổi với vẻ đẹp choáng ngợp của hồ nước rộng lớn và các đảo nhỏ, nằm trong công viên địa chất toàn cầu.",
+        "video_url": "https://www.youtube.com/embed/sample_tadung"
+      },
+      "highlights": [
+        {
+          "title": "Hồ Tà Đùng",
+          "desc": "Ngắm toàn cảnh hồ từ trên cao vào lúc bình minh.",
+          "image": "assets/images/details/tadung_lake.jpg"
+        },
+        {
+          "title": "Hang động núi lửa Chư Bluk",
+          "desc": "Hệ thống hang động núi lửa dài nhất Đông Nam Á.",
+          "image": "assets/images/details/chubluk.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Cá lăng sông Sêrêpôk",
+          "desc": "Món cá nướng than hồng thơm lừng.",
+          "image": "assets/images/food/calang.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-LAMDONG-01",
+    "status": "active",
+    "listing_info": {
+      "title": "Cắm trại hồ Tuyền Lâm & Chèo SUP",
+      "location": "Đà Lạt - Lâm Đồng",
+      "short_desc": "Trải nghiệm đêm lửa trại BBQ ấm cúng và đón bình minh sương mù trên mặt hồ mộng mơ.",
+      "thumbnail_url": "assets/images/tours/dalat_thumb.jpg",
+      "rating": 4.9,
+      "reviews_count": 210,
+      "tags": ["Camping", "Giới trẻ"]
+    },
+    "price_config": {
+      "adult_price": 1800000,
+      "child_price": 900000,
+      "currency": "VND",
+      "display_price": "1.800.000VND"
+    },
+    "booking_config": {
+      "duration": "2 ngày 1 đêm",
+      "start_dates": ["Hàng tuần (Thứ 7)"],
+      "meeting_point": "Bến thuyền Tuyền Lâm",
+      "max_slots": 25,
+      "available_slots": 20
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Đà Lạt - Thành phố mộng mơ",
+        "text": "Rời xa khói bụi thành phố để hòa mình vào thiên nhiên Đà Lạt với hoạt động cắm trại cao cấp (Glamping) bên hồ.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Chèo SUP",
+          "desc": "Thư giãn trên mặt hồ lúc sáng sớm sương giăng.",
+          "image": "assets/images/details/sup.jpg"
+        },
+        {
+          "title": "Tiệc BBQ",
+          "desc": "Thưởng thức thịt nướng và rượu vang bên lửa trại.",
+          "image": "assets/images/details/bbq.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Bánh tráng nướng",
+          "desc": "Pizza Việt Nam giòn rụm.",
+          "image": "assets/images/food/banhtrang.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-MIX-01",
+    "status": "active",
+    "listing_info": {
+      "title": "Xuyên Việt: Con đường Xanh Tây Nguyên",
+      "location": "Kon Tum - Gia Lai - Đắk Lắk",
+      "short_desc": "Hành trình 5 ngày 4 đêm đi qua 3 tỉnh, khám phá trọn vẹn vẻ đẹp đại ngàn.",
+      "thumbnail_url": "assets/images/tours/xuyenviet_thumb.jpg",
+      "rating": 5.0,
+      "reviews_count": 15,
+      "tags": ["Khám phá", "Dài ngày"]
+    },
+    "price_config": {
+      "adult_price": 8500000,
+      "child_price": 4250000,
+      "currency": "VND",
+      "display_price": "8.500.000VND"
+    },
+    "booking_config": {
+      "duration": "5 ngày 4 đêm",
+      "start_dates": ["2025-12-01", "2025-12-15"],
+      "meeting_point": "Sân bay Pleiku",
+      "max_slots": 16,
+      "available_slots": 10
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Đại hành trình Tây Nguyên",
+        "text": "Một cung đường - ba điểm đến. Chuyến đi dành cho những ai muốn thấu hiểu sâu sắc văn hóa và con người vùng đất đỏ.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Nhà rông Kon Klor",
+          "desc": "Nhà rông lớn nhất Tây Nguyên.",
+          "image": "assets/images/details/konklor.jpg"
+        },
+        {
+          "title": "Học viện Bóng đá HAGL",
+          "desc": "Tham quan cái nôi của bóng đá Việt Nam.",
+          "image": "assets/images/details/hagl.jpg"
+        },
+        {
+          "title": "Thác Dray Sap",
+          "desc": "Thác khói hùng vĩ giữa rừng già.",
+          "image": "assets/images/details/draysap.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Đại tiệc Cồng Chiêng",
+          "desc": "Ăn tối và giao lưu văn nghệ với người dân tộc.",
+          "image": "assets/images/food/tiec.jpg"
+        }
+      ]
+    }
+  }
+]
+[
+  {
+    "id": "T-KONTUM-02",
+    "status": "active",
+    "listing_info": {
+      "title": "Chinh phục Ngã ba Đông Dương",
+      "location": "Ngọc Hồi - Kon Tum",
+      "short_desc": "Check-in cột mốc biên giới thiêng liêng, nơi 'một con gà gáy cả ba nước cùng nghe' giữa đại ngàn xanh thẳm.",
+      "thumbnail_url": "assets/images/tours/indochina_thumb.jpg",
+      "rating": 4.6,
+      "reviews_count": 32,
+      "tags": ["Khám phá", "Lịch sử"]
+    },
+    "price_config": {
+      "adult_price": 2100000,
+      "child_price": 1050000,
+      "currency": "VND",
+      "display_price": "2.100.000VND"
+    },
+    "booking_config": {
+      "duration": "2 ngày 1 đêm",
+      "start_dates": ["2025-10-20", "2025-10-27"],
+      "meeting_point": "Thành phố Kon Tum",
+      "max_slots": 20,
+      "available_slots": 15
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Cột mốc ngã ba biên giới",
+        "text": "Hành trình đến cực Tây của Tổ quốc, thăm cửa khẩu quốc tế Bờ Y và chạm tay vào cột mốc tam giác phân định Việt Nam - Lào - Campuchia.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Cột mốc biên giới",
+          "desc": "Biểu tượng chủ quyền thiêng liêng làm bằng đá hoa cương.",
+          "image": "assets/images/details/cotmoc.jpg"
+        },
+        {
+          "title": "Cửa khẩu Bờ Y",
+          "desc": "Giao thương sầm uất giữa ba nước Đông Dương.",
+          "image": "assets/images/details/boy.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Gỏi lá Kon Tum",
+          "desc": "Món ăn độc đáo với hơn 40 loại lá rừng khác nhau.",
+          "image": "assets/images/food/goila.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-KONTUM-03",
+    "status": "active",
+    "listing_info": {
+      "title": "Trekking Vườn quốc gia Chư Mom Ray",
+      "location": "Kon Tum",
+      "short_desc": "Thám hiểm đa dạng sinh học tại di sản ASEAN với những cung đường rừng nguyên sinh và cứu hộ thú hoang dã.",
+      "thumbnail_url": "assets/images/tours/chumomray_thumb.jpg",
+      "rating": 4.9,
+      "reviews_count": 18,
+      "tags": ["Trekking", "Mạo hiểm"]
+    },
+    "price_config": {
+      "adult_price": 3500000,
+      "child_price": null,
+      "currency": "VND",
+      "display_price": "3.500.000VND"
+    },
+    "booking_config": {
+      "duration": "3 ngày 2 đêm",
+      "start_dates": ["2025-11-01"],
+      "meeting_point": "Vườn QG Chư Mom Ray",
+      "max_slots": 10,
+      "available_slots": 2
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Di sản thiên nhiên ASEAN",
+        "text": "Chư Mom Ray là nơi bảo tồn nhiều loài thú quý hiếm. Tour dành cho những người có sức khỏe tốt, yêu thích đi bộ đường dài và cắm trại giữa rừng.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Trung tâm cứu hộ thú",
+          "desc": "Tìm hiểu quy trình chăm sóc và tái thả động vật hoang dã.",
+          "image": "assets/images/details/animal_rescue.jpg"
+        },
+        {
+          "title": "Đỉnh Chư Mom Ray",
+          "desc": "Chinh phục độ cao 1.773m.",
+          "image": "assets/images/details/peak.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Cơm nắm muối vừng",
+          "desc": "Bữa ăn dã chiến đậm chất trekking.",
+          "image": "assets/images/food/comnam.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-DAKLAK-02",
+    "status": "active",
+    "listing_info": {
+      "title": "Huyền thoại Hồ Lắk & Buôn Jun",
+      "location": "Lắk - Đắk Lắk",
+      "short_desc": "Chèo thuyền độc mộc trên hồ nước ngọt lớn nhất Tây Nguyên và thăm buôn làng cổ của người M'Nông.",
+      "thumbnail_url": "assets/images/tours/holak_thumb.jpg",
+      "rating": 4.5,
+      "reviews_count": 55,
+      "tags": ["Văn hóa", "Sông nước"]
+    },
+    "price_config": {
+      "adult_price": 1900000,
+      "child_price": 950000,
+      "currency": "VND",
+      "display_price": "1.900.000VND"
+    },
+    "booking_config": {
+      "duration": "1 ngày",
+      "start_dates": ["Hàng ngày"],
+      "meeting_point": "Thị trấn Liên Sơn",
+      "max_slots": 30,
+      "available_slots": 30
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Viên ngọc xanh giữa đại ngàn",
+        "text": "Hồ Lắk đẹp như một bức tranh thủy mặc. Du khách sẽ được trải nghiệm cuộc sống bên nhà dài truyền thống và nét văn hóa mẫu hệ độc đáo.",
+        "video_url": "https://www.youtube.com/embed/sample_holak"
+      },
+      "highlights": [
+        {
+          "title": "Thuyền độc mộc",
+          "desc": "Lênh đênh trên mặt hồ yên ả, ngắm hoàng hôn buông xuống.",
+          "image": "assets/images/details/thuyen.jpg"
+        },
+        {
+          "title": "Buôn Jun",
+          "desc": "Ngôi làng vẫn giữ nguyên vẹn kiến trúc nhà sàn cổ.",
+          "image": "assets/images/details/buonjun.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Chả cá thát lát",
+          "desc": "Đặc sản hồ Lắk, dai ngon tự nhiên.",
+          "image": "assets/images/food/chaca.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-DAKLAK-03",
+    "status": "active",
+    "listing_info": {
+      "title": "Vườn quốc gia Yok Đôn - Tìm dấu chân Voi",
+      "location": "Buôn Đôn - Đắk Lắk",
+      "short_desc": "Trải nghiệm mô hình du lịch thân thiện với voi (không cưỡi) và khám phá hệ sinh thái rừng khộp duy nhất tại Việt Nam.",
+      "thumbnail_url": "assets/images/tours/yokdon_thumb.jpg",
+      "rating": 5.0,
+      "reviews_count": 41,
+      "tags": ["Động vật", "Giáo dục"]
+    },
+    "price_config": {
+      "adult_price": 2800000,
+      "child_price": 1400000,
+      "currency": "VND",
+      "display_price": "2.800.000VND"
+    },
+    "booking_config": {
+      "duration": "2 ngày 1 đêm",
+      "start_dates": ["Thứ 7, Chủ nhật"],
+      "meeting_point": "Cổng Vườn QG Yok Đôn",
+      "max_slots": 12,
+      "available_slots": 6
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Rừng Khộp mùa thay lá",
+        "text": "Yok Đôn là nơi duy nhất bảo tồn rừng khộp rụng lá. Tour đặc biệt nhấn mạnh vào bảo tồn voi, du khách sẽ đi bộ cùng voi trong rừng tự nhiên.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Trải nghiệm cùng Voi",
+          "desc": "Quan sát voi ăn, tắm và sinh hoạt tự nhiên (Cam kết không cưỡi).",
+          "image": "assets/images/details/elephant.jpg"
+        },
+        {
+          "title": "Sông Sêrêpôk",
+          "desc": "Dòng sông chảy ngược dòng độc đáo.",
+          "image": "assets/images/details/serepok.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Canh chua cá lăng",
+          "desc": "Giải nhiệt mùa hè với vị chua thanh mát.",
+          "image": "assets/images/food/canhchua.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-GIALAI-02",
+    "status": "active",
+    "listing_info": {
+      "title": "Thám hiểm thác K50 - Hang Én",
+      "location": "Kbang - Gia Lai",
+      "short_desc": "Hành trình trekking xuyên rừng già Kbang để chạm tay vào 'nàng thơ' K50 hùng vĩ giữa khu bảo tồn Kon Chư Răng.",
+      "thumbnail_url": "assets/images/tours/k50_thumb.jpg",
+      "rating": 4.8,
+      "reviews_count": 25,
+      "tags": ["Trekking", "Thác nước"]
+    },
+    "price_config": {
+      "adult_price": 4200000,
+      "child_price": null,
+      "currency": "VND",
+      "display_price": "4.200.000VND"
+    },
+    "booking_config": {
+      "duration": "2 ngày 1 đêm",
+      "start_dates": ["2025-09-10", "2025-09-24"],
+      "meeting_point": "Thị trấn Kbang",
+      "max_slots": 12,
+      "available_slots": 0
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Tuyệt tác giữa đại ngàn",
+        "text": "Thác K50 tựa như dải lụa bạc vắt ngang trời. Đường vào thác đi qua những cánh rừng nguyên sinh rợp bóng cây cổ thụ.",
+        "video_url": "https://www.youtube.com/embed/sample_k50"
+      },
+      "highlights": [
+        {
+          "title": "Thác K50",
+          "desc": "Ngọn thác cao 50m, nước tung bọt trắng xóa quanh năm.",
+          "image": "assets/images/details/k50.jpg"
+        },
+        {
+          "title": "Hang Én",
+          "desc": "Nơi trú ngụ của hàng ngàn con chim én sau thác nước.",
+          "image": "assets/images/details/hangen.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Thịt heo rừng nướng",
+          "desc": "Đặc sản của người bản địa Kbang.",
+          "image": "assets/images/food/heorung.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-GIALAI-03",
+    "status": "active",
+    "listing_info": {
+      "title": "Thủy điện Yaly & Làng Plei Ốp",
+      "location": "Gia Lai",
+      "short_desc": "Tham quan công trình thủy điện ngầm lớn nhất Tây Nguyên và tìm hiểu văn hóa làng ốp (làng văn hóa du lịch) giữa lòng phố núi.",
+      "thumbnail_url": "assets/images/tours/yaly_thumb.jpg",
+      "rating": 4.3,
+      "reviews_count": 60,
+      "tags": ["Tham quan", "Kiến trúc"]
+    },
+    "price_config": {
+      "adult_price": 1100000,
+      "child_price": 550000,
+      "currency": "VND",
+      "display_price": "1.100.000VND"
+    },
+    "booking_config": {
+      "duration": "1 ngày",
+      "start_dates": ["Hàng ngày"],
+      "meeting_point": "Thành phố Pleiku",
+      "max_slots": 40,
+      "available_slots": 25
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Ánh sáng đại ngàn",
+        "text": "Yaly không chỉ là công trình năng lượng mà còn là điểm du lịch với cảnh quan hùng vĩ của hồ chứa nước và đập tràn.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Đập thủy điện Yaly",
+          "desc": "Công trình đồ sộ chặn dòng Sê San.",
+          "image": "assets/images/details/yaly.jpg"
+        },
+        {
+          "title": "Làng Plei Ốp",
+          "desc": "Ngôi làng Jrai vẫn giữ được nét hoang sơ giữa lòng thành phố.",
+          "image": "assets/images/details/pleiop.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Bò một nắng",
+          "desc": "Đặc sản Krông Pa chấm muối kiến vàng.",
+          "image": "assets/images/food/bomotnang.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-DAKNONG-02",
+    "status": "active",
+    "listing_info": {
+      "title": "Thác Liêng Nung - Cổng trời bí ẩn",
+      "location": "Gia Nghĩa - Đắk Nông",
+      "short_desc": "Vẻ đẹp huyền bí của dòng thác đổ xuống từ vách đá bazan hình lục lăng, tạo nên khung cảnh như cổng trời.",
+      "thumbnail_url": "assets/images/tours/liengnung_thumb.jpg",
+      "rating": 4.7,
+      "reviews_count": 22,
+      "tags": ["Sống ảo", "Thiên nhiên"]
+    },
+    "price_config": {
+      "adult_price": 1300000,
+      "child_price": 650000,
+      "currency": "VND",
+      "display_price": "1.300.000VND"
+    },
+    "booking_config": {
+      "duration": "1 ngày",
+      "start_dates": ["Hàng tuần (Thứ 7)"],
+      "meeting_point": "Thị xã Gia Nghĩa",
+      "max_slots": 15,
+      "available_slots": 8
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Kiệt tác đá Bazan",
+        "text": "Ẩn mình trong thung lũng, Liêng Nung gây ấn tượng với cấu tạo địa chất đặc biệt gồm các khối đá hình lục giác xếp chồng lên nhau.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Vách đá Bazan",
+          "desc": "Kết cấu địa chất độc đáo hình thành từ núi lửa.",
+          "image": "assets/images/details/bazan.jpg"
+        },
+        {
+          "title": "Hồ nước dưới chân thác",
+          "desc": "Nơi du khách có thể tắm mát và thư giãn.",
+          "image": "assets/images/details/liengnung_pool.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Cà đắng cá khô",
+          "desc": "Món ăn dân dã lạ miệng của người M'Nông.",
+          "image": "assets/images/food/cadang.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-DAKNONG-03",
+    "status": "active",
+    "listing_info": {
+      "title": "Thiền viện Trúc Lâm Đạo Nguyên",
+      "location": "Đắk Song - Đắk Nông",
+      "short_desc": "Tìm về chốn thanh tịnh giữa rừng thông và thác nước Nâm Nung, kết hợp du lịch tâm linh và nghỉ dưỡng.",
+      "thumbnail_url": "assets/images/tours/truclam_thumb.jpg",
+      "rating": 4.8,
+      "reviews_count": 30,
+      "tags": ["Tâm linh", "Yên tĩnh"]
+    },
+    "price_config": {
+      "adult_price": 1000000,
+      "child_price": 500000,
+      "currency": "VND",
+      "display_price": "1.000.000VND"
+    },
+    "booking_config": {
+      "duration": "1 ngày",
+      "start_dates": ["Ngày rằm, Mùng 1"],
+      "meeting_point": "Trung tâm Đắk Song",
+      "max_slots": 40,
+      "available_slots": 35
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Chốn bồng lai tiên cảnh",
+        "text": "Thiền viện nằm ẩn mình trong khu bảo tồn thiên nhiên Nâm Nung, quanh năm khí hậu mát mẻ và tĩnh lặng.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Chánh điện",
+          "desc": "Kiến trúc gỗ trang nghiêm giữa rừng thông.",
+          "image": "assets/images/details/chanhdien.jpg"
+        },
+        {
+          "title": "Thác Lưu Ly",
+          "desc": "Dòng thác dịu dàng nằm gần thiền viện.",
+          "image": "assets/images/details/luuly.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Cơm chay thiền viện",
+          "desc": "Thanh đạm và tốt cho sức khỏe.",
+          "image": "assets/images/food/comchay.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-LAMDONG-02",
+    "status": "active",
+    "listing_info": {
+      "title": "Săn mây Cầu Đất & Đồi chè",
+      "location": "Đà Lạt - Lâm Đồng",
+      "short_desc": "Tour buổi sáng sớm săn biển mây bồng bềnh tại thiên đường săn mây và thăm đồi chè trăm tuổi.",
+      "thumbnail_url": "assets/images/tours/caudat_thumb.jpg",
+      "rating": 4.9,
+      "reviews_count": 315,
+      "tags": ["Săn ảnh", "Hot Trend"]
+    },
+    "price_config": {
+      "adult_price": 800000,
+      "child_price": 400000,
+      "currency": "VND",
+      "display_price": "800.000VND"
+    },
+    "booking_config": {
+      "duration": "1/2 ngày (Sáng)",
+      "start_dates": ["Hàng ngày"],
+      "meeting_point": "Chợ Đà Lạt (4:00 AM)",
+      "max_slots": 16,
+      "available_slots": 10
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Đón bình minh trên phố núi",
+        "text": "Trải nghiệm cảm giác đứng trên những tầng mây trắng xóa và hít thở không khí trong lành của đồi chè Cầu Đất Farm.",
+        "video_url": "https://www.youtube.com/embed/sample_caudat"
+      },
+      "highlights": [
+        {
+          "title": "Thảm gỗ săn mây",
+          "desc": "Điểm check-in nổi tiếng nhất Đà Lạt.",
+          "image": "assets/images/details/sannmay.jpg"
+        },
+        {
+          "title": "Tuabin gió",
+          "desc": "Cánh đồng điện gió khổng lồ giữa đồi chè.",
+          "image": "assets/images/details/tuabin.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Sữa đậu nành nóng",
+          "desc": "Thức uống ấm lòng buổi sáng sớm.",
+          "image": "assets/images/food/suadaunanh.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-LAMDONG-03",
+    "status": "active",
+    "listing_info": {
+      "title": "Trekking đỉnh Bidoup - Nóc nhà Lâm Đồng",
+      "location": "Lạc Dương - Lâm Đồng",
+      "short_desc": "Chinh phục độ cao 2.287m qua rừng thông lá dẹt cổ đại và khu rừng rêu ma mị đẹp như trong phim.",
+      "thumbnail_url": "assets/images/tours/bidoup_thumb.jpg",
+      "rating": 4.8,
+      "reviews_count": 40,
+      "tags": ["Trekking", "Thử thách"]
+    },
+    "price_config": {
+      "adult_price": 3800000,
+      "child_price": null,
+      "currency": "VND",
+      "display_price": "3.800.000VND"
+    },
+    "booking_config": {
+      "duration": "2 ngày 1 đêm",
+      "start_dates": ["Cuối tuần"],
+      "meeting_point": "Vườn QG Bidoup Núi Bà",
+      "max_slots": 15,
+      "available_slots": 5
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Khu rừng cổ tích",
+        "text": "Bidoup Núi Bà nổi tiếng với hệ sinh thái độc đáo, đặc biệt là cây thông hai lá dẹt hàng nghìn năm tuổi và thảm rêu xanh mướt.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Cây Pơ Mu đại thụ",
+          "desc": "Cây cổ thụ 1.300 năm tuổi.",
+          "image": "assets/images/details/pomu.jpg"
+        },
+        {
+          "title": "Đỉnh Bidoup",
+          "desc": "Check-in tại chóp inox độ cao 2.287m.",
+          "image": "assets/images/details/bidoup_peak.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "BBQ giữa rừng",
+          "desc": "Tiệc nướng ấm cúng tại bãi cắm trại.",
+          "image": "assets/images/food/bbq_forest.jpg"
+        }
+      ]
+    }
+  }
+]
+[
+  {
+    "id": "T-LAMDONG-04",
+    "status": "active",
+    "listing_info": {
+      "title": "Làng Cù Lần & Ma Rừng Lữ Quán",
+      "location": "Lạc Dương - Lâm Đồng",
+      "short_desc": "Khám phá ngôi làng cổ tích ẩn mình giữa thung lũng sâu và những rừng thông, nơi sinh sống của loài cu li nhút nhát.",
+      "thumbnail_url": "assets/images/tours/culan_thumb.jpg",
+      "rating": 4.4,
+      "reviews_count": 88,
+      "tags": ["Gia đình", "Sống ảo"]
+    },
+    "price_config": {
+      "adult_price": 1500000,
+      "child_price": 750000,
+      "currency": "VND",
+      "display_price": "1.500.000VND"
+    },
+    "booking_config": {
+      "duration": "1 ngày",
+      "start_dates": ["Hàng ngày"],
+      "meeting_point": "Trung tâm Đà Lạt",
+      "max_slots": 20,
+      "available_slots": 15
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Ngôi làng trong truyền thuyết",
+        "text": "Làng Cù Lần mang vẻ đẹp hoang sơ với những ngôi nhà gỗ nhỏ xinh soi bóng xuống hồ nước, được bao bọc bởi rừng thông bạt ngàn.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Xe Jeep vượt suối",
+          "desc": "Trải nghiệm cảm giác mạnh băng rừng lội suối.",
+          "image": "assets/images/details/jeep.jpg"
+        },
+        {
+          "title": "Ma Rừng Lữ Quán",
+          "desc": "Chốn thâm sơn cùng cốc với cảnh sắc ma mị.",
+          "image": "assets/images/details/marung.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Heo tộc nướng",
+          "desc": "Thịt heo nuôi thả tự nhiên trong làng.",
+          "image": "assets/images/food/heotoc.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-LAMDONG-05",
+    "status": "active",
+    "listing_info": {
+      "title": "Thác Pongour - Nam Thiên Đệ Nhất Thác",
+      "location": "Đức Trọng - Lâm Đồng",
+      "short_desc": "Ngắm nhìn dòng thác bảy tầng hùng vĩ trải rộng như một bức rèm khổng lồ, biểu tượng của sự gắn kết các dân tộc Tây Nguyên.",
+      "thumbnail_url": "assets/images/tours/pongour_thumb.jpg",
+      "rating": 4.7,
+      "reviews_count": 102,
+      "tags": ["Thiên nhiên", "Hùng vĩ"]
+    },
+    "price_config": {
+      "adult_price": 1100000,
+      "child_price": 550000,
+      "currency": "VND",
+      "display_price": "1.100.000VND"
+    },
+    "booking_config": {
+      "duration": "1 ngày",
+      "start_dates": ["Hàng ngày"],
+      "meeting_point": "Sân bay Liên Khương",
+      "max_slots": 30,
+      "available_slots": 28
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Kiệt tác của tạo hóa",
+        "text": "Thác Pongour gắn liền với truyền thuyết về nữ tù trưởng Kanai và bốn con tê giác trung thành. Đây là ngọn thác rộng và hùng vĩ bậc nhất Nam Tây Nguyên.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Thác 7 tầng",
+          "desc": "Hệ thống bậc đá tự nhiên tạo nên dòng chảy độc đáo.",
+          "image": "assets/images/details/thac7tang.jpg"
+        },
+        {
+          "title": "Lễ hội Pongour",
+          "desc": "Lễ hội mùa xuân cầu duyên của người K'Ho.",
+          "image": "assets/images/details/lehoi.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Rượu cần",
+          "desc": "Men say đại ngàn trong ngày hội.",
+          "image": "assets/images/food/ruoucan.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-LAMDONG-06",
+    "status": "active",
+    "listing_info": {
+      "title": "Vườn thú Zoodoo & Đà Lạt Milk Farm",
+      "location": "Đơn Dương - Lâm Đồng",
+      "short_desc": "Tour thân thiện cho gia đình và trẻ em, tiếp xúc trực tiếp với các loài thú Úc đáng yêu như Kangaroo, Alpaca giữa đồi thông.",
+      "thumbnail_url": "assets/images/tours/zoodoo_thumb.jpg",
+      "rating": 4.9,
+      "reviews_count": 250,
+      "tags": ["Gia đình", "Trẻ em"]
+    },
+    "price_config": {
+      "adult_price": 1300000,
+      "child_price": 900000,
+      "currency": "VND",
+      "display_price": "1.300.000VND"
+    },
+    "booking_config": {
+      "duration": "1 ngày",
+      "start_dates": ["Hàng ngày"],
+      "meeting_point": "Khách sạn trung tâm",
+      "max_slots": 25,
+      "available_slots": 5
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Nông trại trời Âu",
+        "text": "Một trải nghiệm hoàn toàn khác biệt tại Đà Lạt với phong cách nông trại châu Âu yên bình và những loài động vật thân thiện.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Gặp gỡ Alpaca",
+          "desc": "Chụp hình và cho lạc đà cừu ăn.",
+          "image": "assets/images/details/alpaca.jpg"
+        },
+        {
+          "title": "Cánh đồng hoa hướng dương",
+          "desc": "Tại Đà Lạt Milk Farm (theo mùa).",
+          "image": "assets/images/details/sunflower.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Sữa tươi thanh trùng",
+          "desc": "Sản phẩm tươi ngon ngay tại nông trại.",
+          "image": "assets/images/food/milk.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-LAMDONG-07",
+    "status": "active",
+    "listing_info": {
+      "title": "Chùa Linh Quy Pháp Ấn - Cổng Trời",
+      "location": "Bảo Lộc - Lâm Đồng",
+      "short_desc": "Săn mây tại chốn bồng lai tiên cảnh, nơi có cánh cổng Torii huyền thoại mở ra biển trời mênh mông.",
+      "thumbnail_url": "assets/images/tours/linhquy_thumb.jpg",
+      "rating": 4.6,
+      "reviews_count": 75,
+      "tags": ["Tâm linh", "Săn ảnh"]
+    },
+    "price_config": {
+      "adult_price": 1600000,
+      "child_price": 800000,
+      "currency": "VND",
+      "display_price": "1.600.000VND"
+    },
+    "booking_config": {
+      "duration": "1 ngày",
+      "start_dates": ["Hàng ngày"],
+      "meeting_point": "Trung tâm Bảo Lộc",
+      "max_slots": 20,
+      "available_slots": 12
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Nơi giao thoa trời đất",
+        "text": "Nổi tiếng từ MV 'Lạc Trôi', Linh Quy Pháp Ấn là nơi bạn có thể ngắm nhìn biển mây bồng bềnh dưới chân mình vào buổi sáng sớm.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Cổng Trời (Cổng Torii)",
+          "desc": "Biểu tượng nổi tiếng nhất của ngôi chùa.",
+          "image": "assets/images/details/congtroi.jpg"
+        },
+        {
+          "title": "Quán Chiếu Đường",
+          "desc": "Kiến trúc gỗ mộc mạc mang đậm chất thiền.",
+          "image": "assets/images/details/quanchieu.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Trà Bảo Lộc",
+          "desc": "Thưởng thức trà B'Lao trứ danh.",
+          "image": "assets/images/food/trablao.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-DAKLAK-04",
+    "status": "active",
+    "listing_info": {
+      "title": "Đá Voi Mẹ & Làng cà phê Trung Nguyên",
+      "location": "Đắk Lắk",
+      "short_desc": "Leo lên tảng đá nguyên khối lớn nhất Việt Nam và thưởng thức tinh hoa cà phê trong không gian văn hóa đặc sắc.",
+      "thumbnail_url": "assets/images/tours/davoi_thumb.jpg",
+      "rating": 4.5,
+      "reviews_count": 90,
+      "tags": ["Tham quan", "Cafe"]
+    },
+    "price_config": {
+      "adult_price": 1200000,
+      "child_price": 600000,
+      "currency": "VND",
+      "display_price": "1.200.000VND"
+    },
+    "booking_config": {
+      "duration": "1 ngày",
+      "start_dates": ["Hàng ngày"],
+      "meeting_point": "Buôn Ma Thuột",
+      "max_slots": 40,
+      "available_slots": 30
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Huyền thoại Đá Voi",
+        "text": "Đá Voi Mẹ Yang-Tao mang trong mình lời nguyền tình yêu bí ẩn, là nơi linh thiêng của người đồng bào M'Nông.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Đỉnh Đá Voi Mẹ",
+          "desc": "Ngắm toàn cảnh hồ Lắk và rừng Chư Yang Sin.",
+          "image": "assets/images/details/dinhdavoi.jpg"
+        },
+        {
+          "title": "Làng Cà Phê",
+          "desc": "Không gian thưởng thức cà phê đẳng cấp.",
+          "image": "assets/images/details/langcafe.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Cà phê G7",
+          "desc": "Mua sắm đặc sản làm quà.",
+          "image": "assets/images/food/g7.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-DAKLAK-05",
+    "status": "active",
+    "listing_info": {
+      "title": "Khu du lịch sinh thái Kot Tam",
+      "location": "Buôn Ma Thuột - Đắk Lắk",
+      "short_desc": "Không gian văn hóa Ê Đê giữa lòng thành phố với vườn hoa rực rỡ sắc màu và bến nước đầu nguồn.",
+      "thumbnail_url": "assets/images/tours/kottam_thumb.jpg",
+      "rating": 4.2,
+      "reviews_count": 45,
+      "tags": ["Nghỉ dưỡng", "Văn hóa"]
+    },
+    "price_config": {
+      "adult_price": 900000,
+      "child_price": 450000,
+      "currency": "VND",
+      "display_price": "900.000VND"
+    },
+    "booking_config": {
+      "duration": "1 ngày",
+      "start_dates": ["Cuối tuần"],
+      "meeting_point": "Cổng KDL Kot Tam",
+      "max_slots": 50,
+      "available_slots": 45
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Bức tranh đa sắc màu",
+        "text": "Kot Tam là điểm đến lý tưởng để tìm hiểu văn hóa nhà dài của người Ê Đê và hòa mình vào thiên nhiên tươi mát.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Nhà dài Ê Đê",
+          "desc": "Nơi trưng bày cồng chiêng và nhạc cụ dân tộc.",
+          "image": "assets/images/details/nhadai.jpg"
+        },
+        {
+          "title": "Vườn hoa Mẫu Đơn",
+          "desc": "Check-in rực rỡ sắc màu.",
+          "image": "assets/images/details/maudon.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Xôi nếp nương",
+          "desc": "Dẻo thơm hương lúa mới.",
+          "image": "assets/images/food/xoi.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-GIALAI-04",
+    "status": "active",
+    "listing_info": {
+      "title": "Vườn quốc gia Kon Ka Kinh",
+      "location": "Gia Lai",
+      "short_desc": "Đỉnh cao của đa dạng sinh học, nơi giao thoa của các luồng khí hậu Đông - Tây với hệ động thực vật phong phú.",
+      "thumbnail_url": "assets/images/tours/konkakinh_thumb.jpg",
+      "rating": 4.8,
+      "reviews_count": 12,
+      "tags": ["Ecotourism", "Khoa học"]
+    },
+    "price_config": {
+      "adult_price": 3000000,
+      "child_price": null,
+      "currency": "VND",
+      "display_price": "3.000.000VND"
+    },
+    "booking_config": {
+      "duration": "2 ngày 1 đêm",
+      "start_dates": ["Theo yêu cầu"],
+      "meeting_point": "Hạt kiểm lâm VQG",
+      "max_slots": 8,
+      "available_slots": 8
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Vườn Di sản ASEAN",
+        "text": "Nơi bảo tồn loài Voọc chà vá chân xám quý hiếm. Tour phù hợp cho các nhà nghiên cứu và người yêu thiên nhiên hoang dã.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Cây Đa ngàn năm",
+          "desc": "Hệ rễ khổng lồ bao trùm cả một góc rừng.",
+          "image": "assets/images/details/cayda.jpg"
+        },
+        {
+          "title": "Quan sát thú đêm",
+          "desc": "Trải nghiệm soi thú cùng kiểm lâm.",
+          "image": "assets/images/details/night_safari.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Lá mì xào",
+          "desc": "Món ăn thường ngày của người Jrai.",
+          "image": "assets/images/food/lami.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-GIALAI-05",
+    "status": "active",
+    "listing_info": {
+      "title": "Chùa Minh Thành - Tiểu Nhật Bản",
+      "location": "Pleiku - Gia Lai",
+      "short_desc": "Chiêm ngưỡng ngôi chùa có kiến trúc độc đáo bậc nhất Tây Nguyên, mang hơi thở của xứ sở Phù Tang.",
+      "thumbnail_url": "assets/images/tours/minhthanh_thumb.jpg",
+      "rating": 4.6,
+      "reviews_count": 130,
+      "tags": ["Kiến trúc", "Sống ảo"]
+    },
+    "price_config": {
+      "adult_price": 600000,
+      "child_price": 300000,
+      "currency": "VND",
+      "display_price": "600.000VND"
+    },
+    "booking_config": {
+      "duration": "1/2 ngày",
+      "start_dates": ["Hàng ngày"],
+      "meeting_point": "Chùa Minh Thành",
+      "max_slots": 100,
+      "available_slots": 100
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Kiến trúc Phật giáo độc bản",
+        "text": "Chùa Minh Thành nổi bật với tháp xá lợi 9 tầng và những mái cong vút, là điểm check-in không thể bỏ qua khi đến Pleiku.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Tháp Xá Lợi",
+          "desc": "Công trình cao nhất thành phố Pleiku.",
+          "image": "assets/images/details/thapxaloi.jpg"
+        },
+        {
+          "title": "Tượng Phật A Di Đà",
+          "desc": "Uy nghiêm giữa hồ sen.",
+          "image": "assets/images/details/tuongphat.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Bún mắm cua (Bún thối)",
+          "desc": "Món ăn thử thách lòng can đảm nhưng hương vị khó quên.",
+          "image": "assets/images/food/bunmamcua.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-KONTUM-04",
+    "status": "active",
+    "listing_info": {
+      "title": "Cầu treo Kon Klor & Nhà rông",
+      "location": "Kon Tum",
+      "short_desc": "Tham quan cầu treo công nghiệp to đẹp nhất khu vực Tây Nguyên và nhà rông văn hóa lớn nhất của người Ba Na.",
+      "thumbnail_url": "assets/images/tours/konklor_thumb.jpg",
+      "rating": 4.5,
+      "reviews_count": 70,
+      "tags": ["Văn hóa", "Check-in"]
+    },
+    "price_config": {
+      "adult_price": 800000,
+      "child_price": 400000,
+      "currency": "VND",
+      "display_price": "800.000VND"
+    },
+    "booking_config": {
+      "duration": "1/2 ngày",
+      "start_dates": ["Hàng ngày"],
+      "meeting_point": "Làng Kon Klor",
+      "max_slots": 30,
+      "available_slots": 20
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Biểu tượng Kon Tum",
+        "text": "Cầu treo Kon Klor bắc qua dòng Đắk Bla thơ mộng, nối liền đôi bờ huyền thoại. Bên cạnh là nhà rông Kon Klor sừng sững chọc trời.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Cầu treo Kon Klor",
+          "desc": "Màu cam rực rỡ nổi bật giữa màu xanh núi rừng.",
+          "image": "assets/images/details/cautreo.jpg"
+        },
+        {
+          "title": "Nhà rông Kon Klor",
+          "desc": "Mái nhà cao vút, nơi sinh hoạt cộng đồng.",
+          "image": "assets/images/details/nharong.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Xôi măng",
+          "desc": "Bữa sáng giản dị mà ấm áp của người Kon Tum.",
+          "image": "assets/images/food/xoimang.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-MIX-02",
+    "status": "active",
+    "listing_info": {
+      "title": "Tour Ẩm thực: Vị ngon đại ngàn",
+      "location": "Buôn Ma Thuột",
+      "short_desc": "Hành trình Food Tour khám phá những ngõ ngách ẩm thực đường phố và đặc sản nổi tiếng nhất phố núi.",
+      "thumbnail_url": "assets/images/tours/foodtour_thumb.jpg",
+      "rating": 4.9,
+      "reviews_count": 150,
+      "tags": ["Ẩm thực", "Đường phố"]
+    },
+    "price_config": {
+      "adult_price": 500000,
+      "child_price": 300000,
+      "currency": "VND",
+      "display_price": "500.000VND"
+    },
+    "booking_config": {
+      "duration": "4 tiếng (Tối)",
+      "start_dates": ["Hàng ngày"],
+      "meeting_point": "Ngã 6 Ban Mê",
+      "max_slots": 10,
+      "available_slots": 5
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Ăn sập Ban Mê",
+        "text": "Bạn sẽ được thổ địa dẫn đi thưởng thức từ bún đỏ, bánh ướt thịt nướng đến cà phê trứng béo ngậy.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Chợ đêm Buôn Ma Thuột",
+          "desc": "Thiên đường ăn vặt.",
+          "image": "assets/images/details/chodem.jpg"
+        },
+        {
+          "title": "Quán Cà phê xưa",
+          "desc": "Không gian hoài cổ và yên tĩnh.",
+          "image": "assets/images/details/cafexua.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Bánh ướt chồng dĩa",
+          "desc": "Kỷ lục ăn bao nhiêu chồng bấy nhiêu dĩa.",
+          "image": "assets/images/food/banhuot.jpg"
+        },
+        {
+          "name": "Bò nhúng me",
+          "desc": "Vị chua ngọt kích thích vị giác.",
+          "image": "assets/images/food/bonhungme.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-MIX-03",
+    "status": "active",
+    "listing_info": {
+      "title": "Mùa Con Ong Đi Lấy Mật (Tháng 3)",
+      "location": "Đắk Lắk - Đắk Nông",
+      "short_desc": "Tour trải nghiệm theo mùa: cùng người dân vào rừng lấy mật, xem đua voi và lễ hội mừng lúa mới.",
+      "thumbnail_url": "assets/images/tours/muaong_thumb.jpg",
+      "rating": 5.0,
+      "reviews_count": 20,
+      "tags": ["Mùa vụ", "Lễ hội"]
+    },
+    "price_config": {
+      "adult_price": 1700000,
+      "child_price": 850000,
+      "currency": "VND",
+      "display_price": "1.700.000VND"
+    },
+    "booking_config": {
+      "duration": "2 ngày 1 đêm",
+      "start_dates": ["Tháng 3 hàng năm"],
+      "meeting_point": "Buôn Đôn",
+      "max_slots": 20,
+      "available_slots": 0
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Tháng ba Tây Nguyên",
+        "text": "Thời điểm đẹp nhất trong năm khi hoa cà phê nở trắng trời và không khí lễ hội bao trùm khắp các buôn làng.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Rừng hoa Cà phê",
+          "desc": "Sắc trắng tinh khôi và hương thơm ngào ngạt.",
+          "image": "assets/images/details/hoacaphe.jpg"
+        },
+        {
+          "title": "Lấy mật ong rừng",
+          "desc": "Học cách người dân tộc lấy mật an toàn.",
+          "image": "assets/images/details/matong.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Ve sầu sữa chiên giòn",
+          "desc": "Đặc sản chỉ có vào mùa hè.",
+          "image": "assets/images/food/vesau.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-LAMDONG-08",
+    "status": "active",
+    "listing_info": {
+      "title": "Lang Biang - Chuyện tình K'Lang và H'Biang",
+      "location": "Lạc Dương - Lâm Đồng",
+      "short_desc": "Chinh phục đỉnh núi cao nhất Đà Lạt, nghe kể về thiên tình sử bi thương và ngắm toàn cảnh thành phố sương mù.",
+      "thumbnail_url": "assets/images/tours/langbiang_thumb.jpg",
+      "rating": 4.6,
+      "reviews_count": 180,
+      "tags": ["Leo núi", "Huyền thoại"]
+    },
+    "price_config": {
+      "adult_price": 600000,
+      "child_price": 300000,
+      "currency": "VND",
+      "display_price": "600.000VND"
+    },
+    "booking_config": {
+      "duration": "1/2 ngày",
+      "start_dates": ["Hàng ngày"],
+      "meeting_point": "Chân núi Lang Biang",
+      "max_slots": 50,
+      "available_slots": 40
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Nóc nhà Đà Lạt",
+        "text": "Khu du lịch Lang Biang là điểm đến kinh điển. Du khách có thể đi xe Jeep lên đỉnh Radar để ngắm Suối Vàng, Suối Bạc.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Tượng chàng K'Lang và nàng H'Biang",
+          "desc": "Biểu tượng của tình yêu vĩnh cửu.",
+          "image": "assets/images/details/tuongtinhyeu.jpg"
+        },
+        {
+          "title": "Đỉnh Radar",
+          "desc": "Điểm ngắm cảnh tuyệt đẹp từ độ cao 1.929m.",
+          "image": "assets/images/details/radar.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Khoai lang mật nướng",
+          "desc": "Nóng hổi, ngọt lịm giữa trời lạnh.",
+          "image": "assets/images/food/khoaimat.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-DAKNONG-04",
+    "status": "active",
+    "listing_info": {
+      "title": "Thám hiểm hang động núi lửa Chư Bluk",
+      "location": "Krông Nô - Đắk Nông",
+      "short_desc": "Tour mạo hiểm đi sâu vào lòng đất, khám phá hệ thống hang động núi lửa dài nhất Đông Nam Á với thảm thực vật kỳ bí.",
+      "thumbnail_url": "assets/images/tours/chubluk_thumb.jpg",
+      "rating": 4.8,
+      "reviews_count": 28,
+      "tags": ["Mạo hiểm", "Độc lạ"]
+    },
+    "price_config": {
+      "adult_price": 2500000,
+      "child_price": null,
+      "currency": "VND",
+      "display_price": "2.500.000VND"
+    },
+    "booking_config": {
+      "duration": "2 ngày 1 đêm",
+      "start_dates": ["Cuối tuần"],
+      "meeting_point": "Thác Dray Sáp",
+      "max_slots": 10,
+      "available_slots": 5
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Hành trình vào lòng đất",
+        "text": "Hang C7 là hang động núi lửa dài nhất với cấu tạo độc đáo. Tour yêu cầu thể lực tốt để leo trèo qua các bãi đá sụp.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Cửa hang C7",
+          "desc": "Nơi ánh sáng giao thoa với bóng tối.",
+          "image": "assets/images/details/hangc7.jpg"
+        },
+        {
+          "title": "Rừng dương xỉ",
+          "desc": "Thảm thực vật nguyên sinh ngay dưới miệng hang.",
+          "image": "assets/images/details/duongxi.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Cơm lam ống tre",
+          "desc": "Hương vị núi rừng.",
+          "image": "assets/images/food/comlam.jpg"
+        }
+      ]
+    }
+  },
+  {
+    "id": "T-KONTUM-05",
+    "status": "active",
+    "listing_info": {
+      "title": "Rừng Khộp mùa thay lá (Săn ảnh)",
+      "location": "Sa Thầy - Kon Tum",
+      "short_desc": "Tour nhiếp ảnh chuyên đề: ghi lại khoảnh khắc rừng khộp chuyển màu vàng rực rỡ như trời Âu vào mùa khô.",
+      "thumbnail_url": "assets/images/tours/rungkho_thumb.jpg",
+      "rating": 4.7,
+      "reviews_count": 15,
+      "tags": ["Nhiếp ảnh", "Mùa vụ"]
+    },
+    "price_config": {
+      "adult_price": 1800000,
+      "child_price": 900000,
+      "currency": "VND",
+      "display_price": "1.800.000VND"
+    },
+    "booking_config": {
+      "duration": "2 ngày 1 đêm",
+      "start_dates": ["Tháng 1, Tháng 2"],
+      "meeting_point": "Thành phố Kon Tum",
+      "max_slots": 15,
+      "available_slots": 10
+    },
+    "detail_content": {
+      "intro": {
+        "heading": "Bức tranh thủy mặc",
+        "text": "Vào mùa khô, rừng khộp Tây Nguyên rụng lá tạo nên khung cảnh hoang sơ, tiêu điều nhưng đầy chất thơ, là nguồn cảm hứng vô tận cho nhiếp ảnh gia.",
+        "video_url": ""
+      },
+      "highlights": [
+        {
+          "title": "Rừng khộp Sa Thầy",
+          "desc": "Những thân cây trắng mốc vươn lên trời xanh.",
+          "image": "assets/images/details/rungsathay.jpg"
+        },
+        {
+          "title": "Hoàng hôn rừng khộp",
+          "desc": "Ánh vàng chiều tà xuyên qua kẽ lá.",
+          "image": "assets/images/details/hoanghon.jpg"
+        }
+      ],
+      "cuisine": [
+        {
+          "name": "Thịt chuột đồng nướng",
+          "desc": "Đặc sản mùa gặt của người Jrai (dành cho người dũng cảm).",
+          "image": "assets/images/food/chuotdong.jpg"
+        }
+      ]
+    }
+  }
+]
