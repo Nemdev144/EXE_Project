@@ -234,7 +234,7 @@ export default function ArtisanManagement() {
         </Row>
       </Card>
 
-      <Modal
+      <Modal  
         title="Thêm nghệ nhân mới"
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}

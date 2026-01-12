@@ -11,15 +11,26 @@ import {
   Modal,
   Descriptions,
   message,
+  Popconfirm,
+  Input,
+  DatePicker,
+  Alert,
+  Statistic,
+  Tooltip,
 } from "antd";
 import {
   EyeOutlined,
   MailOutlined,
   CloseOutlined,
-  CheckOutlined,
   DollarOutlined,
+  SearchOutlined,
+  ExportOutlined,
+  CalendarOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import dayjs from "dayjs";
+
+const { RangePicker } = DatePicker;
 
 interface Booking {
   key: string;
@@ -34,16 +45,38 @@ interface Booking {
   bookingDate: string;
   tourDate: string;
   staffLabel?: string;
+  cancelFee?: number;
+  cancelFeePercent?: number;
 }
 
-const statusConfig: Record<string, { label: string; color: string }> = {
-  PENDING: { label: "Chờ thanh toán", color: "warning" },
-  PAID: { label: "Đã thanh toán", color: "success" },
-  CANCELLED: { label: "Đã hủy", color: "error" },
-  REFUNDED: { label: "Đã hoàn tiền", color: "default" },
+const statusConfig: Record<string, { label: string; color: string; bgColor?: string }> = {
+  PENDING: { label: "Chờ thanh toán", color: "#faad14", bgColor: "#fffbe6" },
+  PAID: { label: "Đã thanh toán", color: "#52c41a", bgColor: "#f6ffed" },
+  CANCELLED: { label: "Đã hủy", color: "#ff4d4f", bgColor: "#fff1f0" },
+  REFUNDED: { label: "Đã hoàn tiền", color: "#8c8c8c", bgColor: "#fafafa" },
 };
 
 const staffLabels = ["Đã liên hệ", "Khách đồng ý đổi tour", "Khách không phản hồi"];
+
+// Điều khoản hủy tour
+const cancelPolicy = [
+  { days: 10, feePercent: "10-20%" },
+  { days: 6, feePercent: "30-50%" },
+  { days: 3, feePercent: "70-80%" },
+  { days: 0, feePercent: "100%" },
+];
+
+// Tính phí hủy
+const calculateCancelFee = (bookingDate: string, tourDate: string, totalAmount: number) => {
+  const [day, month, year] = tourDate.split("/");
+  const tour = dayjs(`${year}-${month}-${day}`);
+  const daysUntil = tour.diff(dayjs(), "day");
+
+  if (daysUntil > 10) return { fee: totalAmount * 0.15, percent: 15 };
+  if (daysUntil >= 6) return { fee: totalAmount * 0.4, percent: 40 };
+  if (daysUntil >= 3) return { fee: totalAmount * 0.75, percent: 75 };
+  return { fee: totalAmount, percent: 100 };
+};
 
 export default function BookingManagement() {
   const [bookings, setBookings] = useState<Booking[]>([
@@ -89,16 +122,25 @@ export default function BookingManagement() {
     },
   ]);
 
-  const [filter, setFilter] = useState<{ status: string; tour: string }>({
+  const [filter, setFilter] = useState<{ status: string; tour: string; dateRange?: any }>({
     status: "all",
     tour: "all",
   });
+  const [searchText, setSearchText] = useState("");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
   const filteredBookings = bookings.filter((booking) => {
     if (filter.status !== "all" && booking.status !== filter.status) return false;
     if (filter.tour !== "all" && booking.tour !== filter.tour) return false;
+    if (
+      searchText &&
+      !booking.customer.toLowerCase().includes(searchText.toLowerCase()) &&
+      !booking.email.toLowerCase().includes(searchText.toLowerCase()) &&
+      !booking.id.toLowerCase().includes(searchText.toLowerCase())
+    )
+      return false;
     return true;
   });
 
@@ -109,6 +151,42 @@ export default function BookingManagement() {
       )
     );
     message.success("Cập nhật trạng thái thành công");
+  };
+
+  const handleCancelBooking = (booking: Booking) => {
+    const cancelFee = calculateCancelFee(booking.bookingDate, booking.tourDate, booking.totalAmount);
+    setBookings(
+      bookings.map((b) =>
+        b.id === booking.id
+          ? {
+              ...b,
+              status: "CANCELLED",
+              cancelFee: cancelFee.fee,
+              cancelFeePercent: cancelFee.percent,
+            }
+          : b
+      )
+    );
+    message.warning(
+      `Đã hủy booking. Phí hủy: ${cancelFee.fee.toLocaleString("vi-VN")}đ (${cancelFee.percent}%)`
+    );
+    setIsCancelModalOpen(false);
+  };
+
+  const handleRefund = (id: string) => {
+    const booking = bookings.find((b) => b.id === id);
+    if (booking && booking.cancelFee) {
+      const refundAmount = booking.totalAmount - booking.cancelFee;
+      setBookings(
+        bookings.map((b) => (b.id === id ? { ...b, status: "REFUNDED" } : b))
+      );
+      message.success(
+        `Đã hoàn tiền: ${refundAmount.toLocaleString("vi-VN")}đ (Sau khi trừ phí hủy ${booking.cancelFee.toLocaleString("vi-VN")}đ)`
+      );
+    } else {
+      handleStatusChange(id, "REFUNDED");
+      message.success("Đã hoàn tiền đầy đủ");
+    }
   };
 
   const handleStaffLabel = (id: string, label: string) => {
@@ -125,16 +203,19 @@ export default function BookingManagement() {
       dataIndex: "id",
       key: "id",
       width: 100,
+      fixed: "left",
     },
     {
       title: "Tour",
       dataIndex: "tour",
       key: "tour",
+      width: 200,
       render: (text) => <strong>{text}</strong>,
     },
     {
       title: "Khách hàng",
       key: "customer",
+      width: 200,
       render: (_, record) => (
         <div>
           <div>{record.customer}</div>
@@ -149,38 +230,71 @@ export default function BookingManagement() {
       title: "Số người",
       dataIndex: "participants",
       key: "participants",
+      width: 100,
     },
     {
       title: "Tổng tiền",
       dataIndex: "totalAmount",
       key: "totalAmount",
+      width: 150,
       render: (amount) => (
-        <strong style={{ color: "#8B0000" }}>
-          {amount.toLocaleString("vi-VN")}đ
-        </strong>
+        <strong style={{ color: "#8B0000" }}>{amount.toLocaleString("vi-VN")}đ</strong>
       ),
     },
     {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
+      width: 150,
       render: (status: string) => {
         const config = statusConfig[status];
-        return <Tag color={config.color}>{config.label}</Tag>;
+        return (
+          <Tag
+            color={config.color}
+            style={{
+              backgroundColor: config.bgColor,
+              borderColor: config.color,
+              color: config.color,
+              fontWeight: 500,
+              padding: "4px 12px",
+            }}
+          >
+            {config.label}
+          </Tag>
+        );
       },
     },
     {
       title: "Ngày tour",
       dataIndex: "tourDate",
       key: "tourDate",
+      width: 120,
+      render: (date) => (
+        <div>
+          <CalendarOutlined style={{ marginRight: 4 }} />
+          {date}
+        </div>
+      ),
     },
     {
       title: "Nhãn",
       key: "label",
+      width: 180,
       render: (_, record) => (
         <div>
           {record.staffLabel && (
-            <Tag color="blue" style={{ marginBottom: 4, display: "block" }}>
+            <Tag
+              color="#1890ff"
+              style={{
+                marginBottom: 4,
+                display: "block",
+                backgroundColor: "#e6f7ff",
+                borderColor: "#1890ff",
+                color: "#1890ff",
+                fontWeight: 500,
+                padding: "4px 12px",
+              }}
+            >
               {record.staffLabel}
             </Tag>
           )}
@@ -203,58 +317,166 @@ export default function BookingManagement() {
     {
       title: "Thao tác",
       key: "action",
-      render: (_, record) => (
-        <Space direction="vertical" size="small">
-          <Button
-            type="link"
-            icon={<EyeOutlined />}
-            size="small"
-            onClick={() => {
-              setSelectedBooking(record);
-              setIsModalOpen(true);
-            }}
-          >
-            Chi tiết
-          </Button>
-          {record.status === "PAID" && (
+      width: 200,
+      fixed: "right",
+      render: (_, record) => {
+        const cancelFee = calculateCancelFee(record.bookingDate, record.tourDate, record.totalAmount);
+        return (
+          <Space direction="vertical" size="small" style={{ width: "100%" }}>
             <Button
               type="link"
-              danger
-              icon={<CloseOutlined />}
+              icon={<EyeOutlined />}
               size="small"
-              onClick={() => handleStatusChange(record.id, "CANCELLED")}
+              onClick={() => {
+                setSelectedBooking(record);
+                setIsModalOpen(true);
+              }}
             >
-              Hủy
+              Chi tiết
             </Button>
-          )}
-          {record.status === "CANCELLED" && (
-            <Button
-              type="link"
-              icon={<DollarOutlined />}
-              size="small"
-              onClick={() => handleStatusChange(record.id, "REFUNDED")}
-            >
-              Hoàn tiền
+            {record.status === "PAID" && (
+              <Popconfirm
+                title="Xác nhận hủy booking"
+                description={
+                  <div>
+                    <div>Phí hủy: {cancelFee.percent}%</div>
+                    <div>
+                      Số tiền hoàn:{" "}
+                      {(record.totalAmount - cancelFee.fee).toLocaleString("vi-VN")}đ
+                    </div>
+                  </div>
+                }
+                onConfirm={() => {
+                  setSelectedBooking(record);
+                  setIsCancelModalOpen(true);
+                }}
+                okText="Xác nhận"
+                cancelText="Hủy"
+              >
+                <Button type="link" danger icon={<CloseOutlined />} size="small">
+                  Hủy booking
+                </Button>
+              </Popconfirm>
+            )}
+            {record.status === "CANCELLED" && (
+              <Button
+                type="link"
+                icon={<DollarOutlined />}
+                size="small"
+                onClick={() => handleRefund(record.id)}
+              >
+                Hoàn tiền
+              </Button>
+            )}
+            <Button type="link" icon={<MailOutlined />} size="small">
+              Gửi email
             </Button>
-          )}
-          <Button type="link" icon={<MailOutlined />} size="small">
-            Email
-          </Button>
-        </Space>
-      ),
+          </Space>
+        );
+      },
     },
   ];
 
+  const stats = {
+    total: bookings.length,
+    pending: bookings.filter((b) => b.status === "PENDING").length,
+    paid: bookings.filter((b) => b.status === "PAID").length,
+    cancelled: bookings.filter((b) => b.status === "CANCELLED").length,
+    totalRevenue: bookings
+      .filter((b) => b.status === "PAID")
+      .reduce((sum, b) => sum + b.totalAmount, 0),
+  };
+
   return (
     <Space direction="vertical" size="large" style={{ width: "100%" }}>
-      <Card>
-        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>Quản lý Booking</h2>
-        <p style={{ margin: "4px 0 0 0", color: "#8c8c8c", fontSize: 14 }}>
+      {/* Stats Cards */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            style={{
+              background: "linear-gradient(135deg, #8B0000 0%, #a00000 100%)",
+              border: "none",
+            }}
+            bodyStyle={{ padding: 20 }}
+          >
+            <Statistic
+              title={<span style={{ color: "#fff", opacity: 0.9 }}>Tổng Booking</span>}
+              value={stats.total}
+              valueStyle={{ color: "#fff", fontSize: 28, fontWeight: 700 }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            style={{
+              background: "linear-gradient(135deg, #faad14 0%, #ffc53d 100%)",
+              border: "none",
+            }}
+            bodyStyle={{ padding: 20 }}
+          >
+            <Statistic
+              title={<span style={{ color: "#fff", opacity: 0.9 }}>Chờ thanh toán</span>}
+              value={stats.pending}
+              valueStyle={{ color: "#fff", fontSize: 28, fontWeight: 700 }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            style={{
+              background: "linear-gradient(135deg, #52c41a 0%, #73d13d 100%)",
+              border: "none",
+            }}
+            bodyStyle={{ padding: 20 }}
+          >
+            <Statistic
+              title={<span style={{ color: "#fff", opacity: 0.9 }}>Đã thanh toán</span>}
+              value={stats.paid}
+              valueStyle={{ color: "#fff", fontSize: 28, fontWeight: 700 }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            style={{
+              background: "linear-gradient(135deg, #1890ff 0%, #40a9ff 100%)",
+              border: "none",
+            }}
+            bodyStyle={{ padding: 20 }}
+          >
+            <Statistic
+              title={<span style={{ color: "#fff", opacity: 0.9 }}>Doanh thu</span>}
+              value={stats.totalRevenue / 1000000}
+              precision={1}
+              suffix="M"
+              valueStyle={{ color: "#fff", fontSize: 28, fontWeight: 700 }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      <Card
+        style={{
+          background: "#fff",
+          border: "1px solid #e8e8e8",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+        }}
+      >
+        <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: "#262626" }}>
+          Quản lý Booking
+        </h2>
+        <p style={{ margin: "8px 0 0 0", color: "#8c8c8c", fontSize: 14 }}>
           Quản lý và xử lý booking của khách hàng
         </p>
       </Card>
 
-      <Card>
+      <Card
+        style={{
+          background: "#fff",
+          border: "1px solid #e8e8e8",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+        }}
+      >
         <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
           <Col xs={24} sm={12} md={6}>
             <Select
@@ -283,11 +505,26 @@ export default function BookingManagement() {
               <Select.Option value="Làng nghề Gốm">Làng nghề Gốm</Select.Option>
             </Select>
           </Col>
+          <Col xs={24} sm={12} md={8}>
+            <Input
+              placeholder="Tìm kiếm ID, tên, email..."
+              prefix={<SearchOutlined />}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              allowClear
+            />
+          </Col>
+          <Col xs={24} sm={12} md={4}>
+            <Button icon={<ExportOutlined />} style={{ width: "100%" }}>
+              Xuất Excel
+            </Button>
+          </Col>
         </Row>
 
         <Table
           columns={columns}
           dataSource={filteredBookings}
+          scroll={{ x: 1400 }}
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
@@ -296,6 +533,7 @@ export default function BookingManagement() {
         />
       </Card>
 
+      {/* Modal Chi tiết Booking */}
       <Modal
         title="Chi tiết Booking"
         open={isModalOpen}
@@ -305,7 +543,7 @@ export default function BookingManagement() {
             Đóng
           </Button>,
         ]}
-        width={600}
+        width={700}
       >
         {selectedBooking && (
           <Descriptions column={1} bordered>
@@ -327,7 +565,120 @@ export default function BookingManagement() {
             </Descriptions.Item>
             <Descriptions.Item label="Ngày đặt">{selectedBooking.bookingDate}</Descriptions.Item>
             <Descriptions.Item label="Ngày tour">{selectedBooking.tourDate}</Descriptions.Item>
+            {selectedBooking.staffLabel && (
+              <Descriptions.Item label="Nhãn">
+                <Tag
+                  color="#1890ff"
+                  style={{
+                    backgroundColor: "#e6f7ff",
+                    borderColor: "#1890ff",
+                    color: "#1890ff",
+                    fontWeight: 500,
+                    padding: "4px 12px",
+                  }}
+                >
+                  {selectedBooking.staffLabel}
+                </Tag>
+              </Descriptions.Item>
+            )}
+            {selectedBooking.status === "CANCELLED" && selectedBooking.cancelFee && (
+              <>
+                <Descriptions.Item label="Phí hủy">
+                  <strong style={{ color: "#ff4d4f" }}>
+                    {selectedBooking.cancelFee.toLocaleString("vi-VN")}đ (
+                    {selectedBooking.cancelFeePercent}%)
+                  </strong>
+                </Descriptions.Item>
+                <Descriptions.Item label="Số tiền hoàn">
+                  <strong style={{ color: "#52c41a" }}>
+                    {(selectedBooking.totalAmount - selectedBooking.cancelFee).toLocaleString(
+                      "vi-VN"
+                    )}
+                    đ
+                  </strong>
+                </Descriptions.Item>
+              </>
+            )}
           </Descriptions>
+        )}
+      </Modal>
+
+      {/* Modal Xác nhận hủy */}
+      <Modal
+        title="Xác nhận hủy booking"
+        open={isCancelModalOpen}
+        onCancel={() => setIsCancelModalOpen(false)}
+        footer={null}
+        width={600}
+      >
+        {selectedBooking && (
+          <div>
+            <Alert
+              message="Điều khoản hủy tour"
+              description={
+                <div style={{ marginTop: 8 }}>
+                  <div>• Trước &gt;10 ngày: Phí hủy 10-20%</div>
+                  <div>• 6-10 ngày: Phí hủy 30-50%</div>
+                  <div>• 3-5 ngày: Phí hủy 70-80%</div>
+                  <div>• &lt;3 ngày / No-show: Phí hủy 100%</div>
+                </div>
+              }
+              type="warning"
+              style={{ marginBottom: 16 }}
+            />
+            <Descriptions column={1} bordered>
+              <Descriptions.Item label="Booking ID">{selectedBooking.id}</Descriptions.Item>
+              <Descriptions.Item label="Khách hàng">{selectedBooking.customer}</Descriptions.Item>
+              <Descriptions.Item label="Tour">{selectedBooking.tour}</Descriptions.Item>
+              <Descriptions.Item label="Tổng tiền">
+                {selectedBooking.totalAmount.toLocaleString("vi-VN")}đ
+              </Descriptions.Item>
+              <Descriptions.Item label="Ngày tour">{selectedBooking.tourDate}</Descriptions.Item>
+            </Descriptions>
+            {(() => {
+              const cancelFee = calculateCancelFee(
+                selectedBooking.bookingDate,
+                selectedBooking.tourDate,
+                selectedBooking.totalAmount
+              );
+              return (
+                <div style={{ marginTop: 16 }}>
+                  <Alert
+                    message={`Phí hủy: ${cancelFee.percent}%`}
+                    description={
+                      <div>
+                        <div>
+                          Phí hủy:{" "}
+                          <strong style={{ color: "#ff4d4f" }}>
+                            {cancelFee.fee.toLocaleString("vi-VN")}đ
+                          </strong>
+                        </div>
+                        <div>
+                          Số tiền hoàn:{" "}
+                          <strong style={{ color: "#52c41a" }}>
+                            {(selectedBooking.totalAmount - cancelFee.fee).toLocaleString("vi-VN")}đ
+                          </strong>
+                        </div>
+                      </div>
+                    }
+                    type={cancelFee.percent === 100 ? "error" : "warning"}
+                  />
+                </div>
+              );
+            })()}
+            <div style={{ marginTop: 16, textAlign: "right" }}>
+              <Space>
+                <Button onClick={() => setIsCancelModalOpen(false)}>Hủy</Button>
+                <Button
+                  type="primary"
+                  danger
+                  onClick={() => handleCancelBooking(selectedBooking)}
+                >
+                  Xác nhận hủy
+                </Button>
+              </Space>
+            </div>
+          </div>
         )}
       </Modal>
     </Space>
