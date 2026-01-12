@@ -12,10 +12,6 @@ import {
 import {
   LineChart,
   Line,
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell,
@@ -65,34 +61,11 @@ const revenueData = [
   { month: "T12", revenue: 95, target: 50 },
 ];
 
-const bookingByTour = [
-  { name: "Lễ hội Cồng chiêng", bookings: 45, revenue: 67.5 },
-  { name: "Tour Ẩm thực", bookings: 38, revenue: 95 },
-  { name: "Làng nghề Gốm", bookings: 32, revenue: 25.6 },
-  { name: "Nhà Rông", bookings: 28, revenue: 22.4 },
-  { name: "Cồng chiêng Gia Lai", bookings: 25, revenue: 37.5 },
-];
-
 const tourByProvince = [
   { name: "Đắk Lắk", value: 35, color: "#8B0000" },
   { name: "Gia Lai", value: 28, color: "#C41E3A" },
   { name: "Kon Tum", value: 22, color: "#DC143C" },
   { name: "Lâm Đồng", value: 15, color: "#FF6347" },
-];
-
-const userGrowthData = [
-  { month: "T1", users: 450 },
-  { month: "T2", users: 520 },
-  { month: "T3", users: 580 },
-  { month: "T4", users: 650 },
-  { month: "T5", users: 720 },
-  { month: "T6", users: 800 },
-  { month: "T7", users: 890 },
-  { month: "T8", users: 980 },
-  { month: "T9", users: 1080 },
-  { month: "T10", users: 1150 },
-  { month: "T11", users: 1200 },
-  { month: "T12", users: 1248 },
 ];
 
 const bookingColumns: ColumnsType<BookingData> = [
@@ -195,193 +168,98 @@ const tourStatusData: TourStatusData[] = [
 export default function AdminDashboard() {
   return (
     <Space direction="vertical" size="large" style={{ width: "100%" }}>
-      {/* Stats Cards with Mini Charts */}
+      {/* Stats Cards */}
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
+          <Card className="admin-card" style={{ border: "1px solid #d1d5db", boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}>
             <Statistic
-              title="Tổng Tour"
+              title={<span style={{ color: "#6b7280", fontWeight: 500 }}>Tổng Tour</span>}
               value={24}
-              prefix={<EnvironmentOutlined />}
-              valueStyle={{ color: "#8B0000" }}
+              prefix={<EnvironmentOutlined style={{ color: "#8B0000" }} />}
+              valueStyle={{ color: "#8B0000", fontWeight: 700 }}
               suffix={
-                <span style={{ fontSize: 14, color: "#52c41a" }}>
+                <span className="text-sm text-green-500 font-semibold">
                   <ArrowUpOutlined /> +3
                 </span>
               }
             />
-            <div style={{ marginTop: 16, height: 40 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={revenueData.slice(-6)}>
-                  <Area
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#8B0000"
-                    fill="#8B0000"
-                    fillOpacity={0.2}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
+          <Card className="admin-card" style={{ border: "1px solid #d1d5db", boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}>
             <Statistic
-              title="Booking Hôm nay"
+              title={<span style={{ color: "#6b7280", fontWeight: 500 }}>Booking Hôm nay</span>}
               value={12}
-              prefix={<CalendarOutlined />}
-              valueStyle={{ color: "#8B0000" }}
+              prefix={<CalendarOutlined style={{ color: "#8B0000" }} />}
+              valueStyle={{ color: "#8B0000", fontWeight: 700 }}
               suffix={
-                <span style={{ fontSize: 14, color: "#52c41a" }}>
+                <span className="text-sm text-green-500 font-semibold">
                   <ArrowUpOutlined /> +5
                 </span>
               }
             />
-            <div style={{ marginTop: 16, height: 40 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={bookingByTour.slice(0, 5)}>
-                  <Bar dataKey="bookings" fill="#8B0000" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
+          <Card className="admin-card" style={{ border: "1px solid #d1d5db", boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}>
             <Statistic
-              title="Nội dung Văn hóa"
+              title={<span style={{ color: "#6b7280", fontWeight: 500 }}>Nội dung Văn hóa</span>}
               value={156}
-              prefix={<FileTextOutlined />}
-              valueStyle={{ color: "#8B0000" }}
+              prefix={<FileTextOutlined style={{ color: "#8B0000" }} />}
+              valueStyle={{ color: "#8B0000", fontWeight: 700 }}
               suffix={
-                <span style={{ fontSize: 14, color: "#52c41a" }}>
+                <span className="text-sm text-green-500 font-semibold">
                   <ArrowUpOutlined /> +12
                 </span>
               }
             />
-            <div style={{ marginTop: 16, height: 40 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={revenueData.slice(-6)}>
-                  <Line
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#8B0000"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
+          <Card className="admin-card" style={{ border: "1px solid #d1d5db", boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}>
             <Statistic
-              title="Nghệ nhân"
+              title={<span style={{ color: "#6b7280", fontWeight: 500 }}>Nghệ nhân</span>}
               value={18}
-              prefix={<TeamOutlined />}
-              valueStyle={{ color: "#8B0000" }}
+              prefix={<TeamOutlined style={{ color: "#8B0000" }} />}
+              valueStyle={{ color: "#8B0000", fontWeight: 700 }}
               suffix={
-                <span style={{ fontSize: 14, color: "#52c41a" }}>
+                <span className="text-sm text-green-500 font-semibold">
                   <ArrowUpOutlined /> +2
                 </span>
               }
             />
-            <div style={{ marginTop: 16, height: 40 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={revenueData.slice(-6)}>
-                  <Area
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#52c41a"
-                    fill="#52c41a"
-                    fillOpacity={0.2}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={12}>
-          <Card>
+          <Card className="admin-card" style={{ border: "1px solid #d1d5db", boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}>
             <Statistic
-              title="Doanh thu Tháng"
+              title={<span style={{ color: "#6b7280", fontWeight: 500 }}>Doanh thu Tháng</span>}
               value={125.5}
-              prefix={<DollarOutlined />}
+              prefix={<DollarOutlined style={{ color: "#8B0000" }} />}
               suffix="M"
               precision={1}
-              valueStyle={{ color: "#8B0000", fontSize: 32 }}
+              valueStyle={{ color: "#8B0000", fontSize: 32, fontWeight: 700 }}
             />
-            <div style={{ marginTop: 8, fontSize: 12, color: "#52c41a" }}>
+            <div className="mt-2 text-xs text-green-500 font-medium">
               <RiseOutlined /> +15% so với tháng trước
-            </div>
-            <div style={{ marginTop: 16, height: 60 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={revenueData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="month" tick={{ fontSize: 10 }} />
-                  <YAxis hide />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#8B0000"
-                    strokeWidth={3}
-                    dot={{ fill: "#8B0000", r: 4 }}
-                    activeDot={{ r: 6 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="target"
-                    stroke="#d9d9d9"
-                    strokeWidth={2}
-                    strokeDasharray="5 5"
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
             </div>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={12}>
-          <Card>
+          <Card className="admin-card" style={{ border: "1px solid #d1d5db", boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}>
             <Statistic
-              title="User Đăng ký"
+              title={<span style={{ color: "#6b7280", fontWeight: 500 }}>User Đăng ký</span>}
               value={1248}
-              prefix={<UserOutlined />}
-              valueStyle={{ color: "#8B0000", fontSize: 32 }}
+              prefix={<UserOutlined style={{ color: "#8B0000" }} />}
+              valueStyle={{ color: "#8B0000", fontSize: 32, fontWeight: 700 }}
               suffix={
-                <span style={{ fontSize: 14, color: "#52c41a" }}>
+                <span className="text-sm text-green-500 font-semibold">
                   <ArrowUpOutlined /> +89
                 </span>
               }
             />
-            <div style={{ marginTop: 8, fontSize: 12, color: "#52c41a" }}>
+            <div className="mt-2 text-xs text-green-500 font-medium">
               <RiseOutlined /> Tăng trưởng ổn định
-            </div>
-            <div style={{ marginTop: 16, height: 60 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={userGrowthData}>
-                  <defs>
-                    <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8B0000" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#8B0000" stopOpacity={0.1} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="month" tick={{ fontSize: 10 }} />
-                  <YAxis hide />
-                  <Tooltip />
-                  <Area
-                    type="monotone"
-                    dataKey="users"
-                    stroke="#8B0000"
-                    strokeWidth={2}
-                    fill="url(#colorUsers)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
             </div>
           </Card>
         </Col>
@@ -391,12 +269,14 @@ export default function AdminDashboard() {
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={16}>
           <Card
+            className="admin-card"
+            style={{ border: "1px solid #d1d5db", boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}
             title={
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <Title level={5} style={{ margin: 0 }}>
+              <div className="flex justify-between items-center">
+                <Title level={5} className="m-0" style={{ color: "#111827", fontWeight: 600 }}>
                   Doanh thu theo tháng
                 </Title>
-                <Select defaultValue="2025" style={{ width: 100 }}>
+                <Select defaultValue="2025" className="w-24">
                   <Select.Option value="2025">2025</Select.Option>
                   <Select.Option value="2024">2024</Select.Option>
                 </Select>
@@ -436,7 +316,11 @@ export default function AdminDashboard() {
           </Card>
         </Col>
         <Col xs={24} lg={8}>
-          <Card title={<Title level={5} style={{ margin: 0 }}>Phân bố Tour theo Tỉnh</Title>}>
+          <Card 
+            className="admin-card" 
+            style={{ border: "1px solid #d1d5db", boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}
+            title={<Title level={5} className="m-0" style={{ color: "#111827", fontWeight: 600 }}>Phân bố Tour theo Tỉnh</Title>}
+          >
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -456,30 +340,22 @@ export default function AdminDashboard() {
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
-            <div style={{ marginTop: 16 }}>
+            <div className="mt-4">
               {tourByProvince.map((item, index) => (
                 <div
                   key={index}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "8px 0",
-                    borderBottom: index < tourByProvince.length - 1 ? "1px solid #f0f0f0" : "none",
-                  }}
+                  className={`flex justify-between items-center py-2 ${
+                    index < tourByProvince.length - 1 ? "border-b border-gray-200" : ""
+                  } transition-all duration-200 hover:bg-gray-50 rounded px-2`}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div className="flex items-center gap-2">
                     <div
-                      style={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: "50%",
-                        backgroundColor: item.color,
-                      }}
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: item.color }}
                     />
-                    <span>{item.name}</span>
+                    <span className="text-gray-700">{item.name}</span>
                   </div>
-                  <strong>{item.value} tour</strong>
+                  <strong className="text-gray-800">{item.value} tour</strong>
                 </div>
               ))}
             </div>
@@ -487,41 +363,15 @@ export default function AdminDashboard() {
         </Col>
       </Row>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} lg={12}>
-          <Card title={<Title level={5} style={{ margin: 0 }}>Booking theo Tour</Title>}>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={bookingByTour} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis type="number" />
-                <YAxis dataKey="name" type="category" width={120} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="bookings" name="Số lượng booking" fill="#8B0000" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
-        </Col>
-        <Col xs={24} lg={12}>
-          <Card title={<Title level={5} style={{ margin: 0 }}>Doanh thu theo Tour</Title>}>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={bookingByTour}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-                <YAxis />
-                <Tooltip formatter={(value: number | undefined) => value ? [`${value}M VNĐ`, "Doanh thu"] : ["", ""]} />
-                <Legend />
-                <Bar dataKey="revenue" name="Doanh thu (M VNĐ)" fill="#C41E3A" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
-        </Col>
-      </Row>
-
       {/* Tables */}
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={12}>
-          <Card title="Booking Gần đây" extra={<a href="#">Xem tất cả</a>}>
+          <Card 
+            className="admin-card"
+            style={{ border: "1px solid #d1d5db", boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}
+            title={<span style={{ color: "#111827", fontWeight: 600 }}>Booking Gần đây</span>} 
+            extra={<a href="#" style={{ color: "#8B0000", fontWeight: 500 }}>Xem tất cả</a>}
+          >
             <Table
               columns={bookingColumns}
               dataSource={bookingData}
@@ -531,7 +381,12 @@ export default function AdminDashboard() {
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card title="Trạng thái Tour" extra={<a href="#">Xem tất cả</a>}>
+          <Card 
+            className="admin-card"
+            style={{ border: "1px solid #d1d5db", boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" }}
+            title={<span style={{ color: "#111827", fontWeight: 600 }}>Trạng thái Tour</span>} 
+            extra={<a href="#" style={{ color: "#8B0000", fontWeight: 500 }}>Xem tất cả</a>}
+          >
             <Space direction="vertical" style={{ width: "100%" }} size="middle">
               {tourStatusData.map((item) => (
                 <div key={item.key}>

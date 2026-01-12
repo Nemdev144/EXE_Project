@@ -1,9 +1,9 @@
+/* Ant Design CSS - Must be first */
+@import 'antd/dist/reset.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Ant Design CSS */
-@import 'antd/dist/reset.css';
 
 /* Custom Admin Layout Styles */
 .ant-layout-sider {
@@ -58,4 +58,46 @@
 .ant-avatar:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(139, 0, 0, 0.3) !important;
+}
+
+/* Admin Card Styles - Clear and Visible */
+.admin-card {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.admin-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+  border-color: #d1d5db !important;
+  transform: translateY(-2px);
+}
+
+/* Ant Design Card Override for Better Visibility */
+.ant-card {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+.ant-card-head {
+  border-bottom: 1px solid #e5e7eb !important;
+  background: #ffffff !important;
+}
+
+.ant-card-body {
+  background: #ffffff !important;
+}
+
+/* Stats Cards - Enhanced Visibility */
+.ant-statistic-title {
+  color: #6b7280 !important;
+  font-weight: 500 !important;
+}
+
+.ant-statistic-content {
+  color: #111827 !important;
 }
