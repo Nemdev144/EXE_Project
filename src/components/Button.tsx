@@ -14,7 +14,7 @@ export default function Button({
   const baseStyles = "px-6 py-3 rounded-lg font-semibold transition";
 
   const variantStyles = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700",
+    primary: "bg-[#8B0000] text-white hover:bg-[#6B0000] shadow-md",
     secondary: "bg-gray-600 text-white hover:bg-gray-700",
     danger: "bg-red-600 text-white hover:bg-red-700",
   };

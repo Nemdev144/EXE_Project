@@ -1,3 +1,61 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Ant Design CSS */
+@import 'antd/dist/reset.css';
+
+/* Custom Admin Layout Styles */
+.ant-layout-sider {
+  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+.ant-layout-sider-collapsed .ant-menu-item {
+  padding: 0 16px !important;
+}
+
+.ant-layout-sider-collapsed .ant-menu-item-icon {
+  margin-right: 0 !important;
+}
+
+/* Smooth hover effects */
+.hover\:bg-gray-50:hover {
+  background-color: #fafafa;
+  transition: background-color 0.2s ease;
+}
+
+.hover\:bg-gray-100:hover {
+  background-color: #f5f5f5;
+  transition: background-color 0.2s ease;
+}
+
+/* Smooth transitions for sidebar content */
+.ant-layout-sider .ant-menu {
+  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Header search input focus effect */
+.ant-input:focus {
+  border-color: #8B0000 !important;
+  box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.1) !important;
+}
+
+/* Smooth collapse animation */
+.ant-layout-sider-trigger {
+  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Menu item hover effect */
+.ant-menu-item:hover {
+  transition: all 0.2s ease;
+}
+
+/* Avatar hover effect */
+.ant-avatar {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ant-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(139, 0, 0, 0.3) !important;
+}
