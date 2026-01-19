@@ -18,12 +18,10 @@ import {
 import type { MenuProps } from "antd";
 import {
   DashboardOutlined,
-  FileTextOutlined,
-  EnvironmentOutlined,
   CalendarOutlined,
+  EnvironmentOutlined,
   TeamOutlined,
-  UserOutlined,
-  MailOutlined,
+  FileTextOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   SettingOutlined,
@@ -38,82 +36,63 @@ import { antdTheme } from "../../config/antd-theme";
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
 
-interface AdminLayoutProps {
+interface StaffLayoutProps {
   children: ReactNode;
 }
 
 const menuItems: MenuProps["items"] = [
   {
-    key: "/admin",
+    key: "/staff",
     icon: <DashboardOutlined />,
-    label: <Link to="/admin">Dashboard</Link>,
+    label: <Link to="/staff">Dashboard</Link>,
   },
   {
-    key: "/admin/content",
-    icon: <FileTextOutlined />,
-    label: <Link to="/admin/content">Quản lý Nội dung</Link>,
-  },
-  {
-    key: "/admin/tours",
-    icon: <EnvironmentOutlined />,
-    label: <Link to="/admin/tours">Quản lý Tour</Link>,
-  },
-  {
-    key: "/admin/bookings",
+    key: "/staff/bookings",
     icon: <CalendarOutlined />,
-    label: <Link to="/admin/bookings">Quản lý Booking</Link>,
+    label: <Link to="/staff/bookings">Quản lý Booking</Link>,
   },
   {
-    key: "/admin/artisans",
+    key: "/staff/tours",
+    icon: <EnvironmentOutlined />,
+    label: <Link to="/staff/tours">Điều phối Tour</Link>,
+  },
+  {
+    key: "/staff/artisans",
     icon: <TeamOutlined />,
-    label: <Link to="/admin/artisans">Quản lý Nghệ nhân</Link>,
+    label: <Link to="/staff/artisans">Quản lý Nghệ nhân</Link>,
   },
   {
-    key: "/admin/users",
-    icon: <UserOutlined />,
-    label: <Link to="/admin/users">Quản lý User/Staff</Link>,
-  },
-  {
-    key: "/admin/emails",
-    icon: <MailOutlined />,
-    label: <Link to="/admin/emails">Email Templates</Link>,
+    key: "/staff/content",
+    icon: <FileTextOutlined />,
+    label: <Link to="/staff/content">Quản lý Nội dung</Link>,
   },
 ];
 
 const pageTitles: Record<string, string> = {
-  "/admin": "Dashboard",
-  "/admin/content": "Quản lý Nội dung",
-  "/admin/tours": "Quản lý Tour",
-  "/admin/bookings": "Quản lý Booking",
-  "/admin/artisans": "Quản lý Nghệ nhân",
-  "/admin/users": "Quản lý User/Staff",
-  "/admin/emails": "Email Templates",
+  "/staff": "Dashboard",
+  "/staff/bookings": "Quản lý Booking",
+  "/staff/tours": "Điều phối Tour",
+  "/staff/artisans": "Quản lý Nghệ nhân",
+  "/staff/content": "Quản lý Nội dung",
 };
 
 const breadcrumbMap: Record<string, { title: string; path?: string }[]> = {
-  "/admin": [{ title: "Dashboard" }],
-  "/admin/content": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Nội dung" }],
-  "/admin/tours": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Tour" }],
-  "/admin/bookings": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Booking" }],
-  "/admin/artisans": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Nghệ nhân" }],
-  "/admin/users": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý User/Staff" }],
-  "/admin/emails": [{ title: "Dashboard", path: "/admin" }, { title: "Email Templates" }],
+  "/staff": [{ title: "Dashboard" }],
+  "/staff/bookings": [{ title: "Dashboard", path: "/staff" }, { title: "Quản lý Booking" }],
+  "/staff/tours": [{ title: "Dashboard", path: "/staff" }, { title: "Điều phối Tour" }],
+  "/staff/artisans": [{ title: "Dashboard", path: "/staff" }, { title: "Quản lý Nghệ nhân" }],
+  "/staff/content": [{ title: "Dashboard", path: "/staff" }, { title: "Quản lý Nội dung" }],
 };
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
+export default function StaffLayout({ children }: StaffLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
 
   const userMenuItems: MenuProps["items"] = [
     {
       key: "profile",
-      icon: <UserOutlined />,
-      label: "Thông tin cá nhân",
-    },
-    {
-      key: "settings",
       icon: <SettingOutlined />,
-      label: "Cài đặt",
+      label: "Thông tin cá nhân",
     },
     {
       type: "divider",
@@ -143,23 +122,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       key: "2",
       label: (
         <div style={{ padding: "8px 0" }}>
-          <div style={{ fontWeight: 500, marginBottom: 4 }}>Tour sắp hết hạn</div>
+          <div style={{ fontWeight: 500, marginBottom: 4 }}>Tour cần xử lý</div>
           <Text type="secondary" style={{ fontSize: 12 }}>
-            Tour Ẩm thực Tây Nguyên còn 2 ngày
+            Tour Ẩm thực Tây Nguyên còn thiếu người
           </Text>
           <div style={{ fontSize: 11, color: "#8c8c8c", marginTop: 4 }}>1 giờ trước</div>
-        </div>
-      ),
-    },
-    {
-      key: "3",
-      label: (
-        <div style={{ padding: "8px 0" }}>
-          <div style={{ fontWeight: 500, marginBottom: 4 }}>Nội dung chờ duyệt</div>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            Có 3 nội dung mới chờ duyệt
-          </Text>
-          <div style={{ fontSize: 11, color: "#8c8c8c", marginTop: 4 }}>2 giờ trước</div>
         </div>
       ),
     },
@@ -245,7 +212,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <div style={{ fontWeight: "bold", fontSize: 16, color: "#262626" }}>
                   Cội Việt
                 </div>
-                <div style={{ fontSize: 12, color: "#8c8c8c" }}>Admin Panel</div>
+                <div style={{ fontSize: 12, color: "#8c8c8c" }}>Staff Panel</div>
               </div>
             )}
           </div>
@@ -415,7 +382,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 overlayStyle={{ width: 320 }}
                 trigger={["click"]}
               >
-                <Badge count={5} size="small" offset={[-5, 5]}>
+                <Badge count={3} size="small" offset={[-5, 5]}>
                   <Button
                     type="text"
                     icon={<BellOutlined style={{ fontSize: 18 }} />}
@@ -455,17 +422,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <Avatar
                     size={40}
                     style={{
-                      backgroundColor: "#8B0000",
+                      backgroundColor: "#1890ff",
                       flexShrink: 0,
                     }}
                   >
-                    A
+                    S
                   </Avatar>
                   <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.5 }}>
                     <span style={{ fontSize: 14, fontWeight: 500, color: "#262626" }}>
-                      Admin User
+                      Staff User
                     </span>
-                    <span style={{ fontSize: 12, color: "#8c8c8c" }}>admin@coiviet.com</span>
+                    <span style={{ fontSize: 12, color: "#8c8c8c" }}>staff@coiviet.com</span>
                   </div>
                 </Space>
               </Dropdown>
