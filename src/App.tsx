@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import AdminLayout from "./components/admin/AdminLayout";
+import StaffLayout from "./components/staff/StaffLayout";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -13,6 +14,13 @@ import BookingManagementPage from "./pages/admin/BookingManagement";
 import ArtisanManagementPage from "./pages/admin/ArtisanManagement";
 import UserManagementPage from "./pages/admin/UserManagement";
 import EmailTemplatesPage from "./pages/admin/EmailTemplates";
+
+// Staff Pages
+import StaffDashboardPage from "./pages/staff/StaffDashboard";
+import StaffBookingManagementPage from "./pages/staff/BookingManagement";
+import TourCoordinationPage from "./pages/staff/TourCoordination";
+import StaffArtisanManagementPage from "./pages/staff/ArtisanManagement";
+import StaffContentManagementPage from "./pages/staff/ContentManagement";
 
 function App() {
   return (
@@ -47,6 +55,22 @@ function App() {
                 <Route path="/emails" element={<EmailTemplatesPage />} />
               </Routes>
             </AdminLayout>
+          }
+        />
+
+        {/* Staff Routes */}
+        <Route
+          path="/staff/*"
+          element={
+            <StaffLayout>
+              <Routes>
+                <Route path="/" element={<StaffDashboardPage />} />
+                <Route path="/bookings" element={<StaffBookingManagementPage />} />
+                <Route path="/tours" element={<TourCoordinationPage />} />
+                <Route path="/artisans" element={<StaffArtisanManagementPage />} />
+                <Route path="/content" element={<StaffContentManagementPage />} />
+              </Routes>
+            </StaffLayout>
           }
         />
       </Routes>
