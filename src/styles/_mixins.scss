@@ -1,0 +1,145 @@
+// ============================================
+// Mixins - Reusable Styles
+// ============================================
+
+@import 'variables';
+
+// Responsive Breakpoints
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == sm {
+    @media (min-width: $breakpoint-sm) { @content; }
+  }
+  @if $breakpoint == md {
+    @media (min-width: $breakpoint-md) { @content; }
+  }
+  @if $breakpoint == lg {
+    @media (min-width: $breakpoint-lg) { @content; }
+  }
+  @if $breakpoint == xl {
+    @media (min-width: $breakpoint-xl) { @content; }
+  }
+  @if $breakpoint == 2xl {
+    @media (min-width: $breakpoint-2xl) { @content; }
+  }
+}
+
+// Flexbox Utilities
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+// Form Input Styles
+@mixin form-input {
+  width: 100%;
+  padding: $spacing-md $spacing-lg;
+  background-color: $color-gray-100;
+  border: 1px solid $color-gray-200;
+  border-radius: $radius-xl;
+  font-size: $font-size-base;
+  color: $color-gray-900;
+  transition: all $transition-base;
+
+  &::placeholder {
+    color: $color-gray-500;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: transparent;
+    box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.2);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// Button Variants
+@mixin button-base {
+  padding: $spacing-sm $spacing-xl;
+  border-radius: $radius-full;
+  font-weight: $font-weight-semibold;
+  transition: all $transition-base;
+  cursor: pointer;
+  border: none;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+@mixin button-primary {
+  @include button-base;
+  background-color: $color-primary;
+  color: $color-white;
+
+  &:hover:not(:disabled) {
+    background-color: $color-primary-hover;
+  }
+}
+
+@mixin button-secondary {
+  @include button-base;
+  background-color: $color-gray-600;
+  color: $color-white;
+
+  &:hover:not(:disabled) {
+    background-color: $color-gray-700;
+  }
+}
+
+@mixin button-danger {
+  @include button-base;
+  background-color: $color-red-600;
+  color: $color-white;
+
+  &:hover:not(:disabled) {
+    background-color: $color-red-700;
+  }
+}
+
+// Card Styles
+@mixin card {
+  background-color: $color-white;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-lg;
+  padding: $spacing-xl;
+}
+
+// Screen Full Height/Width
+@mixin screen-full {
+  width: 100vw;
+  height: 100vh;
+}
+
+// Text Utilities
+@mixin text-center {
+  text-align: center;
+}
+
+@mixin text-bold {
+  font-weight: $font-weight-bold;
+}
+
+@mixin text-semibold {
+  font-weight: $font-weight-semibold;
+}

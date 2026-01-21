@@ -2,9 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import AdminLayout from "./components/admin/AdminLayout";
 import StaffLayout from "./components/staff/StaffLayout";
-import Home from "./pages/Home";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 // Admin Pages
 import AdminDashboardPage from "./pages/admin/AdminDashboard";
@@ -26,53 +25,34 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Auth Routes - No layout wrapper */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
         {/* Public Routes */}
-        <Route
-          path="/*"
-          element={
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-        </Routes>
-      </Layout>
-          }
-        />
+        <Route element={<Layout />}>
+          <Route path="/" element={<div>Home Page</div>} />
+        </Route>
 
         {/* Admin Routes */}
-        <Route
-          path="/admin/*"
-          element={
-            <AdminLayout>
-              <Routes>
-                <Route path="/" element={<AdminDashboardPage />} />
-                <Route path="/content" element={<ContentManagementPage />} />
-                <Route path="/tours" element={<TourManagementPage />} />
-                <Route path="/bookings" element={<BookingManagementPage />} />
-                <Route path="/artisans" element={<ArtisanManagementPage />} />
-                <Route path="/users" element={<UserManagementPage />} />
-                <Route path="/emails" element={<EmailTemplatesPage />} />
-              </Routes>
-            </AdminLayout>
-          }
-        />
+        <Route element={<AdminLayout />}>
+          <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="/admin/content" element={<ContentManagementPage />} />
+          <Route path="/admin/tours" element={<TourManagementPage />} />
+          <Route path="/admin/bookings" element={<BookingManagementPage />} />
+          <Route path="/admin/artisans" element={<ArtisanManagementPage />} />
+          <Route path="/admin/users" element={<UserManagementPage />} />
+          <Route path="/admin/emails" element={<EmailTemplatesPage />} />
+        </Route>
 
         {/* Staff Routes */}
-        <Route
-          path="/staff/*"
-          element={
-            <StaffLayout>
-              <Routes>
-                <Route path="/" element={<StaffDashboardPage />} />
-                <Route path="/bookings" element={<StaffBookingManagementPage />} />
-                <Route path="/tours" element={<TourCoordinationPage />} />
-                <Route path="/artisans" element={<StaffArtisanManagementPage />} />
-                <Route path="/content" element={<StaffContentManagementPage />} />
-              </Routes>
-            </StaffLayout>
-          }
-        />
+        <Route element={<StaffLayout />}>
+          <Route path="/staff" element={<StaffDashboardPage />} />
+          <Route path="/staff/bookings" element={<StaffBookingManagementPage />} />
+          <Route path="/staff/tours" element={<TourCoordinationPage />} />
+          <Route path="/staff/artisans" element={<StaffArtisanManagementPage />} />
+          <Route path="/staff/content" element={<StaffContentManagementPage />} />
+        </Route>
       </Routes>
     </Router>
   );

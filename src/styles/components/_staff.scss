@@ -1,0 +1,24 @@
+// ============================================
+// Staff Components Styles
+// ============================================
+
+@import '../variables';
+@import '../mixins';
+
+// Staff card - tương tự admin-card nhưng có thể tùy chỉnh riêng
+.staff-card {
+  background-color: $color-white;
+  border: 1px solid $color-gray-200;
+  border-radius: $radius-lg;
+  transition: all $transition-slow;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+
+  &:hover {
+    border-color: $color-gray-300;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+  }
+}
+
+// Staff có thể dùng chung admin-card (đã được import từ _admin.scss)
+// Hoặc dùng riêng staff-card để phân biệt nếu cần
