@@ -1,5 +1,5 @@
 import React, { ReactNode, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, Outlet } from "react-router-dom";
 import {
   ConfigProvider,
   Layout,
@@ -37,7 +37,7 @@ const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
 
 interface StaffLayoutProps {
-  children: ReactNode;
+  children?: ReactNode; // Optional for backward compatibility
 }
 
 const menuItems: MenuProps["items"] = [
@@ -85,6 +85,8 @@ const breadcrumbMap: Record<string, { title: string; path?: string }[]> = {
 };
 
 export default function StaffLayout({ children }: StaffLayoutProps) {
+  // Support both children (legacy) and Outlet (React Router v6)
+  const content = children || <Outlet />;
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
 
@@ -450,7 +452,7 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
               transition: "all 0.3s cubic-bezier(0.2, 0, 0, 1)",
             }}
           >
-            {children}
+            {content}
           </Content>
         </Layout>
       </Layout>

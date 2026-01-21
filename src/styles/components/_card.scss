@@ -1,0 +1,17 @@
+// ============================================
+// Card Component
+// ============================================
+
+@import '../variables';
+@import '../mixins';
+
+.card {
+  @include card;
+
+  &__title {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $color-gray-900;
+    margin-bottom: $spacing-lg;
+  }
+}

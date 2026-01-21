@@ -1,0 +1,21 @@
+// ============================================
+// Main SCSS Entry Point
+// ============================================
+
+// Base
+@import 'base';
+
+// Ant Design Overrides
+@import 'antd-overrides';
+
+// Components
+@import 'components/button';
+@import 'components/card';
+@import 'components/form';
+@import 'components/layout';
+@import 'components/admin';
+@import 'components/staff';
+
+// Pages
+@import 'pages/login';
+@import 'pages/register';

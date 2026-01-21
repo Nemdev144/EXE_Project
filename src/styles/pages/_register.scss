@@ -1,0 +1,233 @@
+// ============================================
+// Register Page Styles
+// ============================================
+
+@import '../variables';
+@import '../mixins';
+
+.register-page {
+  @include screen-full;
+  background-color: #faf9f6; // Màu be nhạt như trong ảnh
+  display: flex;
+  overflow: hidden;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  @include respond-to(lg) {
+    flex-direction: row;
+  }
+
+  // Left Form Container (45% width)
+  &__form-container {
+    width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: $spacing-lg $spacing-md;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background-color: #faf9f6; // Màu be nhạt
+    order: 1;
+    
+    // Ẩn hoàn toàn scrollbar nhưng vẫn cho phép scroll
+    scrollbar-width: none; // Firefox
+    -ms-overflow-style: none; // IE and Edge
+    
+    &::-webkit-scrollbar {
+      display: none; // Chrome, Safari, Opera
+      width: 0;
+      height: 0;
+    }
+
+    @include respond-to(lg) {
+      width: 45%;
+      order: 1;
+      padding: $spacing-xl $spacing-lg;
+    }
+  }
+
+  // Right Image Container (55% width)
+  &__image-container {
+    display: none;
+
+    @include respond-to(lg) {
+      display: flex;
+      width: 55%;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+      order: 2;
+      background-color: #f5f5f5; // Nền xám nhạt để ảnh không bị trống
+    }
+  }
+
+  &__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: scale(1);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+    
+    // Giữ tỷ lệ ảnh nhưng không phóng to quá
+    min-width: 100%;
+    min-height: 100%;
+  }
+  
+  &__image-container:hover &__image {
+    transform: scale(1.02);
+  }
+
+  &__form-wrapper {
+    width: 100%;
+    max-width: 28rem; // max-w-md
+    animation: fadeInUp 0.6s ease-out;
+    max-height: calc(100vh - 4rem); // Giới hạn chiều cao để không overflow
+    
+    @include respond-to(lg) {
+      max-width: 32rem;
+    }
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  &__title {
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+    text-align: center;
+    margin-bottom: $spacing-xs;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  &__subtitle {
+    text-align: center;
+    color: $color-gray-700;
+    margin-bottom: $spacing-xl;
+    font-size: $font-size-sm;
+    line-height: 1.6;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $spacing-lg;
+
+    @include respond-to(md) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__label {
+    display: block;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-gray-700;
+    margin-bottom: $spacing-sm;
+  }
+
+  &__required {
+    color: $color-red-600;
+  }
+
+  &__input {
+    @include form-input;
+    border-radius: $radius-xl;
+    min-height: 44px;
+    background-color: $color-gray-100;
+    border: 1px solid $color-gray-200;
+    font-size: $font-size-base;
+    transition: all $transition-base;
+    
+    &::placeholder {
+      color: $color-gray-500;
+      transition: opacity $transition-fast;
+    }
+
+    &:hover {
+      border-color: $color-gray-300;
+      background-color: $color-white;
+    }
+
+    &:focus {
+      background-color: $color-white;
+      border-color: $color-primary;
+      box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
+      outline: none;
+      
+      &::placeholder {
+        opacity: 0.5;
+      }
+    }
+  }
+
+  &__submit-button {
+    @include button-primary;
+    width: 100%;
+    padding: $spacing-md $spacing-xl;
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    box-shadow: 0 4px 12px rgba(139, 0, 0, 0.2);
+    transition: all $transition-base;
+    
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(139, 0, 0, 0.3);
+    }
+    
+    &:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(139, 0, 0, 0.2);
+    }
+  }
+
+  &__login-link {
+    text-align: center;
+    font-size: $font-size-sm;
+    margin-top: $spacing-xl;
+    color: $color-gray-600;
+
+    a {
+      color: $color-primary;
+      font-weight: $font-weight-semibold;
+      transition: all $transition-fast;
+
+      &:hover {
+        text-decoration: underline;
+        color: $color-primary-hover;
+      }
+    }
+  }
+}
