@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import { Navbar, Footer } from './components/layout';
-import { HomePage } from './pages';
+import { HomePage, ToursPage } from './pages';
 
 function App() {
     return (
@@ -9,8 +9,8 @@ function App() {
             <div className="flex-1">
                 <Routes>
                     <Route path="/" element={<HomePage />} />
-                    {/* Add more routes here as needed */}
-                    <Route path="/tours" element={<PlaceholderPage title="Tours" />} />
+                    <Route path="/tours" element={<ToursPage />} />
+                    <Route path="/tours/:id" element={<PlaceholderPage title="Chi tiết Tour" />} />
                     <Route path="/artisans" element={<PlaceholderPage title="Góc Nghệ Nhân" />} />
                     <Route path="/learn" element={<PlaceholderPage title="Học Nhanh" />} />
                     <Route path="/about" element={<PlaceholderPage title="Về Chúng Tôi" />} />
