@@ -1,4 +1,4 @@
-import { ApiResponse, HomePageResponse, Tour, Province } from "../types";
+import { ApiResponse, HomePageResponse, Tour, Province, BlogPost } from "../types";
 
 const BASE_URL = "https://exe-1-k8ma.onrender.com/api";
 
@@ -66,6 +66,32 @@ export const provinceService = {
     // Get province by ID
     getProvinceById: async (id: number): Promise<Province> => {
         const response = await fetchApi<ApiResponse<Province>>(`/public/provinces/${id}`);
+        return response.data;
+    },
+};
+
+export const blogPostService = {
+    // Get all blog posts with optional filters
+    getBlogPosts: async (params?: {
+        provinceId?: number;
+        page?: number;
+        limit?: number;
+        status?: string;
+    }): Promise<{ blogPosts: BlogPost[]; total: number; page: number; limit: number }> => {
+        const queryParams = new URLSearchParams();
+        if (params?.provinceId) queryParams.append('provinceId', params.provinceId.toString());
+        if (params?.page) queryParams.append('page', params.page.toString());
+        if (params?.limit) queryParams.append('limit', params.limit.toString());
+        if (params?.status) queryParams.append('status', params.status);
+
+        const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+        const response = await fetchApi<ApiResponse<{ blogPosts: BlogPost[]; total: number; page: number; limit: number }>>(`/public/blog-posts${queryString}`);
+        return response.data;
+    },
+
+    // Get a single blog post by ID
+    getBlogPostById: async (id: number): Promise<BlogPost> => {
+        const response = await fetchApi<ApiResponse<BlogPost>>(`/public/blog-posts/${id}`);
         return response.data;
     },
 };

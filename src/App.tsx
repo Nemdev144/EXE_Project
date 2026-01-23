@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import { Navbar, Footer } from './components/layout';
-import { HomePage, ToursPage } from './pages';
+import { HomePage, ToursPage, BlogPage } from './pages';
 
 function App() {
     return (
@@ -11,6 +11,8 @@ function App() {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/tours" element={<ToursPage />} />
                     <Route path="/tours/:id" element={<PlaceholderPage title="Chi tiết Tour" />} />
+                    <Route path="/blog" element={<BlogPage />} />
+                    <Route path="/blog/:id" element={<PlaceholderPage title="Chi tiết Bài viết" />} />
                     <Route path="/artisans" element={<PlaceholderPage title="Góc Nghệ Nhân" />} />
                     <Route path="/learn" element={<PlaceholderPage title="Học Nhanh" />} />
                     <Route path="/about" element={<PlaceholderPage title="Về Chúng Tôi" />} />
