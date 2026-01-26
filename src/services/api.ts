@@ -20,14 +20,56 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// Response interceptor for error handling
+// Response interceptor for token refresh and error handling
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
+        const originalRequest = error.config;
+        
+        // Handle 401 Unauthorized - token expired
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+            
+            const refreshToken = localStorage.getItem('refreshToken');
+            if (refreshToken) {
+                try {
+                    // Try to refresh token
+                    const response = await axios.post(`${API_BASE_URL}/api/admin/auth/refresh`, {
+                        refreshToken,
+                    });
+                    
+                    const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+                    localStorage.setItem('accessToken', accessToken);
+                    if (newRefreshToken) {
+                        localStorage.setItem('refreshToken', newRefreshToken);
+                    }
+                    
+                    // Retry original request with new token
+                    originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+                    return api(originalRequest);
+                } catch (refreshError) {
+                    // Refresh failed, logout user
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('isAuthenticated');
+                    localStorage.removeItem('userAccount');
+                    window.location.href = '/login';
+                    return Promise.reject(refreshError);
+                }
+            } else {
+                // No refresh token, redirect to login
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('isAuthenticated');
+                localStorage.removeItem('userAccount');
+                window.location.href = '/login';
+            }
+        }
+        
         console.error('API Error:', error.response?.data || error.message);
         return Promise.reject(error);
     }
 );
+
 
 // ========== Home API ==========
 export const getHomePageData = async (limit = 10): Promise<HomePageResponse> => {
