@@ -5,13 +5,42 @@
 @import '../variables';
 @import '../mixins';
 
+// Base Card
 .card {
-  @include card;
+  background: white;
+  border-radius: var(--radius-lg, $radius-lg);
+  box-shadow: var(--shadow-md, $shadow-md);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl, $shadow-xl);
+  }
 
   &__title {
     font-size: $font-size-xl;
     font-weight: $font-weight-bold;
     color: $color-gray-900;
     margin-bottom: $spacing-lg;
+  }
+}
+
+// Stamp Card (Tour Cards) - Vietnamese stamp-inspired design
+.stamp-card {
+  position: relative;
+  background: white;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  border: 8px solid var(--color-primary);
+  box-shadow: var(--color-primary) 0px 10px 20px -8px;
+  clip-path: polygon(
+    0% 3%, 3% 0%, 100% 0%, 100% 3%, 97% 3%, 97% 100%, 100% 100%, 100% 97%, 3% 97%, 3% 100%, 0% 100%, 0% 97%, 3% 97%, 3% 3%
+  );
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--color-primary) 0px 15px 30px -8px;
   }
 }

@@ -1,220 +1,429 @@
-import { useState } from 'react';
-import { MapPin, ChevronRight } from 'lucide-react';
-import type { Province, CultureItem } from '../../types';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import L from 'leaflet';
+import { getCultureItemsByProvince, getProvinces } from '../../services/api';
+import type { CultureItem, Province } from '../../types';
+import { Loader2, MapPin, X } from 'lucide-react';
+import '../../styles/components/mapSection.scss';
 
-interface MapSectionProps {
-    provinces: Province[];
-    cultureItems: CultureItem[];
+// Fix Leaflet default icon issue
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
+
+// Marker dùng icon kiểu Ion "location-outline" (SVG inline)
+const ionLocationIcon = L.divIcon({
+  className: 'map-section__marker-icon',
+  iconSize: [24, 24],
+  iconAnchor: [12, 24],
+  popupAnchor: [0, -24],
+  html: `
+    <svg viewBox="0 0 512 512" width="24" height="24" aria-hidden="true" focusable="false">
+      <path
+        d="M256 48c-79.5 0-144 64.5-144 144 0 108.2 144 272 144 272s144-163.8 144-272c0-79.5-64.5-144-144-144zm0 208a64 64 0 1 1 0-128 64 64 0 0 1 0 128z"
+        fill="none"
+        stroke="#b91c1c"
+        stroke-width="28"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  `,
+});
+
+// 5 tỉnh Tây Nguyên cần tương tác
+const TAY_NGUYEN_PROVINCES = ['Kon Tum', 'Gia Lai', 'Đắk Lắk', 'Đắk Nông', 'Lâm Đồng'];
+
+const normalizeName = (name: string): string =>
+  name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .trim();
+
+const cultureItemsCache = new Map<number, CultureItem[]>();
+
+function debounce<T extends (...args: any[]) => void>(fn: T, wait: number) {
+  let t: ReturnType<typeof setTimeout> | null = null;
+  return (...args: Parameters<T>) => {
+    if (t) clearTimeout(t);
+    t = setTimeout(() => fn(...args), wait);
+  };
 }
 
-const categories = [
-    { key: 'all', label: 'Tất cả', icon: '🌟' },
-    { key: 'FESTIVAL', label: 'Lễ hội', icon: '🎉' },
-    { key: 'FOOD', label: 'Ẩm thực', icon: '🍜' },
-    { key: 'COSTUME', label: 'Trang phục', icon: '👘' },
-    { key: 'INSTRUMENT', label: 'Nghệ nhân', icon: '🎭' },
-    { key: 'CRAFT', label: 'Nghề thủ công', icon: '🏺' },
-];
+export default function MapSection() {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const geoJsonLayerRef = useRef<L.GeoJSON | null>(null);
+  const markerLayerRef = useRef<L.LayerGroup | null>(null);
+  const provinceNameToIdRef = useRef<Map<string, number>>(new Map());
+  const provinceIdToNameRef = useRef<Map<number, string>>(new Map());
 
-// Accurate geographic coordinates and positions for Tây Nguyên provinces
-// Map bounds: Lat 11.5°N to 15°N, Lon 107°E to 109°E (approximately)
-const provincePositions: Record<string, { top: string; left: string }> = {
-    'Kon Tum': { top: '12%', left: '45%' },      // Northernmost
-    'Gia Lai': { top: '30%', left: '55%' },      // North-central
-    'Đắk Lắk': { top: '52%', left: '60%' },      // Central
-    'Đắk Nông': { top: '68%', left: '35%' },     // South-west
-    'Lâm Đồng': { top: '78%', left: '70%' },     // Southernmost, east
-};
+  const [_provinces, setProvinces] = useState<Province[]>([]);
+  const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(null);
+  const [hoveredProvinceId, setHoveredProvinceId] = useState<number | null>(null);
+  const [cultureItems, setCultureItems] = useState<CultureItem[]>([]);
+  const [panelLoading, setPanelLoading] = useState(false);
+  const [panelError, setPanelError] = useState<string | null>(null);
+  const [mapError, setMapError] = useState<string | null>(null);
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
 
-// Fallback positions by index if province name not found
-const fallbackPositions = [
-    { top: '12%', left: '45%' },
-    { top: '30%', left: '55%' },
-    { top: '52%', left: '60%' },
-    { top: '68%', left: '35%' },
-    { top: '78%', left: '70%' },
-];
+  const activeProvinceId = selectedProvinceId ?? hoveredProvinceId;
 
-export default function MapSection({ provinces, cultureItems }: MapSectionProps) {
-    const [selectedCategory, setSelectedCategory] = useState('all');
-    const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
+  const activeProvinceName = useMemo(() => {
+    if (!activeProvinceId) return '';
+    return provinceIdToNameRef.current.get(activeProvinceId) || '';
+  }, [activeProvinceId]);
 
-    const filteredItems = cultureItems.filter(
-        (item) => selectedCategory === 'all' || item.category === selectedCategory
-    );
+  // Load provinces for mapping (name -> id)
+  useEffect(() => {
+    let mounted = true;
+    getProvinces()
+      .then((data) => {
+        if (!mounted) return;
+        setProvinces(data);
 
-    const displayedItems = filteredItems.slice(0, 5);
+        const nameToId = new Map<string, number>();
+        const idToName = new Map<number, string>();
 
-    // Get position for a province
-    const getProvincePosition = (province: Province, index: number) => {
-        return provincePositions[province.name] || fallbackPositions[index] || { top: '50%', left: '50%' };
+        data.forEach((p) => {
+          nameToId.set(normalizeName(p.name), p.id);
+          idToName.set(p.id, p.name);
+        });
+
+        provinceNameToIdRef.current = nameToId;
+        provinceIdToNameRef.current = idToName;
+      })
+      .catch(() => {
+        // Không block map, chỉ khiến panel không map được provinceId
+      });
+
+    return () => {
+      mounted = false;
     };
+  }, []);
 
-    return (
-        <section className="py-20 pb-28 md:py-32 md:pb-40">
-            <div className="container">
-                {/* Section Header */}
-                <div className="text-center mb-16">
-                    <h2 className="section-title">BẢN ĐỒ TÂY NGUYÊN</h2>
-                    <p className="section-subtitle">
-                        Cùng khám phá 5 vùng đất của Tây Nguyên - Mảnh hình đậm bản sắc những con
-                        người đậm nét văn hóa
-                    </p>
-                </div>
+  const fetchCultureItems = useCallback(async (provinceId: number) => {
+    setPanelError(null);
+    setPanelLoading(true);
 
-                <div className="grid lg:grid-cols-3 gap-12">
-                    {/* Map Area */}
-                    <div className="lg:col-span-2 relative">
-                        <div className="bg-[#2d4a3e] rounded-2xl overflow-hidden aspect-[4/3] relative shadow-2xl">
-                            {/* Satellite Map Background - OpenStreetMap/Esri satellite imagery of Tây Nguyên */}
-                            <img
-                                src="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=107,11.5,109.5,15&bboxSR=4326&size=800,600&format=jpg&f=image"
-                                alt="Bản đồ vệ tinh Tây Nguyên"
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                    // Fallback to a static satellite-style map if ESRI fails
-                                    (e.target as HTMLImageElement).src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Vietnam_relief_location_map.jpg/800px-Vietnam_relief_location_map.jpg';
-                                }}
-                            />
+    if (cultureItemsCache.has(provinceId)) {
+      setCultureItems(cultureItemsCache.get(provinceId)!);
+      setPanelLoading(false);
+      return;
+    }
 
-                            {/* Dark overlay for better marker visibility */}
-                            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" />
+    try {
+      const items = await getCultureItemsByProvince(provinceId);
+      cultureItemsCache.set(provinceId, items);
+      setCultureItems(items);
+    } catch (e) {
+      setCultureItems([]);
+      setPanelError('Không thể tải dữ liệu văn hoá');
+    } finally {
+      setPanelLoading(false);
+    }
+  }, []);
 
-                            {/* Province Markers */}
-                            <div className="absolute inset-0">
-                                {provinces.slice(0, 5).map((province, index) => {
-                                    const position = getProvincePosition(province, index);
-                                    return (
-                                        <button
-                                            key={province.id}
-                                            onClick={() => setSelectedProvince(province)}
-                                            className={`absolute transform -translate-x-1/2 -translate-y-1/2 group z-10 transition-all duration-300 ${selectedProvince?.id === province.id
-                                                ? 'scale-125 z-20'
-                                                : 'hover:scale-110'
-                                                }`}
-                                            style={{
-                                                top: position.top,
-                                                left: position.left,
-                                            }}
-                                        >
-                                            {/* Pulse animation for markers */}
-                                            <div className={`absolute inset-0 rounded-full bg-[var(--color-primary)] animate-ping opacity-30 ${selectedProvince?.id === province.id ? '' : 'hidden group-hover:block'
-                                                }`} style={{ width: '70px', height: '70px', margin: '-3px' }} />
+  const debouncedHoverFetch = useMemo(() => debounce(fetchCultureItems, 200), [fetchCultureItems]);
 
-                                            {/* Province thumbnail */}
-                                            <div className={`w-16 h-16 rounded-full overflow-hidden border-4 shadow-xl transition-all ${selectedProvince?.id === province.id
-                                                ? 'border-[var(--color-primary)] ring-4 ring-[var(--color-primary)]/30'
-                                                : 'border-white group-hover:border-[var(--color-primary)]'
-                                                }`}>
-                                                <img
-                                                    src={province.thumbnailUrl || `https://picsum.photos/100?random=${province.id}`}
-                                                    alt={province.name}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            </div>
+  // Initialize Leaflet map
+  useEffect(() => {
+    if (!mapRef.current || mapInstanceRef.current) return;
 
-                                            {/* Province name label */}
-                                            <div className={`absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg whitespace-nowrap transition-all ${selectedProvince?.id === province.id
-                                                ? 'bg-[var(--color-primary)] text-white'
-                                                : 'bg-white text-gray-800'
-                                                }`}>
-                                                {province.name}
-                                            </div>
-                                        </button>
-                                    );
-                                })}
-                            </div>
+    // Fix case layout chưa ổn định khiến tile bị “co nhỏ”
+    const ro = new ResizeObserver(() => {
+      mapInstanceRef.current?.invalidateSize();
+    });
+    ro.observe(mapRef.current);
 
-                            {/* Map Legend */}
-                            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md">
-                                <div className="flex items-center gap-2 text-xs font-medium text-gray-700">
-                                    <MapPin className="w-4 h-4 text-[var(--color-primary)]" />
-                                    <span>5 tỉnh Tây Nguyên</span>
-                                </div>
-                            </div>
+    const timer = setTimeout(() => {
+      if (!mapRef.current) return;
 
-                            {/* Selected Province Info */}
-                            {selectedProvince && (
-                                <div className="absolute bottom-4 left-4 right-4 bg-white rounded-xl p-5 shadow-xl animate-fade-in">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0">
-                                            <img
-                                                src={selectedProvince.thumbnailUrl || `https://picsum.photos/100?random=${selectedProvince.id}`}
-                                                alt={selectedProvince.name}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h4 className="font-bold text-lg">{selectedProvince.name}</h4>
-                                            <p className="text-sm text-[var(--color-text-light)]">
-                                                {selectedProvince.description || selectedProvince.region || 'Vùng Tây Nguyên'}
-                                            </p>
-                                        </div>
-                                        <button
-                                            onClick={() => setSelectedProvince(null)}
-                                            className="text-gray-400 hover:text-gray-600 p-1"
-                                        >
-                                            ✕
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+      try {
+        // Center vùng Tây Nguyên (xem rõ 5 tỉnh)
+        const center: [number, number] = [13.4, 108.0];
 
-                    {/* Categories & Items Sidebar */}
-                    <div className="lg:col-span-1">
-                        {/* Category Tabs */}
-                        <div className="flex flex-wrap gap-3 mb-8">
-                            {categories.map((cat) => (
-                                <button
-                                    key={cat.key}
-                                    onClick={() => setSelectedCategory(cat.key)}
-                                    className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${selectedCategory === cat.key
-                                        ? 'bg-[var(--color-primary)] text-white shadow-md'
-                                        : 'bg-white text-[var(--color-text)] hover:bg-gray-100 shadow-sm'
-                                        }`}
-                                >
-                                    <span className="mr-1.5">{cat.icon}</span>
-                                    {cat.label}
-                                </button>
-                            ))}
-                        </div>
+        // Create map
+        const map = L.map(mapRef.current, {
+          center,
+          zoom: 7,
+          zoomControl: true,
+          minZoom: 5,
+          maxZoom: 18,
+        });
 
-                        {/* Culture Items List */}
-                        <div className="space-y-4">
-                            {displayedItems.map((item) => (
-                                <div
-                                    key={item.id}
-                                    className="bg-white rounded-xl p-5 shadow-sm hover:shadow-lg transition-all cursor-pointer group border border-gray-100"
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                                            <img
-                                                src={item.thumbnailUrl || `https://picsum.photos/100?random=${item.id}`}
-                                                alt={item.title}
-                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform"
-                                            />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className="font-semibold text-sm truncate">{item.title}</h4>
-                                            <p className="text-xs text-[var(--color-text-light)] mt-1">
-                                                {item.provinceName}
-                                            </p>
-                                        </div>
-                                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-[var(--color-primary)] transition-colors" />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          maxZoom: 19,
+        }).addTo(map);
 
-                        {/* View All Link */}
-                        <button className="w-full mt-8 py-4 px-6 text-center bg-[var(--color-primary)] text-white rounded-xl text-base font-bold hover:bg-[var(--color-primary-dark)] transition-colors shadow-md">
-                            Xem tất cả →
-                        </button>
-                    </div>
-                </div>
+        mapInstanceRef.current = map;
+
+        // Invalidate size để đảm bảo map render đúng
+        setTimeout(() => {
+          map.invalidateSize();
+        }, 100);
+
+        setIsMapLoaded(true);
+
+        // Load GeoJSON sau khi map đã hiển thị (ưu tiên file “chuẩn” của bạn)
+        setTimeout(() => {
+          const geoJsonUrlCandidates = ['/geo/geo-vietnam.geojson', '/geo/vietnam.geojson'];
+
+          const loadFirstAvailableGeoJson = async () => {
+            let lastError: unknown = null;
+
+            for (const url of geoJsonUrlCandidates) {
+              try {
+                const response = await fetch(url);
+                const text = await response.text();
+
+                if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+                  throw new Error(`File GeoJSON không tồn tại: ${url}`);
+                }
+                if (!response.ok) {
+                  throw new Error(`Không thể tải file GeoJSON: ${response.status} ${response.statusText}`);
+                }
+                return JSON.parse(text);
+              } catch (e) {
+                lastError = e;
+              }
+            }
+
+            throw lastError || new Error('Không thể tải GeoJSON từ các đường dẫn đã thử.');
+          };
+
+          loadFirstAvailableGeoJson()
+            .then((geoJsonData) => {
+              if (!mapInstanceRef.current) return;
+
+              // Create GeoJSON layer: chỉ 5 tỉnh Tây Nguyên có tương tác
+              const markerLayer = L.layerGroup();
+
+              const geoJsonLayer = L.geoJSON(geoJsonData as any, {
+                // Ẩn polygon, chỉ dùng để lấy bounds tính vị trí marker
+                style: () => ({
+                  fillOpacity: 0,
+                  color: 'transparent',
+                  weight: 0,
+                  opacity: 0,
+                }),
+                onEachFeature: (feature: any, layer: L.Layer) => {
+                  const props = feature?.properties || {};
+                  const rawName = props.NAME_1 || props.name || props.NAME || 'Unknown';
+                  const normalized = normalizeName(String(rawName));
+                  const isTayNguyen = TAY_NGUYEN_PROVINCES.some(
+                    (tn) => normalizeName(tn) === normalized
+                  );
+
+                  if (!isTayNguyen) return;
+
+                  const provinceId = provinceNameToIdRef.current.get(normalized);
+                  if (!provinceId || !mapInstanceRef.current) return;
+
+                  let center: L.LatLng | null = null;
+                  const anyLayer = layer as any;
+                  if (anyLayer.getBounds) {
+                    center = anyLayer.getBounds().getCenter();
+                  }
+                  if (!center) return;
+
+                  const marker = L.marker(center, { icon: ionLocationIcon }).addTo(markerLayer);
+
+                  marker.bindTooltip(String(rawName) || 'Unknown', {
+                    permanent: false,
+                    direction: 'top',
+                    className: 'province-tooltip',
+                  });
+
+                  marker.on('mouseover', () => {
+                    if (selectedProvinceId) return;
+                    setHoveredProvinceId(provinceId);
+                    debouncedHoverFetch(provinceId);
+                    marker.setZIndexOffset(1000);
+                  });
+
+                  marker.on('mouseout', () => {
+                    if (selectedProvinceId) return;
+                    setHoveredProvinceId(null);
+                    marker.setZIndexOffset(0);
+                  });
+
+                  marker.on('click', () => {
+                    setSelectedProvinceId(provinceId);
+                    setHoveredProvinceId(null);
+                    fetchCultureItems(provinceId);
+                    marker.setZIndexOffset(1500);
+                  });
+                },
+              });
+
+              geoJsonLayer.addTo(mapInstanceRef.current);
+              markerLayer.addTo(mapInstanceRef.current);
+              geoJsonLayerRef.current = geoJsonLayer;
+              markerLayerRef.current = markerLayer;
+
+              // Focus vào vùng Tây Nguyên để nhìn rõ 5 tỉnh
+              // (Nếu bạn muốn zoom toàn Việt Nam thì đổi lại geoJsonLayer.getBounds())
+              mapInstanceRef.current.setView(center, 7);
+
+              setTimeout(() => {
+                mapInstanceRef.current?.invalidateSize();
+              }, 100);
+            })
+            .catch((err) => {
+              console.error('Failed to load GeoJSON:', err);
+              setMapError(
+                err.message ||
+                  'Không thể tải dữ liệu bản đồ. Vui lòng đặt file geo-vietnam.geojson hoặc vietnam.geojson vào thư mục public/geo/'
+              );
+            });
+        }, 300);
+      } catch (err) {
+        console.error('Failed to initialize map:', err);
+        setMapError('Không thể khởi tạo bản đồ. Vui lòng thử lại.');
+        setIsMapLoaded(true);
+      }
+    }, 100);
+
+    // Cleanup
+    return () => {
+      clearTimeout(timer);
+      ro.disconnect();
+      if (mapInstanceRef.current) {
+        try {
+          mapInstanceRef.current.remove();
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+        mapInstanceRef.current = null;
+      }
+      if (geoJsonLayerRef.current) {
+        try {
+          geoJsonLayerRef.current.remove();
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+        geoJsonLayerRef.current = null;
+      }
+      if (markerLayerRef.current) {
+        try {
+          markerLayerRef.current.remove();
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+        markerLayerRef.current = null;
+      }
+    };
+  }, [debouncedHoverFetch, fetchCultureItems]);
+
+  // Khi click lock tỉnh, panel luôn hiển thị theo selectedProvinceId
+  useEffect(() => {
+    if (selectedProvinceId) {
+      fetchCultureItems(selectedProvinceId);
+    }
+  }, [fetchCultureItems, selectedProvinceId]);
+
+  return (
+    <section className="map-section">
+      <div className="map-section__container">
+        <h2 className="map-section__title">BẢN ĐỒ TÂY NGUYÊN</h2>
+        <p className="map-section__subtitle">
+          Hover hoặc click vào 5 tỉnh Tây Nguyên để xem danh sách văn hoá
+        </p>
+
+        <div className="map-section__content">
+          <div className="map-section__map-wrapper">
+            {mapError && (
+              <div className="map-section__error">
+                <p>{mapError}</p>
+              </div>
+            )}
+            <div ref={mapRef} className="map-section__map" />
+            {!isMapLoaded && (
+              <div className="map-section__loading">
+                <Loader2 className="map-section__spinner" />
+                <p>Đang tải bản đồ...</p>
+              </div>
+            )}
+          </div>
+
+          {/* Panel bên phải (desktop) */}
+          <div className="map-section__panel">
+            <div className="map-section__panel-header">
+              <h3 className="map-section__panel-title">
+                {activeProvinceId ? `Văn hoá ${activeProvinceName || ''}` : 'Văn hoá Tây Nguyên'}
+              </h3>
+
+              {selectedProvinceId && (
+                <button
+                  className="map-section__panel-close"
+                  onClick={() => {
+                    setSelectedProvinceId(null);
+                    setCultureItems([]);
+                    setPanelError(null);
+                    setPanelLoading(false);
+                  }}
+                  aria-label="Bỏ chọn tỉnh"
+                  title="Bỏ chọn"
+                >
+                  <X size={18} />
+                </button>
+              )}
             </div>
-        </section>
-    );
+
+            <div className="map-section__panel-content">
+              {!activeProvinceId ? (
+                <div className="map-section__panel-empty">
+                  <MapPin size={48} className="map-section__panel-empty-icon" />
+                  <p>Hover hoặc click vào tỉnh để xem văn hoá</p>
+                </div>
+              ) : panelLoading ? (
+                <div className="map-section__panel-loading">
+                  <Loader2 className="map-section__spinner" />
+                  <p>Đang tải...</p>
+                </div>
+              ) : panelError ? (
+                <div className="map-section__panel-error">
+                  <p>{panelError}</p>
+                </div>
+              ) : cultureItems.length === 0 ? (
+                <div className="map-section__panel-empty">
+                  <p>Chưa có dữ liệu văn hoá</p>
+                </div>
+              ) : (
+                <div className="map-section__panel-list">
+                  {cultureItems.map((item) => (
+                    <div key={item.id} className="map-section__panel-item">
+                      {item.thumbnailUrl ? (
+                        <img
+                          src={item.thumbnailUrl}
+                          alt={item.title}
+                          className="map-section__panel-item-image"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="map-section__panel-item-image map-section__panel-item-image--placeholder" />
+                      )}
+                      <div className="map-section__panel-item-content">
+                        <div className="map-section__panel-item-title">{item.title}</div>
+                        <div className="map-section__panel-item-description">{item.description}</div>
+                        <div className="map-section__panel-item-category">{item.category}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }

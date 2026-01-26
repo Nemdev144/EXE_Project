@@ -1,0 +1,97 @@
+// ============================================
+// Section & UI Component Styles
+// ============================================
+
+@import '../variables';
+
+// Custom Font
+@font-face {
+  font-family: 'iCiel Lodestone';
+  src: url('../../assets/iCielBCLodestone-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+// Section Container
+.section-container {
+  width: 100%;
+  padding: 4rem 0;
+  
+  @media (min-width: 768px) {
+    padding: 6rem 0;
+  }
+  
+  @media (min-width: 1024px) {
+    padding: 8rem 0;
+  }
+}
+
+// Section Title
+.section-title {
+  font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+  font-size: 1.875rem;
+  font-weight: normal;
+  color: var(--color-primary);
+  text-align: center;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  
+  @media (min-width: 768px) {
+    font-size: 2.25rem;
+  }
+  
+  @media (min-width: 1024px) {
+    font-size: 3rem;
+  }
+}
+
+// Tour Experience Section Title
+.tour-section-title {
+  font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+  font-weight: normal;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+// Brand Name "Cội Việt"
+.brand-name {
+  font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+  font-weight: normal;
+}
+
+// Section Subtitle
+.section-subtitle {
+  font-size: 1rem;
+  color: var(--color-text-light);
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 2rem;
+  
+  @media (min-width: 768px) {
+    font-size: 1.125rem;
+    margin-bottom: 3rem;
+  }
+}
+
+// Badge
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  background-color: var(--color-primary);
+  color: white;
+}
+
+// Rating Stars
+.stars,
+.star {
+  display: inline-flex;
+  gap: 0.125rem;
+  color: var(--color-accent);
+}

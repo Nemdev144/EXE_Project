@@ -1,72 +1,160 @@
-import { ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { ChevronLeft, ChevronRight, ArrowRight, Play } from 'lucide-react';
+import '../../styles/components/_hero-section.scss';
+
+const sliderImages = [
+  { 
+    src: '/home/slider/anh1.jpg', 
+    alt: 'Văn hóa Tây Nguyên - Lễ hội Cồng Chiêng',
+    title: 'Lễ hội Cồng Chiêng',
+    subtitle: 'Di sản văn hóa phi vật thể UNESCO'
+  },
+  { 
+    src: '/home/slider/anh2.jpg', 
+    alt: 'Văn hóa Tây Nguyên - Cà phê Buôn Ma Thuột',
+    title: 'Cà phê Buôn Ma Thuột',
+    subtitle: 'Hương vị đậm đà của đất đỏ bazan'
+  },
+  { 
+    src: '/home/slider/anh3.jpg', 
+    alt: 'Văn hóa Tây Nguyên - Thổ cẩm truyền thống',
+    title: 'Thổ cẩm truyền thống',
+    subtitle: 'Nghệ thuật dệt may độc đáo'
+  },
+  { 
+    src: '/home/slider/anh4.jpg', 
+    alt: 'Văn hóa Tây Nguyên - Nhà rông',
+    title: 'Nhà rông Tây Nguyên',
+    subtitle: 'Kiến trúc độc đáo của vùng cao'
+  },
+];
 
 export default function HeroSection() {
-    return (
-        <section className="relative h-[600px] md:h-[700px] overflow-hidden">
-            {/* Background Image */}
-            <div className="absolute inset-0">
-                <img
-                    src="https://images.unsplash.com/photo-1528127269322-539801943592?w=1920&q=80"
-                    alt="Vietnamese Central Highlands culture"
-                    className="w-full h-full object-cover"
-                />
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const nextSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
+  }, []);
+
+  const prevSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev - 1 + sliderImages.length) % sliderImages.length);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(nextSlide, 6000);
+    return () => clearInterval(interval);
+  }, [nextSlide]);
+
+  return (
+    <section className="hero-section">
+      {/* Slider Images with Zoom Effect */}
+      {sliderImages.map((image, index) => (
+        <div
+          key={index}
+          className={`hero-section__slide ${
+            index === currentSlide 
+              ? 'hero-section__slide--active' 
+              : 'hero-section__slide--inactive'
+          }`}
+        >
+          <div
+            className={`hero-section__slide-image ${
+              index === currentSlide ? 'hero-section__slide-image--active' : ''
+            }`}
+            style={{
+              backgroundImage: `url('${image.src}')`,
+            }}
+            role="img"
+            aria-label={image.alt}
+          />
+        </div>
+      ))}
+
+      {/* Gradient Overlays */}
+      <div className="hero-section__overlay hero-section__overlay--top" />
+      <div className="hero-section__overlay hero-section__overlay--bottom" />
+
+      {/* Content */}
+      <div className="hero-section__content">
+        <div className="hero-section__container">
+          <div className="hero-section__wrapper">
+            {/* Slide Number Indicator */}
+            <div className="hero-section__slide-number">
+              <div className="hero-section__slide-number-line" />
+              <span className="hero-section__slide-number-text">
+                {String(currentSlide + 1).padStart(2, '0')} / {String(sliderImages.length).padStart(2, '0')}
+              </span>
             </div>
 
-            {/* Decorative Pattern - Vietnamese Motif */}
-            <div className="absolute left-0 top-0 bottom-0 w-24 md:w-40 opacity-20">
-                <div className="h-full bg-repeat-y" style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0L80 40L40 80L0 40Z' fill='%23B22222' fill-opacity='0.5'/%3E%3C/svg%3E")`,
-                    backgroundSize: '40px 40px'
-                }} />
+            {/* Title with Animation */}
+            <div className="hero-section__title-section">
+              <h2 className="hero-section__title-section-subtitle">
+                {sliderImages[currentSlide].title}
+              </h2>
+              <h1 className="hero-section__title-section-main">
+                BẢO TỒN VÀ{' '}
+                <span className="hero-section__title-section-main-highlight">
+                  TRẢI NGHIỆM
+                </span>
+                <br />
+                VĂN HÓA TÂY NGUYÊN
+              </h1>
+              <p className="hero-section__title-section-description">
+                {sliderImages[currentSlide].subtitle}
+              </p>
             </div>
 
-            {/* Content */}
-            <div className="container relative h-full flex items-center">
-                <div className="max-w-2xl animate-fade-in">
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
-                        BẢO TỒN VÀ{' '}
-                        <span className="text-[#D69E2E]">TRẢI NGHIỆM</span>{' '}
-                        VĂN HÓA
-                    </h1>
-                    <p className="text-lg md:text-xl text-gray-200 mb-8 leading-relaxed">
-                        Khám phá và lưu giữ di sản văn hóa Tây Nguyên thông qua công nghệ số kết nối
-                        cộng đồng với truyền thống trong thế giới hiện đại.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-6">
-                        <Link
-                            to="/tours"
-                            className="btn bg-[var(--color-primary)] text-white px-12 py-6 text-lg font-bold hover:bg-[var(--color-primary-dark)] transition-colors"
-                        >
-                            Khám phá ngay
-                            <ArrowRight className="w-6 h-6 ml-2" />
-                        </Link>
-                        <Link
-                            to="/about"
-                            className="btn bg-white/10 backdrop-blur-sm text-white border-2 border-white/30 px-12 py-6 text-lg font-bold hover:bg-white/20 transition-colors"
-                        >
-                            Tìm hiểu thêm
-                        </Link>
-                    </div>
-                </div>
+            {/* Buttons */}
+            <div className="hero-section__buttons">
+              <button className="hero-section__button hero-section__button--primary">
+                Khám phá ngay
+                <ArrowRight className="hero-section__button-icon" />
+              </button>
+              <button className="hero-section__button hero-section__button--secondary">
+                <Play className="hero-section__button-icon" />
+                Xem video
+              </button>
             </div>
+          </div>
+        </div>
+      </div>
 
-            {/* Bottom Decorative Wave */}
-            <div className="absolute bottom-0 left-0 right-0">
-                <svg
-                    viewBox="0 0 1440 120"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-full h-auto"
-                >
-                    <path
-                        d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z"
-                        fill="var(--color-bg)"
-                    />
-                </svg>
-            </div>
-        </section>
-    );
+      {/* Slide Indicators */}
+      <div className="hero-section__indicators">
+        {sliderImages.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentSlide(index)}
+            className={`hero-section__indicator ${
+              index === currentSlide
+                ? 'hero-section__indicator--active'
+                : 'hero-section__indicator--inactive'
+            }`}
+            aria-label={`Go to slide ${index + 1}`}
+          />
+        ))}
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className="hero-section__navigation">
+        <button
+          onClick={prevSlide}
+          className="hero-section__navigation-button hero-section__navigation-button--prev"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft className="hero-section__navigation-button-icon" />
+        </button>
+        <button
+          onClick={nextSlide}
+          className="hero-section__navigation-button hero-section__navigation-button--next"
+          aria-label="Next slide"
+        >
+          <ChevronRight className="hero-section__navigation-button-icon" />
+        </button>
+      </div>
+
+      {/* Decorative Elements */}
+      <div className="hero-section__decoration" />
+    </section>
+  );
 }

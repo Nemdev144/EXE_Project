@@ -2,8 +2,26 @@
 // Main SCSS Entry Point
 // ============================================
 
-// Base
+// Tailwind CSS
+@import 'tailwind';
+
+// Theme System (CSS Variables)
+@import 'theme';
+
+// Variables (SCSS Variables)
+@import 'variables';
+
+// Mixins
+@import 'mixins';
+
+// Base Styles
 @import 'base';
+
+// Animations
+@import 'animations';
+
+// Utilities
+@import 'utilities';
 
 // Ant Design Overrides
 @import 'antd-overrides';
@@ -11,10 +29,13 @@
 // Components
 @import 'components/button';
 @import 'components/card';
+@import 'components/section';
 @import 'components/form';
 @import 'components/layout';
 @import 'components/admin';
 @import 'components/staff';
+@import 'components/navbar';
+@import 'components/hero-section';
 
 // Pages
 @import 'pages/login';
