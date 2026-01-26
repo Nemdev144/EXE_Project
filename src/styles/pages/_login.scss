@@ -15,14 +15,26 @@
   left: 0;
   right: 0;
   bottom: 0;
+  animation: pageEnterFromRight 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  @keyframes pageEnterFromRight {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
 
-  // Left Image Container (55% width)
+  // Left Image Container (50% width)
   &__image-container {
     display: none;
 
     @include respond-to(lg) {
       display: flex;
-      width: 55%;
+      width: 50%;
       height: 100vh;
       position: relative;
       overflow: hidden;
@@ -52,7 +64,7 @@
     transform: scale(1.02);
   }
 
-  // Right Form Container (45% width)
+  // Right Form Container (50% width)
   &__form-container {
     width: 100%;
     height: 100vh;
@@ -76,7 +88,7 @@
     }
 
     @include respond-to(lg) {
-      width: 45%;
+      width: 50%;
       padding: $spacing-xl $spacing-lg;
     }
   }
@@ -84,8 +96,12 @@
   &__form-wrapper {
     width: 100%;
     max-width: 28rem; // max-w-md
-    animation: fadeInUp 0.6s ease-out;
+    animation: fadeInUp 0.6s ease-out 0.2s both;
     max-height: calc(100vh - 4rem); // Giới hạn chiều cao để không overflow
+  }
+  
+  &__image-container {
+    animation: imageSlideIn 0.7s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both;
   }
   
   @keyframes fadeInUp {
@@ -96,6 +112,17 @@
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+  
+  @keyframes imageSlideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-20px) scale(1.05);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0) scale(1);
     }
   }
 
@@ -201,11 +228,28 @@
   &__forgot-link {
     color: $color-primary;
     font-weight: $font-weight-medium;
-    transition: all $transition-fast;
+    transition: all $transition-base;
+    position: relative;
+    display: inline-block;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: $color-primary-hover;
+      transition: width $transition-base;
+    }
 
     &:hover {
-      text-decoration: underline;
       color: $color-primary-hover;
+      transform: translateX(2px);
+      
+      &::after {
+        width: 100%;
+      }
     }
   }
 
@@ -295,11 +339,35 @@
     a {
       color: $color-primary;
       font-weight: $font-weight-semibold;
-      transition: all $transition-fast;
+      transition: all $transition-base;
+      position: relative;
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: $radius-sm;
+
+      &::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 0;
+        height: 2px;
+        background-color: $color-primary;
+        transition: all $transition-base;
+        transform: translateX(-50%);
+      }
 
       &:hover {
-        text-decoration: underline;
         color: $color-primary-hover;
+        transform: translateY(-2px);
+        
+        &::before {
+          width: 100%;
+        }
+      }
+
+      &:active {
+        transform: translateY(0);
       }
     }
   }

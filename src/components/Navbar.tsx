@@ -9,7 +9,14 @@ export default function Navbar() {
             to="/"
             className="navbar__logo"
           >
-            MyApp
+            <img
+              src="/Logo.png"
+              alt="Cội Việt Logo"
+              style={{
+                height: 40,
+                objectFit: "contain",
+              }}
+            />
           </Link>
           <div className="navbar__links">
             <Link to="/">Home</Link>

@@ -48,8 +48,8 @@ const Register = () => {
             Đăng Ký
           </h1>
           <p className="register-page__subtitle">
-            Bạn đã sẵn sàng trở thành thành viên của câu lạc bộ đặc quyền này
-            chưa? Hãy điền thông tin bên dưới và bắt đầu hành trình thôi!
+          Bạn đã sẵn sàng bước vào hành trình khám phá Tây Nguyên hùng vĩ chưa?
+          Hãy để lại thông tin bên dưới và cùng bắt đầu chuyến đi đầy cảm hứng này!
           </p>
 
           <form onSubmit={handleSubmit} className="register-page__form">
@@ -231,7 +231,7 @@ const Register = () => {
       {/* RIGHT IMAGE - 60% width - Large image container */}
       <div className="register-page__image-container">
         <img
-          src="/anhlogin.png"
+          src="/picture1.png"
           alt="Vietnam Culture"
           className="register-page__image"
           onError={(e) => {
