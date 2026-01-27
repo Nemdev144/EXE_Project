@@ -196,7 +196,7 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
             }}
           >
             <img
-              src="/Logo.png"
+              src="/logo.png"
               alt="Cội Việt Logo"
               style={{
                 width: 40,

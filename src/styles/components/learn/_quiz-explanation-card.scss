@@ -1,0 +1,106 @@
+@import '../../variables';
+@import '../../mixins';
+
+.quiz-explanation-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: $shadow-sm;
+  border: 2px solid $color-primary;
+  overflow: hidden;
+  transition: all $transition-base;
+  margin-bottom: 16px;
+
+  &--expanded {
+    box-shadow: $shadow-md;
+  }
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 20px 24px;
+    cursor: pointer;
+    transition: all $transition-base;
+    gap: 16px;
+
+    &:hover {
+      background: $color-gray-50;
+    }
+  }
+
+  &__status {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 50%;
+    border: 1px solid $color-gray-200;
+  }
+
+  &__icon--correct {
+    color: $color-primary;
+  }
+
+  &__icon--wrong {
+    color: $color-gray-900;
+    stroke-width: 2;
+  }
+
+  &__question {
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 600;
+    color: $color-gray-900;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  &__chevron {
+    flex-shrink: 0;
+    color: $color-gray-400;
+    transition: transform $transition-base;
+
+    &--expanded {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__content {
+    padding: 0 24px 24px 64px;
+    border-top: 1px solid $color-gray-200;
+    margin-top: 16px;
+    padding-top: 16px;
+  }
+
+  &__correct-answer {
+    padding: 12px;
+    background: #d1fae5;
+    color: #065f46;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  &__your-answer {
+    padding: 12px;
+    background: #fee2e2;
+    color: #991b1b;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  &__explanation {
+    padding: 12px;
+    background: $color-gray-50;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: $color-gray-700;
+    line-height: 1.6;
+  }
+}

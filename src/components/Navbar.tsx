@@ -19,7 +19,13 @@ export default function Navbar() {
   );
 
   const location = useLocation();
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+    if (path === "/learn") {
+      // Active cho /learn và tất cả sub-routes
+      return location.pathname === path || location.pathname.startsWith("/learn/");
+    }
+    return location.pathname === path;
+  };
 
   useEffect(() => {
     const handleStorage = () => setIsLoggedIn(Boolean(localStorage.getItem("accessToken")));

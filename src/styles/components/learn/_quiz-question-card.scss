@@ -1,0 +1,116 @@
+@import '../../variables';
+@import '../../mixins';
+
+.quiz-question-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: $shadow-sm;
+  border: 2px solid $color-primary;
+  transition: all $transition-base;
+  margin-bottom: 24px;
+
+  &__header {
+    margin-bottom: 20px;
+  }
+
+  &__question {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $color-primary;
+    margin: 0;
+    line-height: 1.5;
+    font-weight: 700;
+  }
+
+  &__options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+
+    @include respond-to(md) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 2px solid $color-gray-300;
+    border-radius: 8px;
+    background: white;
+    text-align: left;
+    cursor: pointer;
+    transition: all $transition-base;
+    font-size: 0.9375rem;
+    color: $color-gray-700;
+
+    &:hover:not(:disabled) {
+      border-color: $color-primary;
+      background: #fef2f2;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    &--selected {
+      border-color: $color-primary;
+      background: #fef2f2;
+      color: $color-primary;
+      font-weight: 600;
+    }
+  }
+
+  &__option-label {
+    font-weight: 600;
+    min-width: 20px;
+    color: inherit;
+  }
+
+  &__option-text {
+    flex: 1;
+  }
+
+  &__hint {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid $color-gray-200;
+  }
+
+  &__hint-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: $color-primary;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all $transition-base;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  &__hint-content {
+    margin-top: 12px;
+    padding: 12px;
+    background: $color-gray-50;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: $color-gray-700;
+    line-height: 1.6;
+  }
+}
