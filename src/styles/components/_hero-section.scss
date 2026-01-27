@@ -1,0 +1,388 @@
+// ============================================
+// Hero Section (Slider) Component Styles
+// ============================================
+
+@import '../variables';
+@import '../mixins';
+
+// Custom Font for Title
+@font-face {
+  font-family: 'iCiel Lodestone';
+  src: url('../../assets/iCielBCLodestone-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+// Custom Font for Regular Text
+@font-face {
+  font-family: 'Afacad';
+  src: url('../../assets/Afacad-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+// Custom Font for Special Text (Italic)
+@font-face {
+  font-family: 'Afacad Italic';
+  src: url('../../assets/Afacad-Italic-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+.hero-section {
+  position: relative;
+  height: 600px;
+  overflow: hidden;
+
+  @include respond-to(md) {
+    height: 700px;
+  }
+
+  @include respond-to(lg) {
+    height: 100vh;
+  }
+
+  // Slider Images
+  &__slide {
+    position: absolute;
+    inset: 0;
+    transition: all 1000ms ease-in-out;
+
+    &--active {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    &--inactive {
+      opacity: 0;
+      transform: scale(1.1);
+    }
+
+    &-image {
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      transition: transform 10000ms ease-linear;
+
+      &--active {
+        transform: scale(1.1);
+      }
+    }
+  }
+
+  // Gradient Overlays
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+
+    &--top {
+      background: linear-gradient(
+        to bottom right,
+        rgba(0, 0, 0, 0.6),
+        rgba(0, 0, 0, 0.4),
+        transparent
+      );
+    }
+
+    &--bottom {
+      background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.8),
+        transparent,
+        transparent
+      );
+    }
+  }
+
+  // Content
+  &__content {
+    position: relative;
+    height: 100%;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+  }
+
+  &__container {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 40px;
+
+    @include respond-to(md) {
+      padding: 0 64px;
+    }
+
+    @include respond-to(lg) {
+      padding: 0 96px;
+    }
+  }
+
+  &__wrapper {
+    max-width: 768px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 40px 0;
+
+    @include respond-to(md) {
+      gap: 32px;
+    }
+  }
+
+  // Slide Number Indicator
+  &__slide-number {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+
+    &-line {
+      height: 1px;
+      width: 64px;
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    &-text {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 0 12px;
+    }
+  }
+
+  // Title Section
+  &__title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 0 12px;
+
+    &-subtitle {
+      font-family: 'Afacad Italic', 'Be Vietnam Pro', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.8);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0 4px;
+
+      @include respond-to(md) {
+        font-size: 16px;
+      }
+    }
+
+    &-main {
+      font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+      font-size: 36px;
+      font-weight: normal;
+      color: white;
+      line-height: 1.2;
+      padding: 0 8px;
+
+      @include respond-to(md) {
+        font-size: 60px;
+      }
+
+      @include respond-to(lg) {
+        font-size: 72px;
+      }
+
+      &-highlight {
+        color: #ffd700;
+        position: relative;
+
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: -8px;
+          left: 0;
+          width: 100%;
+          height: 4px;
+          background: rgba(255, 215, 0, 0.3);
+        }
+      }
+    }
+
+    &-description {
+      font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+      font-size: 18px;
+      color: #e5e7eb;
+      line-height: 1.6;
+      max-width: 672px;
+      padding: 0 8px;
+
+      @include respond-to(md) {
+        font-size: 20px;
+      }
+    }
+  }
+
+  // Buttons
+  &__buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 40px 48px 0;
+
+    @include respond-to(sm) {
+      flex-direction: row;
+    }
+  }
+
+  &__button {
+    font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+    width: 300px;
+    height: 48px;
+    padding: 24px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border-radius: 9999px;
+    font-size: 20px;
+    font-weight: 700;
+    transition: all 300ms;
+    cursor: pointer;
+    border: 2px solid;
+    text-decoration: none;
+
+    &--primary {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(4px);
+
+      &:hover {
+        background: #cc0000;
+        border-color: #cc0000;
+        color: white;
+        transform: scale(1.05);
+      }
+    }
+
+    &--secondary {
+      width: 250px;
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #ffd700;
+      backdrop-filter: blur(4px);
+
+      &:hover {
+        background: #cc0000;
+        border-color: #cc0000;
+        color: white;
+        transform: scale(1.05);
+      }
+    }
+
+    &-icon {
+      width: 28px;
+      height: 28px;
+      transition: transform 300ms;
+    }
+
+    &--primary:hover &-icon {
+      transform: translateX(4px);
+    }
+  }
+
+  // Slide Indicators
+  &__indicators {
+    position: absolute;
+    bottom: 48px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;
+    display: flex;
+    gap: 12px;
+  }
+
+  &__indicator {
+    border-radius: 9999px;
+    transition: all 500ms;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+
+    &--active {
+      width: 48px;
+      height: 8px;
+      background: #ffd700;
+      box-shadow: 0 10px 15px -3px rgba(255, 215, 0, 0.5);
+    }
+
+    &--inactive {
+      width: 8px;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.4);
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.6);
+      }
+    }
+  }
+
+  // Navigation Buttons
+  &__navigation {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    pointer-events: none;
+
+    @include respond-to(md) {
+      padding: 0 48px;
+    }
+
+    &-button {
+      pointer-events: auto;
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.3);
+      padding: 16px 20px;
+      transition: all 300ms;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        color: white;
+      }
+
+      &-icon {
+        width: 32px;
+        height: 32px;
+        transition: transform 300ms;
+      }
+
+      &--prev:hover &-icon {
+        transform: translateX(-4px);
+      }
+
+      &--next:hover &-icon {
+        transform: translateX(4px);
+      }
+    }
+  }
+
+  // Decorative Elements
+  &__decoration {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 128px;
+    background: linear-gradient(to top, white, transparent);
+    z-index: 0;
+  }
+}

@@ -4,9 +4,7 @@ import AdminLayout from "./components/admin/AdminLayout";
 import StaffLayout from "./components/staff/StaffLayout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import ForgotPassword from "./pages/ForgotPassword";
-import VerifyCode from "./pages/VerifyCode";
-import ResetPassword from "./pages/ResetPassword";
+import { HomePage } from './pages';
 
 // Admin Pages
 import AdminDashboardPage from "./pages/admin/AdminDashboard";
@@ -37,7 +35,7 @@ function App() {
 
         {/* Public Routes */}
         <Route element={<Layout />}>
-          <Route path="/" element={<div>Home Page</div>} />
+          <Route path="/" element={<HomePage />} />
         </Route>
 
         {/* Admin Routes */}

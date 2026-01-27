@@ -5,18 +5,101 @@
 @import '../variables';
 @import '../mixins';
 
-.button {
-  @include button-base;
+// --------------------------------------------
+// Base Button Style
+// --------------------------------------------
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-  &--primary {
-    @include button-primary;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+
+  border-radius: var(--radius-md, $radius-md);
+  cursor: pointer;
+
+  border: none;
+  outline: none;
+
+  transition: all 0.25s ease;
+}
+
+// --------------------------------------------
+// Primary Button
+// --------------------------------------------
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+
+  &:hover {
+    background-color: var(--color-primary-dark);
+  }
+}
+
+// --------------------------------------------
+// Secondary Button (Outline)
+// --------------------------------------------
+.btn-secondary {
+  background-color: white;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+
+  &:hover {
+    background-color: var(--color-primary);
+    color: white;
+  }
+}
+
+// --------------------------------------------
+// Glass Secondary Button (Hero usage)
+// --------------------------------------------
+.btn-secondary-glass {
+  background-color: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.22);
+  }
+}
+
+// --------------------------------------------
+// Login Button (Navbar CTA)
+// --------------------------------------------
+.btn-login {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.5rem 1.25rem;
+  min-height: 2.5rem;          // 👈 đồng bộ chiều cao navbar
+  border-radius: 999px;        // 👈 pill shape (đẹp, hiện đại)
+
+  font-size: 0.875rem;
+  font-weight: 600;
+
+  background-color: var(--color-primary); // 👈 mặc định nền đỏ
+  color: white;
+
+  border: 2px solid var(--color-primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+
+  transition: all 0.25s ease;
+  transform: translateY(0);    // 👈 không bị cao hơn logo
+  margin-right: auto;          // 👈 dịch trái nhẹ cho thẩm mỹ
+
+  &:hover {
+    background-color: white;   // 👈 hover: nền trắng
+    color: var(--color-primary);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px); // 👈 lift nhẹ
   }
 
-  &--secondary {
-    @include button-secondary;
-  }
-
-  &--danger {
-    @include button-danger;
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
   }
 }

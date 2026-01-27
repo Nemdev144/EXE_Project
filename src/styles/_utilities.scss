@@ -1,0 +1,44 @@
+// ============================================
+// Utility Classes
+// ============================================
+
+// Container
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  
+  @media (min-width: 640px) {
+    padding: 0 1.5rem;
+  }
+  
+  @media (min-width: 1024px) {
+    padding: 0 2rem;
+  }
+}
+
+// Typography Utilities
+.font-vietnamese {
+  font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
+}
+
+.font-display {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+// Gradient Overlays
+.gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.7) 100%);
+}
+
+// Image Placeholder Pattern - Vietnamese motif inspired
+.placeholder-pattern {
+  background-color: var(--color-bg-alt);
+  background-image:
+    radial-gradient(circle at 25% 25%, var(--color-primary) 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, var(--color-primary) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
