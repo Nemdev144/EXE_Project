@@ -4,6 +4,9 @@ import AdminLayout from "./components/admin/AdminLayout";
 import StaffLayout from "./components/staff/StaffLayout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import VerifyCode from "./pages/VerifyCode";
+import ResetPassword from "./pages/ResetPassword";
 import { HomePage } from './pages';
 
 // Admin Pages
