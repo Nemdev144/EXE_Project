@@ -1,0 +1,239 @@
+// ============================================
+// Tour Experience Section
+// ============================================
+
+@import '../variables';
+
+@keyframes tourExperienceSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tour-experience {
+  background: var(--color-primary);
+  color: $color-white;
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 $spacing-md;
+  }
+
+  &__header {
+    text-align: center;
+    margin-bottom: $spacing-2xl;
+  }
+
+  &__title {
+    color: $color-white;
+    margin-bottom: $spacing-sm;
+    font-size: 2.25rem;
+  }
+
+  &__subtitle {
+    color: rgba(255, 255, 255, 0.8);
+    max-width: 40rem;
+    margin: 0 auto;
+  }
+
+  &__grid {
+    display: grid;
+    gap: $spacing-lg;
+    grid-template-columns: 1fr;
+  }
+
+  &__card {
+    border-color: $color-white;
+  }
+
+  &__image-wrapper {
+    position: relative;
+    height: 12rem;
+    overflow: hidden;
+    background: $color-gray-200;
+  }
+
+  &__image {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    transition: transform $transition-base;
+  }
+
+  &__card:hover &__image {
+    transform: scale(1.06);
+  }
+
+  &__badge {
+    position: absolute;
+    top: $spacing-sm;
+    right: $spacing-sm;
+    padding: 0.25rem 0.75rem;
+    border-radius: $radius-full;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--color-primary);
+  }
+
+  &__content {
+    padding: $spacing-md $spacing-md $spacing-lg;
+    background: $color-white;
+    color: var(--color-text);
+  }
+
+  &__card-title {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+    color: var(--color-text);
+    margin-bottom: $spacing-sm;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.5rem;
+  }
+
+  &__description {
+    font-size: $font-size-xs;
+    color: var(--color-text-light);
+    margin-bottom: $spacing-sm;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2rem;
+  }
+
+  &__rating {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    margin-bottom: $spacing-sm;
+  }
+
+  &__stars {
+    display: inline-flex;
+    gap: 0.125rem;
+  }
+
+  &__star {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  &__star--active {
+    color: var(--color-accent);
+    fill: var(--color-accent);
+  }
+
+  &__star--inactive {
+    color: $color-gray-300;
+  }
+
+  &__rating-value {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    color: var(--color-text);
+  }
+
+  &__rating-count {
+    font-size: $font-size-xs;
+    color: var(--color-text-light);
+  }
+
+  &__rating-empty {
+    font-size: $font-size-xs;
+    color: var(--color-text-light);
+    font-style: italic;
+  }
+
+  &__details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $spacing-sm;
+    padding: $spacing-sm 0;
+    border-top: 1px solid $color-gray-200;
+    border-bottom: 1px solid $color-gray-200;
+    margin-bottom: $spacing-sm;
+  }
+
+  &__detail {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    font-size: $font-size-xs;
+    color: var(--color-text-light);
+  }
+
+  &__detail-icon {
+    width: 0.9rem;
+    height: 0.9rem;
+    color: var(--color-accent);
+  }
+
+  &__price {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $spacing-md;
+  }
+
+  &__price-label {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    color: var(--color-text-light);
+  }
+
+  &__price-value {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+    color: var(--color-primary);
+  }
+
+  &__button {
+    width: 100%;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+  }
+
+  &__loading,
+  &__empty,
+  &__error {
+    text-align: center;
+    padding: $spacing-2xl 0;
+    color: $color-white;
+  }
+
+  &__error {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: $radius-md;
+  }
+
+  &__spinner {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin: 0 auto $spacing-sm;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-top-color: $color-white;
+    animation: tourExperienceSpin 1s linear infinite;
+  }
+
+  @media (min-width: $breakpoint-md) {
+    &__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: $breakpoint-lg) {
+    &__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+}
