@@ -68,6 +68,7 @@
 
   &__map-wrapper {
     position: relative;
+    z-index: 0;
     width: 100%;
     height: 600px;
     border-radius: 16px;
@@ -89,6 +90,8 @@
   &__map {
     width: 100%;
     height: 100%;
+    position: relative;
+    z-index: 0;
   }
 
   &__panel {
@@ -273,6 +276,7 @@
 // Leaflet theme tweaks
 .leaflet-container {
   font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+  z-index: 0;
 }
 
 .leaflet-control-zoom a {
