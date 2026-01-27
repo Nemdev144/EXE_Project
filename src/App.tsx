@@ -29,6 +29,9 @@ function App() {
         {/* Auth Routes - No layout wrapper */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/verify-code" element={<VerifyCode />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Public Routes */}
         <Route element={<Layout />}>

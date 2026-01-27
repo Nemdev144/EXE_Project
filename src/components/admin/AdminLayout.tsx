@@ -106,6 +106,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
 
+  const handleLogout = () => {
+    localStorage.removeItem("isAuthenticated");
+    localStorage.removeItem("userAccount");
+    localStorage.removeItem("rememberAccount");
+    message.info("Đăng xuất thành công");
+    setTimeout(() => {
+      window.location.href = "/login";
+    }, 500);
+  };
+
   const userMenuItems: MenuProps["items"] = [
     {
       key: "profile",
@@ -218,23 +228,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               transition: "all 0.3s cubic-bezier(0.2, 0, 0, 1)",
             }}
           >
-            <div
+            <img
+              src="/Logo.png"
+              alt="Cội Việt Logo"
               style={{
                 width: 40,
                 height: 40,
                 borderRadius: 8,
-                background: "#8B0000",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-                fontSize: 20,
-                fontWeight: "bold",
+                objectFit: "contain",
                 flexShrink: 0,
               }}
-            >
-              🌾
-            </div>
+            />
             {!collapsed && (
               <div
                 style={{
@@ -274,22 +278,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 {
                   key: "logout",
                   icon: <LogoutOutlined />,
-                  label: collapsed ? null : (
-                    <span
-                      onClick={() => {
-                        // Xử lý đăng xuất
-                        message.info("Đăng xuất thành công");
-                        window.location.href = "/";
-                      }}
-                      style={{ cursor: "pointer", color: "#ff4d4f" }}
-                    >
-                      Đăng xuất
-                    </span>
-                  ),
+                  label: collapsed ? null : "Đăng xuất",
                   danger: true,
                 },
               ]}
               style={{ borderRight: 0 }}
+              onClick={(info) => {
+                if (info.key === "logout") {
+                  handleLogout();
+                }
+              }}
             />
           </div>
         </Sider>
@@ -439,7 +437,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 </Badge>
               </Dropdown>
 
-              <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={["click"]}>
+              <Dropdown 
+                menu={{ 
+                  items: userMenuItems,
+                  onClick: (info) => {
+                    if (info.key === "logout") {
+                      handleLogout();
+                    }
+                  }
+                }} 
+                placement="bottomRight" 
+                trigger={["click"]}
+              >
                 <Space
                   style={{
                     cursor: "pointer",

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { adminLogin, type LoginRequest } from "../services/adminApi";
+import { message } from "antd";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -57,21 +59,43 @@ const Login = () => {
     try {
       setLoading(true);
 
-      // Fake API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Gọi API login
+      const loginData: LoginRequest = {
+        email: formData.account,
+        password: formData.password,
+      };
 
+      const response = await adminLogin(loginData);
+
+      // Lưu token vào localStorage
+      localStorage.setItem("accessToken", response.accessToken);
+      localStorage.setItem("refreshToken", response.refreshToken);
+      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("userAccount", response.user.email);
+      localStorage.setItem("userInfo", JSON.stringify(response.user));
+
+      // Lưu thông tin nhớ tài khoản
       if (formData.remember) {
         localStorage.setItem("rememberAccount", formData.account);
       } else {
         localStorage.removeItem("rememberAccount");
       }
 
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("userAccount", formData.account);
+      message.success("Đăng nhập thành công!");
 
-      navigate("/");
-    } catch (err) {
-      setError("Đăng nhập thất bại, vui lòng thử lại");
+      // Chuyển hướng dựa trên role
+      if (response.user.role === "ADMIN") {
+        navigate("/admin");
+      } else if (response.user.role === "STAFF") {
+        navigate("/staff");
+      } else {
+        navigate("/");
+      }
+    } catch (err: any) {
+      console.error("Login error:", err);
+      const errorMessage = err.response?.data?.message || err.message || "Đăng nhập thất bại, vui lòng thử lại";
+      setError(errorMessage);
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -82,7 +106,7 @@ const Login = () => {
       {/* LEFT IMAGE - 60% width - Large image container */}
       <div className="login-page__image-container">
         <img
-          src="/anhlogin.png"
+          src="/picture1.png"
           alt="Vietnam Culture"
           className="login-page__image"
           onError={(e) => {

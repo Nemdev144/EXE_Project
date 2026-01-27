@@ -38,7 +38,7 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling
+// Response interceptor for token refresh and error handling
 api.interceptors.response.use(
   (response) => {
     console.log(`[API] ✅ ${response.status} ${response.config.url}`);
@@ -49,6 +49,7 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 
 // ========== Home API ==========
 export const getHomePageData = async (limit = 10): Promise<HomePageResponse> => {
