@@ -1,0 +1,104 @@
+@import '../../variables';
+@import '../../mixins';
+
+.lesson-quick-notes {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 48px;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid $color-primary;
+
+  // Stamp-like border effect (răng cưa)
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(139, 0, 0, 0.2) 10px,
+      rgba(139, 0, 0, 0.2) 20px
+    );
+    z-index: 1;
+  }
+
+  &::before {
+    top: 0;
+  }
+
+  &::after {
+    bottom: 0;
+  }
+
+  &__title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $color-primary;
+    margin: 0 0 24px 0;
+    position: relative;
+    z-index: 2;
+  }
+
+  &__list {
+    list-style: decimal;
+    padding-left: 24px;
+    margin: 0 0 24px 0;
+    color: $color-gray-700;
+    line-height: 1.8;
+    position: relative;
+    z-index: 2;
+
+    li {
+      margin-bottom: 8px;
+      font-size: 1rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  &__tip {
+    display: flex;
+    gap: 16px;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 24px;
+    position: relative;
+    z-index: 2;
+    box-shadow: $shadow-sm;
+  }
+
+  &__tip-icon {
+    flex-shrink: 0;
+    color: $color-primary;
+    display: flex;
+    align-items: flex-start;
+  }
+
+  &__tip-content {
+    flex: 1;
+  }
+
+  &__tip-title {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: $color-gray-900;
+    margin: 0 0 8px 0;
+  }
+
+  &__tip-text {
+    font-size: 0.875rem;
+    color: $color-gray-600;
+    line-height: 1.6;
+    margin: 0;
+  }
+}

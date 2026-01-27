@@ -1,0 +1,33 @@
+@import '../variables';
+@import '../mixins';
+
+.quiz-page {
+  min-height: 100vh;
+  padding: 120px 0 80px;
+  background: #fafafa;
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+
+    @include respond-to(md) {
+      padding: 0 16px;
+    }
+  }
+
+  &__content {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 32px;
+
+    @include respond-to(md) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__questions {
+    display: flex;
+    flex-direction: column;
+  }
+}

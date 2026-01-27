@@ -191,7 +191,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   ];
 
   const currentPath = location.pathname;
-  const pageTitle = pageTitles[currentPath] || "Dashboard";
   const breadcrumbItems = breadcrumbMap[currentPath] || [{ title: "Dashboard" }];
 
   return (
@@ -229,7 +228,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             }}
           >
             <img
-              src="/Logo.png"
+              src="/logo.png"
               alt="Cội Việt Logo"
               style={{
                 width: 40,
