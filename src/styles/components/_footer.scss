@@ -1,0 +1,239 @@
+// ============================================
+// Footer Component Styles
+// ============================================
+
+@import '../variables';
+@import '../mixins';
+
+// Custom Font for Brand Name
+@font-face {
+  font-family: 'iCiel Lodestone';
+  src: url('../../assets/iCielBCLodestone-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.footer {
+  width: 100%;
+  background: $color-primary;
+  color: $color-white;
+  padding: $spacing-2xl 0;
+
+  &__container {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 $spacing-lg;
+
+    @include respond-to(md) {
+      padding: 0 $spacing-xl;
+    }
+
+    @include respond-to(lg) {
+      padding: 0 $spacing-2xl;
+    }
+  }
+
+  &__content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $spacing-2xl;
+
+    @include respond-to(md) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @include respond-to(lg) {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  // Brand Column
+  &__brand {
+    @include respond-to(lg) {
+      grid-column: span 1;
+    }
+
+    &-link {
+      display: flex;
+      align-items: center;
+      gap: $spacing-md;
+      margin-bottom: $spacing-lg;
+      text-decoration: none;
+      transition: opacity $transition-base;
+
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+
+    &-logo {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      display: block;
+      filter: brightness(0) invert(1);
+    }
+
+    &-text {
+      font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+      font-size: $font-size-2xl;
+      font-weight: normal;
+      color: $color-white;
+      line-height: 1;
+      letter-spacing: 0.02em;
+    }
+
+    &-description {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: $font-size-sm;
+      line-height: 1.6;
+      margin-bottom: $spacing-lg;
+    }
+  }
+
+  // Social Links
+  &__social {
+    display: flex;
+    gap: $spacing-md;
+
+    &-link {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: $color-white;
+      transition: all $transition-base;
+      text-decoration: none;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+      }
+
+      svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+
+  // Column Sections
+  &__column {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__title {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: $spacing-lg;
+    color: $color-white;
+  }
+
+  &__links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+
+  &__link-item {
+    margin: 0;
+  }
+
+  &__link {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: $font-size-sm;
+    text-decoration: none;
+    transition: color $transition-base;
+    display: inline-block;
+
+    &:hover {
+      color: $color-white;
+    }
+  }
+
+  // Contact Info
+  &__contact {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+
+  &__contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: $spacing-md;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: $font-size-sm;
+    line-height: 1.5;
+
+    svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+  }
+
+  // Bottom Bar
+  &__bottom {
+    margin-top: $spacing-2xl;
+    padding-top: $spacing-xl;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-lg;
+    align-items: center;
+
+    @include respond-to(md) {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
+
+  &__copyright {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: $font-size-sm;
+    text-align: center;
+
+    @include respond-to(md) {
+      text-align: left;
+    }
+  }
+
+  &__legal {
+    display: flex;
+    gap: $spacing-xl;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    @include respond-to(md) {
+      justify-content: flex-end;
+    }
+  }
+
+  &__legal-link {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: $font-size-sm;
+    text-decoration: none;
+    transition: color $transition-base;
+
+    &:hover {
+      color: $color-white;
+    }
+  }
+}

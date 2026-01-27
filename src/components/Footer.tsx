@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Facebook, Youtube, Instagram, Mail, Phone, MapPin } from 'lucide-react';
+import '../styles/components/_footer.scss';
 
 const footerLinks = {
     explore: [
@@ -24,49 +25,46 @@ const socialLinks = [
 
 export default function Footer() {
     return (
-        <footer className="bg-[#1a1a1a] text-white">
-            <div className="container mx-auto px-4 py-12">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <footer className="footer">
+            <div className="footer__container">
+                <div className="footer__content">
                     {/* Brand Column */}
-                    <div className="lg:col-span-1">
-                        <Link to="/" className="flex items-center gap-2 mb-4">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] flex items-center justify-center">
-                                <span className="text-white font-bold text-lg">C</span>
-                            </div>
-                            <span className="text-xl font-bold brand-name">Cội Việt</span>
+                    <div className="footer__brand">
+                        <Link to="/" className="footer__brand-link">
+                            <img
+                                src="/logo.png"
+                                alt="Cội Việt"
+                                className="footer__brand-logo"
+                            />
+                            <span className="footer__brand-text">Cội Việt</span>
                         </Link>
-                        <p className="text-gray-400 text-sm mb-4 leading-relaxed">
+                        <p className="footer__brand-description">
                             Khám phá văn hóa Việt Nam qua những trải nghiệm vùng miền
                         </p>
                         {/* Social Links */}
-                        <div className="flex gap-3">
+                        <div className="footer__social">
                             {socialLinks.map((social) => (
                                 <a
                                     key={social.label}
                                     href={social.href}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[var(--color-primary)] transition-colors"
+                                    className="footer__social-link"
                                     aria-label={social.label}
                                 >
-                                    <social.icon className="w-5 h-5" />
+                                    <social.icon />
                                 </a>
                             ))}
                         </div>
                     </div>
 
                     {/* Explore Links */}
-                    <div>
-                        <h3 className="text-sm font-semibold uppercase tracking-wider mb-4">
-                            Khám phá
-                        </h3>
-                        <ul className="space-y-3">
+                    <div className="footer__column">
+                        <h3 className="footer__title">Khám phá</h3>
+                        <ul className="footer__links">
                             {footerLinks.explore.map((link) => (
-                                <li key={link.path}>
-                                    <Link
-                                        to={link.path}
-                                        className="text-gray-400 text-sm hover:text-white transition-colors"
-                                    >
+                                <li key={link.path} className="footer__link-item">
+                                    <Link to={link.path} className="footer__link">
                                         {link.label}
                                     </Link>
                                 </li>
@@ -75,17 +73,12 @@ export default function Footer() {
                     </div>
 
                     {/* Support Links */}
-                    <div>
-                        <h3 className="text-sm font-semibold uppercase tracking-wider mb-4">
-                            Hỗ trợ
-                        </h3>
-                        <ul className="space-y-3">
+                    <div className="footer__column">
+                        <h3 className="footer__title">Hỗ trợ</h3>
+                        <ul className="footer__links">
                             {footerLinks.support.map((link) => (
-                                <li key={link.path}>
-                                    <Link
-                                        to={link.path}
-                                        className="text-gray-400 text-sm hover:text-white transition-colors"
-                                    >
+                                <li key={link.path} className="footer__link-item">
+                                    <Link to={link.path} className="footer__link">
                                         {link.label}
                                     </Link>
                                 </li>
@@ -94,21 +87,19 @@ export default function Footer() {
                     </div>
 
                     {/* Contact Info */}
-                    <div>
-                        <h3 className="text-sm font-semibold uppercase tracking-wider mb-4">
-                            Liên hệ
-                        </h3>
-                        <ul className="space-y-3">
-                            <li className="flex items-center gap-3 text-gray-400 text-sm">
-                                <Phone className="w-4 h-4 flex-shrink-0" />
+                    <div className="footer__column">
+                        <h3 className="footer__title">Liên hệ</h3>
+                        <ul className="footer__contact">
+                            <li className="footer__contact-item">
+                                <Phone />
                                 <span>0123 456 789</span>
                             </li>
-                            <li className="flex items-center gap-3 text-gray-400 text-sm">
-                                <Mail className="w-4 h-4 flex-shrink-0" />
+                            <li className="footer__contact-item">
+                                <Mail />
                                 <span>info@coiviet.com</span>
                             </li>
-                            <li className="flex items-start gap-3 text-gray-400 text-sm">
-                                <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                            <li className="footer__contact-item">
+                                <MapPin />
                                 <span>Đại học FPT, Thủ Đức, TP.HCM</span>
                             </li>
                         </ul>
@@ -116,19 +107,17 @@ export default function Footer() {
                 </div>
 
                 {/* Bottom Bar */}
-                <div className="mt-12 pt-8 border-t border-white/10">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                        <p className="text-gray-500 text-sm">
-                            © 2025 Cội Việt. Tất cả quyền được bảo lưu.
-                        </p>
-                        <div className="flex gap-6">
-                            <Link to="/privacy" className="text-gray-500 text-sm hover:text-white transition-colors">
-                                Chính sách bảo mật
-                            </Link>
-                            <Link to="/terms" className="text-gray-500 text-sm hover:text-white transition-colors">
-                                Điều khoản sử dụng
-                            </Link>
-                        </div>
+                <div className="footer__bottom">
+                    <p className="footer__copyright">
+                        © 2025 Cội Việt. Tất cả quyền được bảo lưu.
+                    </p>
+                    <div className="footer__legal">
+                        <Link to="/privacy" className="footer__legal-link">
+                            Chính sách bảo mật
+                        </Link>
+                        <Link to="/terms" className="footer__legal-link">
+                            Điều khoản sử dụng
+                        </Link>
                     </div>
                 </div>
             </div>

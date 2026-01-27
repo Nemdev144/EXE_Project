@@ -1,23 +1,82 @@
-'use client';
-
-import { Tour } from '@/lib/types';
-import { Star, Clock, Users, MapPin } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Star, Clock, Users } from 'lucide-react';
+import { getPublicTours } from '../../services/api';
+import type { Tour } from '../../types';
+import '../../styles/components/tourExperienceSection.scss';
 
 interface TourExperienceSectionProps {
-  tours: Tour[];
+  tours?: Tour[];
+  limit?: number;
 }
 
-export default function TourExperienceSection({ tours }: TourExperienceSectionProps) {
-  const displayTours = tours.slice(0, 4);
+const DEFAULT_LIMIT = 4;
+
+export default function TourExperienceSection({
+  tours,
+  limit = DEFAULT_LIMIT,
+}: TourExperienceSectionProps) {
+  const [tourItems, setTourItems] = useState<Tour[]>(tours ?? []);
+  const [loading, setLoading] = useState(!(tours && tours.length > 0));
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (tours && tours.length > 0) {
+      setTourItems(tours);
+    }
+  }, [tours]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchTours = async () => {
+      if (!tours || tours.length === 0) {
+        setLoading(true);
+      }
+      setError(null);
+
+      try {
+        console.log('[TourExperienceSection] 🚀 Fetching tours from /api/tours/public...');
+        const data = await getPublicTours();
+        console.log('[TourExperienceSection] ✅ API data received:', {
+          tours: data?.length ?? 0,
+        });
+        if (!mounted) return;
+        const fetchedTours = data ?? [];
+        if (fetchedTours.length > 0 || !tours || tours.length === 0) {
+          setTourItems(fetchedTours);
+        }
+      } catch (err) {
+        console.error('[TourExperienceSection] ❌ API error:', err);
+        if (!mounted) return;
+        setError('Không thể tải dữ liệu tour trải nghiệm');
+      } finally {
+        if (mounted) {
+          console.log('[TourExperienceSection] 🏁 Fetch completed');
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchTours();
+
+    return () => {
+      mounted = false;
+    };
+  }, [limit, tours]);
+
+  const displayTours = useMemo(
+    () => tourItems.slice(0, Math.max(1, limit)),
+    [tourItems, limit]
+  );
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }).map((_, i) => (
       <Star
         key={i}
-        className={`w-4 h-4 ${
+        className={`tour-experience__star ${
           i < Math.floor(rating)
-            ? 'fill-[var(--color-accent)] text-[var(--color-accent)]'
-            : 'text-gray-300'
+            ? 'tour-experience__star--active'
+            : 'tour-experience__star--inactive'
         }`}
       />
     ));
@@ -30,100 +89,111 @@ export default function TourExperienceSection({ tours }: TourExperienceSectionPr
     }).format(price);
   };
 
+  const hasTours = displayTours.length > 0;
+  const shouldShowError = Boolean(error) && !loading && !hasTours;
+
   return (
-    <section className="section-container bg-[var(--color-primary)]">
-      <div className="container mx-auto px-4 md:px-6">
-        <h2 className="tour-section-title text-4xl md:text-5xl text-center text-white mb-4">
-          TOUR TRẢI NGHIỆM VĂN HÓA
-        </h2>
-        <p className="text-center text-white/80 max-w-2xl mx-auto mb-12">
-          Khám phá văn hóa Tây Nguyên qua những chuyến tour trải nghiệm độc đáo
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {displayTours.map((tour) => (
-            <div
-              key={tour.id}
-              className="stamp-card group overflow-hidden"
-              style={{
-                borderColor: 'white',
-              }}
-            >
-              {/* Image */}
-              <div className="relative h-48 overflow-hidden bg-gray-200">
-                <div
-                  className="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-300"
-                  style={{
-                    backgroundImage: `url('${tour.thumbnailUrl}')`,
-                  }}
-                  role="img"
-                  aria-label={tour.title}
-                />
-                {tour.provinceName && (
-                  <div className="absolute top-3 right-3 bg-white/90 px-3 py-1 rounded-full text-xs font-semibold text-[var(--color-primary)]">
-                    {tour.provinceName}
-                  </div>
-                )}
-              </div>
-
-              {/* Content */}
-              <div className="p-5">
-                <h3 className="font-bold text-base mb-2 text-[var(--color-text)] line-clamp-2 h-12">
-                  {tour.title}
-                </h3>
-
-                {/* Description */}
-                <p className="text-xs text-[var(--color-text-light)] mb-3 line-clamp-2">
-                  {tour.description}
-                </p>
-
-                {/* Rating */}
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="flex gap-0.5">{renderStars(tour.averageRating)}</div>
-                  <span className="text-xs font-semibold text-[var(--color-text)]">
-                    {tour.averageRating.toFixed(1)}
-                  </span>
-                  <span className="text-xs text-[var(--color-text-light)]">
-                    ({tour.totalReviews} {tour.totalReviews === 1 ? 'đánh giá' : 'đánh giá'})
-                  </span>
-                </div>
-
-                {/* Details */}
-                <div className="grid grid-cols-2 gap-2 mb-4 py-3 border-y border-gray-200">
-                  <div className="flex items-center gap-2 text-xs">
-                    <Clock className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                    <span className="text-[var(--color-text-light)]">{tour.durationHours}h</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs">
-                    <Users className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                    <span className="text-[var(--color-text-light)]">
-                      Max {tour.maxParticipants}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Price */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-semibold text-[var(--color-text-light)]">
-                    Giá:
-                  </span>
-                  <span className="text-lg font-bold text-[var(--color-primary)]">
-                    {formatPrice(tour.price)}
-                  </span>
-                </div>
-
-                {/* Button */}
-                <button className="btn btn-primary w-full text-sm font-semibold">
-                  Đặt ngay
-                </button>
-              </div>
-            </div>
-          ))}
+    <section className="section-container tour-experience">
+      <div className="tour-experience__container">
+        <div className="tour-experience__header">
+          <h2 className="tour-experience__title tour-section-title">
+            TOUR TRẢI NGHIỆM VĂN HÓA
+          </h2>
+          <p className="tour-experience__subtitle">
+            Khám phá văn hóa Tây Nguyên qua những chuyến tour trải nghiệm độc đáo
+          </p>
         </div>
 
-        {tours.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-white text-lg">Chưa có tour nào</p>
+        {loading && (
+          <div className="tour-experience__loading">
+            <div className="tour-experience__spinner" aria-hidden="true" />
+            <p>Đang tải tour trải nghiệm...</p>
+          </div>
+        )}
+
+        {shouldShowError && (
+          <div className="tour-experience__error">
+            <p>{error}</p>
+          </div>
+        )}
+
+        {hasTours && (
+          <div className="tour-experience__grid">
+            {displayTours.map((tour) => {
+              const ratingValue = tour.averageRating ?? 0;
+              const ratingCount = tour.totalReviews ?? 0;
+
+              return (
+                <article key={tour.id} className="stamp-card tour-experience__card">
+                <div className="tour-experience__image-wrapper">
+                  <div
+                    className="tour-experience__image"
+                    style={{
+                      backgroundImage: `url('${tour.thumbnailUrl}')`,
+                    }}
+                    role="img"
+                    aria-label={tour.title}
+                  />
+                  {tour.provinceName && (
+                    <div className="tour-experience__badge">{tour.provinceName}</div>
+                  )}
+                </div>
+
+                <div className="tour-experience__content">
+                  <h3 className="tour-experience__card-title">{tour.title}</h3>
+                  <p className="tour-experience__description">{tour.description}</p>
+
+                  <div className="tour-experience__rating">
+                    {ratingCount > 0 ? (
+                      <>
+                        <div className="tour-experience__stars">
+                          {renderStars(ratingValue)}
+                        </div>
+                        <span className="tour-experience__rating-value">
+                          {ratingValue.toFixed(1)}
+                        </span>
+                        <span className="tour-experience__rating-count">
+                          ({ratingCount} đánh giá)
+                        </span>
+                      </>
+                    ) : (
+                      <span className="tour-experience__rating-empty">
+                        Chưa có đánh giá
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="tour-experience__details">
+                    <div className="tour-experience__detail">
+                      <Clock className="tour-experience__detail-icon" />
+                      <span>{tour.durationHours}h</span>
+                    </div>
+                    <div className="tour-experience__detail">
+                      <Users className="tour-experience__detail-icon" />
+                      <span>Max {tour.maxParticipants}</span>
+                    </div>
+                  </div>
+
+                  <div className="tour-experience__price">
+                    <span className="tour-experience__price-label">Giá:</span>
+                    <span className="tour-experience__price-value">
+                      {formatPrice(tour.price)}
+                    </span>
+                  </div>
+
+                  <button className="btn btn-primary tour-experience__button">
+                    Đặt ngay
+                  </button>
+                </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+
+        {!loading && !hasTours && (
+          <div className="tour-experience__empty">
+            <p>Chưa có tour nào</p>
           </div>
         )}
       </div>
