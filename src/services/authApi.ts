@@ -42,20 +42,22 @@ export type AuthLoginResponse = {
   expiresIn: number;
 };
 
-export const authLogin = async (data: LoginRequest): Promise<AuthLoginResponse> => {
+export const authLogin = async (
+  data: LoginRequest,
+): Promise<AuthLoginResponse> => {
   const response = await api.post<ApiResponse<AuthLoginResponse>>(
     "/api/auth/login",
-    data
+    data,
   );
   return response.data.data;
 };
 
 export const authGoogleLogin = async (
-  data: GoogleLoginRequest
+  data: GoogleLoginRequest,
 ): Promise<AuthLoginResponse> => {
   const response = await api.post<ApiResponse<AuthLoginResponse>>(
     "/api/auth/google",
-    data
+    data,
   );
   return response.data.data;
 };
@@ -70,7 +72,7 @@ export const authRegister = async (data: RegisterRequest): Promise<User> => {
 };
 
 export const authForgotPassword = async (
-  data: ForgotPasswordRequest
+  data: ForgotPasswordRequest,
 ): Promise<void> => {
   await api.post("/api/auth/forgot-password", data);
 };
@@ -80,7 +82,7 @@ export const authVerifyOtp = async (data: VerifyOtpRequest): Promise<void> => {
 };
 
 export const authResetPassword = async (
-  data: ResetPasswordRequest
+  data: ResetPasswordRequest,
 ): Promise<void> => {
   await api.post("/api/auth/reset-password", data);
 };
