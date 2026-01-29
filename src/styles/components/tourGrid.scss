@@ -1,0 +1,40 @@
+// ============================================
+// Tour Grid
+// ============================================
+
+@import '../variables';
+@import '../mixins';
+
+.tour-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: $spacing-xl;
+
+  @include respond-to(md) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include respond-to(lg) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @include respond-to(xl) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  &--state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+  }
+
+  &__message {
+    font-size: $font-size-sm;
+    color: $color-gray-600;
+
+    &--error {
+      color: $color-red-600;
+    }
+  }
+}

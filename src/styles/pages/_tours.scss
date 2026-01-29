@@ -1,0 +1,42 @@
+// ============================================
+// Tours Page Styles
+// ============================================
+
+@import '../variables';
+@import '../mixins';
+
+.tour-page {
+  background: #faf9f6;
+  min-height: 100vh;
+
+  &__content {
+    padding: $spacing-2xl 0 $spacing-2xl;
+  }
+
+  &__container {
+    width: 100%;
+    max-width: 1560px;
+    margin: 0 auto;
+    padding: 0 $spacing-lg;
+
+    @include respond-to(md) {
+      padding: 0 $spacing-xl;
+    }
+  }
+
+  &__results {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xl;
+  }
+
+  &__headline {
+    margin: 0 0 $spacing-xl;
+    text-align: center;
+    font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+    font-size: 2.4rem;
+    color: $color-primary;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+}
