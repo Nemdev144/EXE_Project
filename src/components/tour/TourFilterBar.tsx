@@ -7,6 +7,9 @@ type TourFilterBarProps = {
   provinces: Province[];
   selectedProvinceId: string;
   onProvinceChange: (value: string) => void;
+  artisans: { id: number; name: string }[];
+  selectedArtisanId: string;
+  onArtisanChange: (value: string) => void;
   sortBy: string;
   onSortChange: (value: string) => void;
   onReset: () => void;
@@ -19,6 +22,9 @@ export default function TourFilterBar({
   provinces,
   selectedProvinceId,
   onProvinceChange,
+  artisans,
+  selectedArtisanId,
+  onArtisanChange,
   sortBy,
   onSortChange,
   onReset,
@@ -54,6 +60,25 @@ export default function TourFilterBar({
             {provinces.map((province) => (
               <option key={province.id} value={province.id}>
                 {province.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="tour-filter__field">
+          <label className="tour-filter__label" htmlFor="tour-artisan">
+            Nghệ nhân
+          </label>
+          <select
+            id="tour-artisan"
+            className="tour-filter__select"
+            value={selectedArtisanId}
+            onChange={(event) => onArtisanChange(event.target.value)}
+          >
+            <option value="all">Tất cả</option>
+            {artisans.map((artisan) => (
+              <option key={artisan.id} value={artisan.id}>
+                {artisan.name}
               </option>
             ))}
           </select>

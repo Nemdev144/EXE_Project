@@ -24,29 +24,19 @@
     }
   }
 
-  &__layout {
-    display: grid;
-    gap: $spacing-2xl;
-    grid-template-columns: 1fr;
-
-    @include respond-to(lg) {
-      grid-template-columns: 340px 1fr;
-      align-items: start;
-    }
-  }
-
   &__results {
     display: flex;
     flex-direction: column;
     gap: $spacing-xl;
   }
 
-  &__summary {
-    font-size: $font-size-sm;
-    color: $color-gray-600;
-
-    strong {
-      color: $color-primary;
-    }
+  &__headline {
+    margin: 0 0 $spacing-xl;
+    text-align: center;
+    font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+    font-size: 2.4rem;
+    color: $color-primary;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
 }
