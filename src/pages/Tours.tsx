@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Province, Tour } from '../types';
 import { getProvinces, getPublicTours } from '../services/api';
 import TourHero from '../components/tour/TourHero';
-import TourSidebarFilter from '../components/tour/TourSidebarFilter';
+import TourFilterBar from '../components/tour/TourFilterBar';
 import TourGrid from '../components/tour/TourGrid';
 import TourPagination from '../components/tour/TourPagination';
 import '../styles/pages/_tours.scss';
@@ -20,8 +20,6 @@ export default function Tours() {
   const [search, setSearch] = useState('');
   const [selectedProvinceId, setSelectedProvinceId] = useState('all');
   const [selectedArtisanId, setSelectedArtisanId] = useState('all');
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('latest');
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -63,9 +61,6 @@ export default function Tours() {
     const keyword = search.trim().toLowerCase();
     const provinceId = selectedProvinceId === 'all' ? null : Number(selectedProvinceId);
     const artisanId = selectedArtisanId === 'all' ? null : Number(selectedArtisanId);
-    const min = minPrice ? Number(minPrice) : null;
-    const max = maxPrice ? Number(maxPrice) : null;
-
     return tours.filter((tour) => {
       const matchesKeyword = keyword
         ? [tour.title, tour.provinceName, tour.artisanName]
@@ -77,12 +72,9 @@ export default function Tours() {
 
       const matchesProvince = provinceId ? tour.provinceId === provinceId : true;
       const matchesArtisan = artisanId ? tour.artisanId === artisanId : true;
-      const price = tour.price ?? 0;
-      const matchesMin = min !== null ? price >= min : true;
-      const matchesMax = max !== null ? price <= max : true;
-      return matchesKeyword && matchesProvince && matchesArtisan && matchesMin && matchesMax;
+      return matchesKeyword && matchesProvince && matchesArtisan;
     });
-  }, [tours, search, selectedProvinceId, selectedArtisanId, minPrice, maxPrice]);
+  }, [tours, search, selectedProvinceId, selectedArtisanId]);
 
   const sortedTours = useMemo(() => {
     const list = [...filteredTours];
@@ -111,18 +103,7 @@ export default function Tours() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, selectedProvinceId, selectedArtisanId, minPrice, maxPrice, sortBy]);
-
-  const priceRange = useMemo(() => {
-    const prices = tours.map((tour) => tour.price).filter((price) => typeof price === 'number');
-    if (prices.length === 0) {
-      return { min: 0, max: 0 };
-    }
-    return {
-      min: Math.min(...prices),
-      max: Math.max(...prices),
-    };
-  }, [tours]);
+  }, [search, selectedProvinceId, selectedArtisanId, sortBy]);
 
   return (
     <div className="tour-page">
@@ -130,47 +111,36 @@ export default function Tours() {
 
       <section className="tour-page__content">
         <div className="tour-page__container">
-          <div className="tour-page__layout">
-            <TourSidebarFilter
-              search={search}
-              onSearchChange={setSearch}
-              provinces={provinces}
-              selectedProvinceId={selectedProvinceId}
-              onProvinceChange={setSelectedProvinceId}
-              artisans={artisanOptions}
-              selectedArtisanId={selectedArtisanId}
-              onArtisanChange={setSelectedArtisanId}
-              minPrice={minPrice}
-              maxPrice={maxPrice}
-              minPriceHint={priceRange.min}
-              maxPriceHint={priceRange.max}
-              onMinPriceChange={setMinPrice}
-              onMaxPriceChange={setMaxPrice}
-              sortBy={sortBy}
-              onSortChange={(value) => setSortBy(value as SortOption)}
-              onReset={() => {
-                setSearch('');
-                setSelectedProvinceId('all');
-                setSelectedArtisanId('all');
-                setMinPrice('');
-                setMaxPrice('');
-                setSortBy('latest');
-              }}
+          <TourFilterBar
+            search={search}
+            onSearchChange={setSearch}
+            provinces={provinces}
+            selectedProvinceId={selectedProvinceId}
+            onProvinceChange={setSelectedProvinceId}
+            artisans={artisanOptions}
+            selectedArtisanId={selectedArtisanId}
+            onArtisanChange={setSelectedArtisanId}
+            sortBy={sortBy}
+            onSortChange={(value) => setSortBy(value as SortOption)}
+            onReset={() => {
+              setSearch('');
+              setSelectedProvinceId('all');
+              setSelectedArtisanId('all');
+              setSortBy('latest');
+            }}
+            total={sortedTours.length}
+          />
+
+          <h2 className="tour-page__headline">TOUR NỔI BẬT</h2>
+
+          <div className="tour-page__results">
+            <TourGrid tours={pageTours} loading={loading} error={error} />
+
+            <TourPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
             />
-
-            <div className="tour-page__results">
-              <div className="tour-page__summary">
-                Đang hiển thị <strong>{sortedTours.length}</strong> tour
-              </div>
-
-              <TourGrid tours={pageTours} loading={loading} error={error} />
-
-              <TourPagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </div>
           </div>
         </div>
       </section>
