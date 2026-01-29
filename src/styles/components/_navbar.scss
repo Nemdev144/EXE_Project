@@ -131,31 +131,22 @@
       font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
       font-size: 18px;
       font-weight: 400;
-      color: #8B0000; // Dark red text như Figma
-      transition: all $transition-base;
+      color: #000000;
+      transition: color $transition-base;
       white-space: nowrap;
       text-align: center;
       text-decoration: none;
-      padding: 8px 16px;
-      border-radius: 20px;
-      background: transparent;
+      padding: 8px 12px;
 
       &:hover {
-        color: #8B0000;
-        background: rgba(139, 0, 0, 0.05);
+        color: #1f2937;
         text-decoration: none;
       }
 
       &--active {
         font-weight: 600;
-        color: #ffffff; // White text khi active
-        background: #8B0000; // Dark red background khi active
+        color: #cc0000;
         text-decoration: none;
-        
-        &:hover {
-          background: #6B0000; // Darker red khi hover
-          color: #ffffff;
-        }
       }
     }
   }

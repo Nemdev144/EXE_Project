@@ -37,26 +37,6 @@
 @import 'components/navbar';
 @import 'components/footer';
 @import 'components/hero-section';
-@import 'components/breadcrumbs';
-@import 'components/loading';
-@import 'components/category-filter';
-@import 'components/promo-banner';
-@import 'components/lesson-card';
-@import 'components/learn/lesson-hero';
-@import 'components/learn/lesson-header';
-@import 'components/learn/lesson-objectives';
-@import 'components/learn/lesson-summary';
-@import 'components/learn/lesson-vocabulary';
-@import 'components/learn/lesson-quick-notes';
-@import 'components/learn/lesson-related';
-@import 'components/learn/lesson-quiz-cta';
-@import 'components/learn/quiz-header';
-@import 'components/learn/quiz-question-card';
-@import 'components/learn/quiz-sidebar';
-@import 'components/learn/quiz-result-banner';
-@import 'components/learn/quiz-result-summary';
-@import 'components/learn/quiz-explanation-card';
-@import 'components/learn/related-tours';
 
 // Pages
 @import 'pages/login';
@@ -64,8 +44,4 @@
 @import 'pages/forgot-password';
 @import 'pages/verify-code';
 @import 'pages/reset-password';
-@import 'pages/learn';
-@import 'pages/lesson-detail';
-@import 'pages/quiz';
-@import 'pages/quiz-results';
 @import 'pages/tours';

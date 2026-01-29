@@ -1,0 +1,179 @@
+import { useEffect, useMemo, useState } from 'react';
+import type { Province, Tour } from '../types';
+import { getProvinces, getPublicTours } from '../services/api';
+import TourHero from '../components/tour/TourHero';
+import TourSidebarFilter from '../components/tour/TourSidebarFilter';
+import TourGrid from '../components/tour/TourGrid';
+import TourPagination from '../components/tour/TourPagination';
+import '../styles/pages/_tours.scss';
+
+type SortOption = 'latest' | 'price-asc' | 'price-desc' | 'rating-desc';
+
+const PAGE_SIZE = 6;
+
+export default function Tours() {
+  const [tours, setTours] = useState<Tour[]>([]);
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [search, setSearch] = useState('');
+  const [selectedProvinceId, setSelectedProvinceId] = useState('all');
+  const [selectedArtisanId, setSelectedArtisanId] = useState('all');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('latest');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    Promise.all([getPublicTours(), getProvinces()])
+      .then(([tourData, provinceData]) => {
+        if (!mounted) return;
+        setTours(tourData);
+        setProvinces(provinceData);
+        setError(null);
+      })
+      .catch((err: any) => {
+        if (!mounted) return;
+        setError(err?.message || 'Không thể tải danh sách tour');
+      })
+      .finally(() => {
+        if (!mounted) return;
+        setLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const artisanOptions = useMemo(() => {
+    const map = new Map<number, string>();
+    tours.forEach((tour) => {
+      if (tour.artisanId && tour.artisanName) {
+        map.set(tour.artisanId, tour.artisanName);
+      }
+    });
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [tours]);
+
+  const filteredTours = useMemo(() => {
+    const keyword = search.trim().toLowerCase();
+    const provinceId = selectedProvinceId === 'all' ? null : Number(selectedProvinceId);
+    const artisanId = selectedArtisanId === 'all' ? null : Number(selectedArtisanId);
+    const min = minPrice ? Number(minPrice) : null;
+    const max = maxPrice ? Number(maxPrice) : null;
+
+    return tours.filter((tour) => {
+      const matchesKeyword = keyword
+        ? [tour.title, tour.provinceName, tour.artisanName]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase()
+            .includes(keyword)
+        : true;
+
+      const matchesProvince = provinceId ? tour.provinceId === provinceId : true;
+      const matchesArtisan = artisanId ? tour.artisanId === artisanId : true;
+      const price = tour.price ?? 0;
+      const matchesMin = min !== null ? price >= min : true;
+      const matchesMax = max !== null ? price <= max : true;
+      return matchesKeyword && matchesProvince && matchesArtisan && matchesMin && matchesMax;
+    });
+  }, [tours, search, selectedProvinceId, selectedArtisanId, minPrice, maxPrice]);
+
+  const sortedTours = useMemo(() => {
+    const list = [...filteredTours];
+    switch (sortBy) {
+      case 'price-asc':
+        return list.sort((a, b) => (a.price || 0) - (b.price || 0));
+      case 'price-desc':
+        return list.sort((a, b) => (b.price || 0) - (a.price || 0));
+      case 'rating-desc':
+        return list.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
+      case 'latest':
+      default:
+        return list.sort((a, b) => {
+          const aTime = a.createdAt ? Date.parse(a.createdAt) : 0;
+          const bTime = b.createdAt ? Date.parse(b.createdAt) : 0;
+          return bTime - aTime;
+        });
+    }
+  }, [filteredTours, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedTours.length / PAGE_SIZE));
+  const pageTours = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return sortedTours.slice(start, start + PAGE_SIZE);
+  }, [sortedTours, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, selectedProvinceId, selectedArtisanId, minPrice, maxPrice, sortBy]);
+
+  const priceRange = useMemo(() => {
+    const prices = tours.map((tour) => tour.price).filter((price) => typeof price === 'number');
+    if (prices.length === 0) {
+      return { min: 0, max: 0 };
+    }
+    return {
+      min: Math.min(...prices),
+      max: Math.max(...prices),
+    };
+  }, [tours]);
+
+  return (
+    <div className="tour-page">
+      <TourHero />
+
+      <section className="tour-page__content">
+        <div className="tour-page__container">
+          <div className="tour-page__layout">
+            <TourSidebarFilter
+              search={search}
+              onSearchChange={setSearch}
+              provinces={provinces}
+              selectedProvinceId={selectedProvinceId}
+              onProvinceChange={setSelectedProvinceId}
+              artisans={artisanOptions}
+              selectedArtisanId={selectedArtisanId}
+              onArtisanChange={setSelectedArtisanId}
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              minPriceHint={priceRange.min}
+              maxPriceHint={priceRange.max}
+              onMinPriceChange={setMinPrice}
+              onMaxPriceChange={setMaxPrice}
+              sortBy={sortBy}
+              onSortChange={(value) => setSortBy(value as SortOption)}
+              onReset={() => {
+                setSearch('');
+                setSelectedProvinceId('all');
+                setSelectedArtisanId('all');
+                setMinPrice('');
+                setMaxPrice('');
+                setSortBy('latest');
+              }}
+            />
+
+            <div className="tour-page__results">
+              <div className="tour-page__summary">
+                Đang hiển thị <strong>{sortedTours.length}</strong> tour
+              </div>
+
+              <TourGrid tours={pageTours} loading={loading} error={error} />
+
+              <TourPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

@@ -1,0 +1,56 @@
+// ============================================
+// Tour Hero
+// ============================================
+
+@import '../variables';
+@import '../mixins';
+
+.tour-hero {
+  position: relative;
+  background: url('/tour/background.jpg') center/cover no-repeat;
+  padding: 5rem 0 4.5rem;
+  min-height: 820px;
+  display: flex;
+  align-items: center;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.15));
+    z-index: 0;
+  }
+
+  &__container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 $spacing-lg;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  &__eyebrow {
+    display: inline-block;
+    font-size: $font-size-sm;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: $color-white;
+    margin-bottom: $spacing-sm;
+    font-weight: $font-weight-semibold;
+  }
+
+  &__title {
+    font-size: 2.75rem;
+    color: $color-white;
+    margin-bottom: $spacing-sm;
+    font-weight: $font-weight-bold;
+    text-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  }
+
+  &__subtitle {
+    font-size: $font-size-base;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.6;
+  }
+}

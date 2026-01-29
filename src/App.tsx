@@ -8,7 +8,6 @@ import ForgotPassword from "./pages/ForgotPassword";
 import VerifyCode from "./pages/VerifyCode";
 import ResetPassword from "./pages/ResetPassword";
 import { HomePage } from './pages';
-import { LearnPage, LessonDetailPage, QuizPage, QuizResultsPage } from './pages/learn';
 import Tours from "./pages/Tours";
 
 // Admin Pages
@@ -41,10 +40,6 @@ function App() {
         {/* Public Routes */}
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
-          <Route path="/learn" element={<LearnPage />} />
-          <Route path="/learn/:category/:slug" element={<LessonDetailPage />} />
-          <Route path="/learn/:category/:slug/quiz" element={<QuizPage />} />
-          <Route path="/learn/:category/:slug/quiz/results" element={<QuizResultsPage />} />
           <Route path="/tours" element={<Tours />} />
         </Route>
 

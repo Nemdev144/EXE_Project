@@ -1,0 +1,65 @@
+// ============================================
+// Tour Pagination
+// ============================================
+
+@import '../variables';
+@import '../mixins';
+
+.tour-pagination {
+  margin-top: $spacing-2xl;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+
+  &__button {
+    @include button-base;
+    border: 1px solid $color-gray-300;
+    padding: 0.4rem 1rem;
+    border-radius: $radius-full;
+    background: $color-white;
+    color: $color-gray-700;
+    font-weight: $font-weight-semibold;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &__pages {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  &__page-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  &__page {
+    @include button-base;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid $color-gray-300;
+    color: $color-gray-700;
+    font-size: $font-size-sm;
+    background: $color-white;
+    transition: all $transition-base;
+
+    &--active {
+      background: $color-primary;
+      border-color: $color-primary;
+      color: $color-white;
+    }
+  }
+
+  &__ellipsis {
+    color: $color-gray-400;
+  }
+}
