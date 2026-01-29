@@ -1,86 +1,65 @@
-import type { ApiResponse, User } from "../types";
 import { api } from "./api";
+import type { ApiResponse } from "../types";
 
-export type LoginRequest = {
-  username: string;
-  password: string;
-};
-
-export type RegisterRequest = {
-  username: string;
+// Auth types
+export interface LoginRequest {
   email: string;
   password: string;
-};
+}
 
-export type ForgotPasswordRequest = {
+export interface RegisterRequest {
   email: string;
-};
+  password: string;
+  firstName: string;
+  lastName: string;
+}
 
-export type VerifyOtpRequest = {
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface VerifyOtpRequest {
   email: string;
   otp: string;
-};
+}
 
-export type ResetPasswordRequest = {
+export interface ResetPasswordRequest {
   email: string;
   otp: string;
   newPassword: string;
-};
+}
 
-export type AuthLoginResponse = {
-  accessToken: string;
-  refreshToken: string;
-  tokenType: string;
-  userId: number;
-  username: string;
-  email: string;
-  role: "CUSTOMER" | "ARTISAN" | "ADMIN";
-  expiresIn: number;
-};
-
-export const authLogin = async (data: LoginRequest): Promise<AuthLoginResponse> => {
-  const response = await api.post<ApiResponse<AuthLoginResponse>>(
-    "/api/auth/login",
-    data
-  );
-  return response.data.data;
-};
-
-export type GoogleLoginRequest = {
+export interface GoogleLoginRequest {
   idToken: string;
+}
+
+// Auth API functions
+export const authLogin = async (data: LoginRequest): Promise<ApiResponse<any>> => {
+  const response = await api.post("/auth/login", data);
+  return response.data;
 };
 
-export const authGoogleLogin = async (
-  data: GoogleLoginRequest
-): Promise<AuthLoginResponse> => {
-  const response = await api.post<ApiResponse<AuthLoginResponse>>(
-    "/api/auth/google",
-    data
-  );
-  return response.data.data;
+export const authRegister = async (data: RegisterRequest): Promise<ApiResponse<any>> => {
+  const response = await api.post("/auth/register", data);
+  return response.data;
 };
 
-export const authLogout = async (): Promise<void> => {
-  await api.post("/api/auth/logout");
+export const authGoogleLogin = async (data: GoogleLoginRequest): Promise<ApiResponse<any>> => {
+  const response = await api.post("/auth/google-login", data);
+  return response.data;
 };
 
-export const authRegister = async (data: RegisterRequest): Promise<User> => {
-  const response = await api.post<ApiResponse<User>>("/api/users", data);
-  return response.data.data;
+export const authForgotPassword = async (data: ForgotPasswordRequest): Promise<ApiResponse<any>> => {
+  const response = await api.post("/auth/forgot-password", data);
+  return response.data;
 };
 
-export const authForgotPassword = async (
-  data: ForgotPasswordRequest
-): Promise<void> => {
-  await api.post("/api/auth/forgot-password", data);
+export const authVerifyOtp = async (data: VerifyOtpRequest): Promise<ApiResponse<any>> => {
+  const response = await api.post("/auth/verify-otp", data);
+  return response.data;
 };
 
-export const authVerifyOtp = async (data: VerifyOtpRequest): Promise<void> => {
-  await api.post("/api/auth/verify-otp", data);
-};
-
-export const authResetPassword = async (
-  data: ResetPasswordRequest
-): Promise<void> => {
-  await api.post("/api/auth/reset-password", data);
+export const authResetPassword = async (data: ResetPasswordRequest): Promise<ApiResponse<any>> => {
+  const response = await api.post("/auth/reset-password", data);
+  return response.data;
 };
