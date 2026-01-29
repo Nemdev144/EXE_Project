@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { authForgotPassword, authVerifyOtp } from "../services/authApi";
 
 const VerifyCode = () => {
   const navigate = useNavigate();
@@ -7,6 +8,7 @@ const VerifyCode = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
+  const emailForHint = localStorage.getItem("resetEmail") || "";
 
   // Ẩn scrollbar của body khi ở trang verify code
   useEffect(() => {
@@ -45,13 +47,19 @@ const VerifyCode = () => {
     try {
       setLoading(true);
       
-      // Fake API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // Chuyển sang trang đặt mật khẩu mới
+      const email = localStorage.getItem("resetEmail");
+      if (!email) {
+        throw new Error("Thiếu thông tin xác thực, vui lòng thử lại");
+      }
+      await authVerifyOtp({ email, otp: code });
+      localStorage.setItem("resetOtp", code);
       navigate("/reset-password");
-    } catch (err) {
-      setError("Mã xác thực không đúng, vui lòng thử lại");
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Mã xác thực không đúng, vui lòng thử lại";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -62,11 +70,16 @@ const VerifyCode = () => {
     
     try {
       setResendCooldown(60); // 60 giây cooldown
-      // Fake API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const email = localStorage.getItem("resetEmail");
+      if (!email) {
+        throw new Error("Thiếu thông tin, vui lòng quay lại bước trước");
+      }
+      await authForgotPassword({ email });
       // Có thể hiển thị thông báo thành công ở đây
-    } catch (err) {
-      setError("Không thể gửi lại mã, vui lòng thử lại sau");
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || "Không thể gửi lại mã, vui lòng thử lại sau";
+      setError(errorMessage);
     }
   };
 
@@ -80,8 +93,11 @@ const VerifyCode = () => {
             Mã Xác Nhận
           </h1>
           <p className="verify-code-page__subtitle">
-            Vui lòng nhập mã xác minh đã được gửi đến địa chỉ email hoặc số điện thoại
+            Vui lòng nhập mã xác minh đã được gửi đến email của bạn.
           </p>
+          {emailForHint && (
+            <p className="verify-code-page__hint">Đang xác thực cho: {emailForHint}</p>
+          )}
 
           {/* ERROR */}
           {error && (

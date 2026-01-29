@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { authResetPassword } from "../services/authApi";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ const ResetPassword = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const emailForHint = localStorage.getItem("resetEmail") || "";
 
   // Ẩn scrollbar của body khi ở trang reset password
   useEffect(() => {
@@ -52,16 +54,27 @@ const ResetPassword = () => {
     try {
       setLoading(true);
       
-      // Fake API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // Xóa resetEmailOrPhone sau khi đổi mật khẩu thành công
-      localStorage.removeItem("resetEmailOrPhone");
+      const email = localStorage.getItem("resetEmail");
+      const otp = localStorage.getItem("resetOtp");
+      if (!email || !otp) {
+        throw new Error("Thiếu thông tin xác thực, vui lòng thử lại");
+      }
+
+      await authResetPassword({
+        email,
+        otp,
+        newPassword: formData.newPassword,
+      });
+
+      localStorage.removeItem("resetEmail");
+      localStorage.removeItem("resetOtp");
       
       // Chuyển về trang login
       navigate("/login");
-    } catch (err) {
-      setError("Có lỗi xảy ra, vui lòng thử lại");
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || "Có lỗi xảy ra, vui lòng thử lại";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -77,8 +90,11 @@ const ResetPassword = () => {
             THAY ĐỔI MẬT KHẨU
           </h1>
           <p className="reset-password-page__subtitle">
-            Vui lòng nhập mật khẩu mới
+            Vui lòng nhập mật khẩu mới cho tài khoản của bạn.
           </p>
+          {emailForHint && (
+            <p className="reset-password-page__hint">Email: {emailForHint}</p>
+          )}
 
           {/* ERROR */}
           {error && (

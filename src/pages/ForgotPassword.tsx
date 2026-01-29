@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { authForgotPassword } from "../services/authApi";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
-  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -19,7 +20,7 @@ const ForgotPassword = () => {
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmailOrPhone(e.target.value);
+    setEmail(e.target.value);
     if (error) setError("");
   };
 
@@ -27,24 +28,25 @@ const ForgotPassword = () => {
     e.preventDefault();
     setError("");
 
-    if (!emailOrPhone.trim()) {
-      setError("Vui lòng nhập email hoặc số điện thoại");
+    if (!email.trim()) {
+      setError("Vui lòng nhập email");
       return;
     }
 
     try {
       setLoading(true);
       
-      // Fake API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await authForgotPassword({ email });
       
       // Lưu email/phone để dùng ở bước tiếp theo
-      localStorage.setItem("resetEmailOrPhone", emailOrPhone);
+      localStorage.setItem("resetEmail", email);
       
       // Chuyển sang trang nhập mã xác thực
       navigate("/verify-code");
-    } catch (err) {
-      setError("Có lỗi xảy ra, vui lòng thử lại");
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || "Có lỗi xảy ra, vui lòng thử lại";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -60,7 +62,7 @@ const ForgotPassword = () => {
             Quên Mật khẩu
           </h1>
           <p className="forgot-password-page__subtitle">
-            Làm ơn nhập email hoặc số điện thoại và chúng tôi sẽ gửi bạn hướng dẫn đặt lại mật khẩu mới.
+            Nhập email đã đăng ký để nhận mã xác thực đặt lại mật khẩu.
           </p>
 
           {/* ERROR */}
@@ -73,19 +75,22 @@ const ForgotPassword = () => {
           <form onSubmit={handleSubmit} className="forgot-password-page__form">
             {/* EMAIL OR PHONE */}
             <div className="forgot-password-page__field">
-              <label htmlFor="emailOrPhone" className="forgot-password-page__label">
-                Email hoặc số điện thoại
+              <label htmlFor="email" className="forgot-password-page__label">
+                Email
               </label>
               <input
-                type="text"
-                id="emailOrPhone"
-                name="emailOrPhone"
-                placeholder="email@gmail.com | 0123 456 789"
-                value={emailOrPhone}
+                type="email"
+                id="email"
+                name="email"
+                placeholder="email@gmail.com"
+                value={email}
                 onChange={handleChange}
                 disabled={loading}
                 className="forgot-password-page__input"
               />
+              <p className="forgot-password-page__hint">
+                Mã xác thực sẽ được gửi về email này.
+              </p>
             </div>
 
             {/* SUBMIT BUTTON */}

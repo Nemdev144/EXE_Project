@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { adminLogin, type LoginRequest } from "../services/adminApi";
+import { authGoogleLogin, authLogin, type LoginRequest } from "../services/authApi";
 import { message } from "antd";
+import { getGoogleIdToken } from "../utils/googleAuth";
+import { persistAuthSession } from "../utils/authSession";
+
+const GOOGLE_CLIENT_ID =
+  (import.meta as any).env?.VITE_GOOGLE_CLIENT_ID ||
+  "87846938671-76pcjrb3ucf7ngmkai7b2qni7uvrn9qt.apps.googleusercontent.com";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -61,18 +67,14 @@ const Login = () => {
 
       // Gọi API login
       const loginData: LoginRequest = {
-        email: formData.account,
+        username: formData.account,
         password: formData.password,
       };
 
-      const response = await adminLogin(loginData);
+      const response = await authLogin(loginData);
 
       // Lưu token vào localStorage
-      localStorage.setItem("accessToken", response.accessToken);
-      localStorage.setItem("refreshToken", response.refreshToken);
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("userAccount", response.user.email);
-      localStorage.setItem("userInfo", JSON.stringify(response.user));
+      persistAuthSession(response);
 
       // Lưu thông tin nhớ tài khoản
       if (formData.remember) {
@@ -84,16 +86,37 @@ const Login = () => {
       message.success("Đăng nhập thành công!");
 
       // Chuyển hướng dựa trên role
-      if (response.user.role === "ADMIN") {
+      if (response.role === "ADMIN") {
         navigate("/admin");
-      } else if (response.user.role === "STAFF") {
-        navigate("/staff");
       } else {
         navigate("/");
       }
     } catch (err: any) {
       console.error("Login error:", err);
       const errorMessage = err.response?.data?.message || err.message || "Đăng nhập thất bại, vui lòng thử lại";
+      setError(errorMessage);
+      message.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setError("");
+    try {
+      setLoading(true);
+      const idToken = await getGoogleIdToken(GOOGLE_CLIENT_ID);
+      const response = await authGoogleLogin({ idToken });
+      persistAuthSession(response);
+      message.success("Đăng nhập với Google thành công!");
+      if (response.role === "ADMIN") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || "Đăng nhập Google thất bại";
       setError(errorMessage);
       message.error(errorMessage);
     } finally {
@@ -138,18 +161,19 @@ const Login = () => {
             {/* ACCOUNT */}
             <div className="login-page__field">
               <label htmlFor="account" className="login-page__label">
-                Tài khoản
+                Tên đăng nhập
               </label>
               <input
                 type="text"
                 id="account"
                 name="account"
-                placeholder="Nhập tài khoản"
+                placeholder="Nhập tên đăng nhập"
                 value={formData.account}
                 onChange={handleChange}
                 disabled={loading}
                 className="login-page__input"
               />
+              <p className="login-page__hint">Đăng nhập bằng tên đăng nhập đã đăng ký.</p>
             </div>
 
             {/* PASSWORD */}
@@ -207,6 +231,7 @@ const Login = () => {
               type="button"
               disabled={loading}
               className="login-page__google-button"
+              onClick={handleGoogleLogin}
             >
               <svg 
                 viewBox="0 0 24 24" 

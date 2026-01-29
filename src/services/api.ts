@@ -14,7 +14,7 @@ import type {
 // API Base Configuration
 const API_BASE_URL = "https://exe-1-k8ma.onrender.com";
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
@@ -62,9 +62,11 @@ export const getHomePageData = async (limit = 10): Promise<HomePageResponse> => 
 
 // ========== Provinces API ==========
 export const getProvinces = async (): Promise<Province[]> => {
+  console.log("[API] 🚀 Fetching provinces: /api/provinces/public");
   const response = await api.get<ApiResponse<Province[]>>(
     "/api/provinces/public"
   );
+  console.log("[API] ✅ Provinces response:", response.data);
   return response.data.data;
 };
 
