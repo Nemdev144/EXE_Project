@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, User } from "lucide-react";
 import { Drawer } from "antd";
 import "../styles/components/_navbar.scss";
+import type { User as UserInfo } from "../types";
+import { authLogout } from "../services/authApi";
 
 const navLinks = [
   { path: "/", label: "Trang chủ" },
@@ -17,7 +19,18 @@ export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() =>
     Boolean(localStorage.getItem("accessToken"))
   );
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(() => {
+    const raw = localStorage.getItem("userInfo");
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as UserInfo;
+    } catch (error) {
+      console.error("[Navbar] Failed to parse userInfo:", error);
+      return null;
+    }
+  });
 
+  const navigate = useNavigate();
   const location = useLocation();
   const isActive = (path: string) => {
     if (path === "/learn") {
@@ -28,10 +41,53 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    const handleStorage = () => setIsLoggedIn(Boolean(localStorage.getItem("accessToken")));
+    const handleStorage = () => {
+      const token = localStorage.getItem("accessToken");
+      setIsLoggedIn(Boolean(token));
+      if (!token) {
+        setUserInfo(null);
+        return;
+      }
+      const raw = localStorage.getItem("userInfo");
+      if (!raw) {
+        setUserInfo(null);
+        return;
+      }
+      try {
+        setUserInfo(JSON.parse(raw) as UserInfo);
+      } catch (error) {
+        console.error("[Navbar] Failed to parse userInfo:", error);
+        setUserInfo(null);
+      }
+    };
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
+
+  const getInitials = (name?: string) => {
+    if (!name) return "KH";
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+  };
+
+  const handleLogout = async () => {
+    try {
+      await authLogout();
+    } catch (error) {
+      console.error("[Navbar] Logout failed:", error);
+    } finally {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("isAuthenticated");
+      localStorage.removeItem("userAccount");
+      localStorage.removeItem("userInfo");
+      setIsLoggedIn(false);
+      setUserInfo(null);
+      setIsOpen(false);
+      navigate("/login");
+    }
+  };
 
   return (
     <nav className="navbar">
@@ -68,13 +124,32 @@ export default function Navbar() {
         {/* Right: Auth Buttons */}
         <div className="navbar__auth">
           {isLoggedIn ? (
-            <Link
-              to="/profile"
-              className="navbar__auth-button navbar__auth-button--profile"
-              aria-label="Tài khoản"
-            >
-              <User size={20} />
-            </Link>
+            <div className="navbar__auth-logged-in">
+              <Link
+                to="/profile"
+                className="navbar__auth-avatar"
+                aria-label="Tài khoản"
+              >
+                {userInfo?.avatarUrl ? (
+                  <img
+                    src={userInfo.avatarUrl}
+                    alt={userInfo.fullName || "Tài khoản"}
+                    className="navbar__auth-avatar-image"
+                  />
+                ) : (
+                  <span className="navbar__auth-avatar-fallback">
+                    {getInitials(userInfo?.fullName)}
+                  </span>
+                )}
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="navbar__auth-button navbar__auth-button--logout"
+              >
+                Đăng xuất
+              </button>
+            </div>
           ) : (
             <>
               <Link
@@ -143,13 +218,33 @@ export default function Navbar() {
 
           <div className="navbar__drawer-auth">
             {isLoggedIn ? (
-              <Link
-                to="/profile"
-                onClick={() => setIsOpen(false)}
-                className="navbar__drawer-auth-button navbar__drawer-auth-button--profile"
-              >
-                <User size={20} /> Tài khoản
-              </Link>
+              <>
+                <Link
+                  to="/profile"
+                  onClick={() => setIsOpen(false)}
+                  className="navbar__drawer-auth-button navbar__drawer-auth-button--profile"
+                >
+                  {userInfo?.avatarUrl ? (
+                    <img
+                      src={userInfo.avatarUrl}
+                      alt={userInfo.fullName || "Tài khoản"}
+                      className="navbar__drawer-avatar-image"
+                    />
+                  ) : (
+                    <span className="navbar__drawer-avatar-fallback">
+                      {getInitials(userInfo?.fullName)}
+                    </span>
+                  )}
+                  Tài khoản
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="navbar__drawer-auth-button navbar__drawer-auth-button--logout"
+                >
+                  <User size={20} /> Đăng xuất
+                </button>
+              </>
             ) : (
               <>
                 <Link

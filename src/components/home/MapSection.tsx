@@ -16,11 +16,11 @@ L.Icon.Default.mergeOptions({
 // Marker dùng icon kiểu Ion "location-outline" (SVG inline)
 const ionLocationIcon = L.divIcon({
   className: 'map-section__marker-icon',
-  iconSize: [24, 24],
-  iconAnchor: [12, 24],
-  popupAnchor: [0, -24],
+  iconSize: [28, 28],
+  iconAnchor: [14, 28],
+  popupAnchor: [0, -28],
   html: `
-    <svg viewBox="0 0 512 512" width="24" height="24" aria-hidden="true" focusable="false">
+    <svg viewBox="0 0 512 512" width="28" height="28" aria-hidden="true" focusable="false">
       <path
         d="M256 48c-79.5 0-144 64.5-144 144 0 108.2 144 272 144 272s144-163.8 144-272c0-79.5-64.5-144-144-144zm0 208a64 64 0 1 1 0-128 64 64 0 0 1 0 128z"
         fill="none"
@@ -33,16 +33,69 @@ const ionLocationIcon = L.divIcon({
   `,
 });
 
-// 5 tỉnh Tây Nguyên cần tương tác
-const TAY_NGUYEN_PROVINCES = ['Kon Tum', 'Gia Lai', 'Đắk Lắk', 'Đắk Nông', 'Lâm Đồng'];
+const normalizeName = (name: string): string => {
+  const withSpaces = name
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
 
-const normalizeName = (name: string): string =>
-  name
+  const base = withSpaces
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim();
+
+  return base.replace(/^(tinh|thanh pho|tp)\s+/, '').trim();
+};
+
+const buildProvinceNameSet = (items: Province[]) => {
+  const set = new Set<string>();
+  items.forEach((p) => {
+    if (p.name) set.add(normalizeName(p.name));
+    if (p.slug) set.add(normalizeName(p.slug));
+  });
+  return set;
+};
+
+const buildProvinceMap = (items: Province[]) => {
+  const map = new Map<string, Province>();
+  items.forEach((p) => {
+    if (p.name) map.set(normalizeName(p.name), p);
+    if (p.slug) map.set(normalizeName(p.slug), p);
+  });
+  return map;
+};
+
+const markerImageBySlug: Record<string, string> = {
+  kontum: '/geo/marker-kontum.png',
+  gialai: '/geo/marker-gialai.png',
+  lamdong: '/geo/marker-lamdong.jpg',
+  daknong: '/geo/marker-daknong.jpg',
+  daklak: '/geo/marker-daklak.jpg',
+};
+
+const getMarkerImageUrl = (province?: Province) => {
+  if (!province) return undefined;
+  const slugKey = province.slug ? normalizeName(province.slug) : '';
+  const nameKey = province.name ? normalizeName(province.name) : '';
+  return markerImageBySlug[slugKey] || markerImageBySlug[nameKey];
+};
+
+const createProvinceMarkerIcon = (province?: Province) => {
+  const overrideImage = getMarkerImageUrl(province);
+  const thumbnail = overrideImage || province?.thumbnailUrl;
+  if (!thumbnail) return ionLocationIcon;
+
+  return L.divIcon({
+    className: 'map-section__marker-icon map-section__marker-icon--image',
+    iconSize: [46, 46],
+    iconAnchor: [23, 46],
+    popupAnchor: [0, -46],
+    html: `<span class="map-section__marker-image" style="background-image:url('${thumbnail}')"></span>`,
+  });
+};
 
 const cultureItemsCache = new Map<number, CultureItem[]>();
 
@@ -58,11 +111,11 @@ export default function MapSection() {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const geoJsonLayerRef = useRef<L.GeoJSON | null>(null);
-  const markerLayerRef = useRef<L.LayerGroup | null>(null);
+  const markerLayerRef = useRef<L.FeatureGroup | null>(null);
   const provinceNameToIdRef = useRef<Map<string, number>>(new Map());
   const provinceIdToNameRef = useRef<Map<number, string>>(new Map());
 
-  const [_provinces, setProvinces] = useState<Province[]>([]);
+  const [provinces, setProvinces] = useState<Province[]>([]);
   const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(null);
   const [hoveredProvinceId, setHoveredProvinceId] = useState<number | null>(null);
   const [cultureItems, setCultureItems] = useState<CultureItem[]>([]);
@@ -70,6 +123,7 @@ export default function MapSection() {
   const [panelError, setPanelError] = useState<string | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [geoJsonData, setGeoJsonData] = useState<any | null>(null);
 
   const activeProvinceId = selectedProvinceId ?? hoveredProvinceId;
 
@@ -77,6 +131,9 @@ export default function MapSection() {
     if (!activeProvinceId) return '';
     return provinceIdToNameRef.current.get(activeProvinceId) || '';
   }, [activeProvinceId]);
+
+  const provinceNameSet = useMemo(() => buildProvinceNameSet(provinces), [provinces]);
+  const provinceByName = useMemo(() => buildProvinceMap(provinces), [provinces]);
 
   // Load provinces for mapping (name -> id)
   useEffect(() => {
@@ -200,82 +257,8 @@ export default function MapSection() {
           };
 
           loadFirstAvailableGeoJson()
-            .then((geoJsonData) => {
-              if (!mapInstanceRef.current) return;
-
-              // Create GeoJSON layer: chỉ 5 tỉnh Tây Nguyên có tương tác
-              const markerLayer = L.layerGroup();
-
-              const geoJsonLayer = L.geoJSON(geoJsonData as any, {
-                // Ẩn polygon, chỉ dùng để lấy bounds tính vị trí marker
-                style: () => ({
-                  fillOpacity: 0,
-                  color: 'transparent',
-                  weight: 0,
-                  opacity: 0,
-                }),
-                onEachFeature: (feature: any, layer: L.Layer) => {
-                  const props = feature?.properties || {};
-                  const rawName = props.NAME_1 || props.name || props.NAME || 'Unknown';
-                  const normalized = normalizeName(String(rawName));
-                  const isTayNguyen = TAY_NGUYEN_PROVINCES.some(
-                    (tn) => normalizeName(tn) === normalized
-                  );
-
-                  if (!isTayNguyen) return;
-
-                  const provinceId = provinceNameToIdRef.current.get(normalized);
-                  if (!provinceId || !mapInstanceRef.current) return;
-
-                  let center: L.LatLng | null = null;
-                  const anyLayer = layer as any;
-                  if (anyLayer.getBounds) {
-                    center = anyLayer.getBounds().getCenter();
-                  }
-                  if (!center) return;
-
-                  const marker = L.marker(center, { icon: ionLocationIcon }).addTo(markerLayer);
-
-                  marker.bindTooltip(String(rawName) || 'Unknown', {
-                    permanent: false,
-                    direction: 'top',
-                    className: 'province-tooltip',
-                  });
-
-                  marker.on('mouseover', () => {
-                    if (selectedProvinceId) return;
-                    setHoveredProvinceId(provinceId);
-                    debouncedHoverFetch(provinceId);
-                    marker.setZIndexOffset(1000);
-                  });
-
-                  marker.on('mouseout', () => {
-                    if (selectedProvinceId) return;
-                    setHoveredProvinceId(null);
-                    marker.setZIndexOffset(0);
-                  });
-
-                  marker.on('click', () => {
-                    setSelectedProvinceId(provinceId);
-                    setHoveredProvinceId(null);
-                    fetchCultureItems(provinceId);
-                    marker.setZIndexOffset(1500);
-                  });
-                },
-              });
-
-              geoJsonLayer.addTo(mapInstanceRef.current);
-              markerLayer.addTo(mapInstanceRef.current);
-              geoJsonLayerRef.current = geoJsonLayer;
-              markerLayerRef.current = markerLayer;
-
-              // Focus vào vùng Tây Nguyên để nhìn rõ 5 tỉnh
-              // (Nếu bạn muốn zoom toàn Việt Nam thì đổi lại geoJsonLayer.getBounds())
-              mapInstanceRef.current.setView(center, 7);
-
-              setTimeout(() => {
-                mapInstanceRef.current?.invalidateSize();
-              }, 100);
+            .then((data) => {
+              setGeoJsonData(data);
             })
             .catch((err) => {
               console.error('Failed to load GeoJSON:', err);
@@ -323,6 +306,97 @@ export default function MapSection() {
     };
   }, [debouncedHoverFetch, fetchCultureItems]);
 
+  const renderProvinceMarkers = useCallback(() => {
+    if (!mapInstanceRef.current || !geoJsonData || provinceNameSet.size === 0) return;
+
+    if (geoJsonLayerRef.current) {
+      geoJsonLayerRef.current.remove();
+      geoJsonLayerRef.current = null;
+    }
+    if (markerLayerRef.current) {
+      markerLayerRef.current.remove();
+      markerLayerRef.current = null;
+    }
+
+    const markerLayer = L.featureGroup();
+    const geoJsonLayer = L.geoJSON(geoJsonData as any, {
+      // Ẩn polygon, chỉ dùng để lấy bounds tính vị trí marker
+      style: () => ({
+        fillOpacity: 0,
+        color: 'transparent',
+        weight: 0,
+        opacity: 0,
+      }),
+      onEachFeature: (feature: any, layer: L.Layer) => {
+        const props = feature?.properties || {};
+        const rawName = props.NAME_1 || props.name || props.NAME || 'Unknown';
+        const normalized = normalizeName(String(rawName));
+
+        if (!provinceNameSet.has(normalized)) return;
+
+        const provinceId = provinceNameToIdRef.current.get(normalized);
+        if (!provinceId || !mapInstanceRef.current) return;
+
+        let centerPoint: L.LatLng | null = null;
+        const anyLayer = layer as any;
+        if (anyLayer.getBounds) {
+          centerPoint = anyLayer.getBounds().getCenter();
+        }
+        if (!centerPoint) return;
+
+        const province = provinceByName.get(normalized);
+        const icon = createProvinceMarkerIcon(province);
+        const marker = L.marker(centerPoint, { icon }).addTo(markerLayer);
+
+        marker.bindTooltip(String(rawName) || 'Unknown', {
+          permanent: false,
+          direction: 'top',
+          className: 'province-tooltip',
+        });
+
+        marker.on('mouseover', () => {
+          if (selectedProvinceId) return;
+          setHoveredProvinceId(provinceId);
+          debouncedHoverFetch(provinceId);
+          marker.setZIndexOffset(1000);
+        });
+
+        marker.on('mouseout', () => {
+          if (selectedProvinceId) return;
+          setHoveredProvinceId(null);
+          marker.setZIndexOffset(0);
+        });
+
+        marker.on('click', () => {
+          setSelectedProvinceId(provinceId);
+          setHoveredProvinceId(null);
+          fetchCultureItems(provinceId);
+          marker.setZIndexOffset(1500);
+        });
+      },
+    });
+
+    geoJsonLayer.addTo(mapInstanceRef.current);
+    markerLayer.addTo(mapInstanceRef.current);
+    geoJsonLayerRef.current = geoJsonLayer;
+    markerLayerRef.current = markerLayer;
+
+    const bounds = markerLayer.getBounds();
+    if (bounds.isValid()) {
+      mapInstanceRef.current.fitBounds(bounds, {
+        padding: [40, 40],
+      });
+    }
+
+    setTimeout(() => {
+      mapInstanceRef.current?.invalidateSize();
+    }, 100);
+  }, [geoJsonData, provinceNameSet, debouncedHoverFetch, fetchCultureItems, selectedProvinceId]);
+
+  useEffect(() => {
+    renderProvinceMarkers();
+  }, [renderProvinceMarkers]);
+
   // Khi click lock tỉnh, panel luôn hiển thị theo selectedProvinceId
   useEffect(() => {
     if (selectedProvinceId) {
@@ -335,7 +409,9 @@ export default function MapSection() {
       <div className="map-section__container">
         <h2 className="map-section__title">BẢN ĐỒ TÂY NGUYÊN</h2>
         <p className="map-section__subtitle">
-          Hover hoặc click vào 5 tỉnh Tây Nguyên để xem danh sách văn hoá
+          {provinces.length > 0
+            ? `Hover hoặc click vào ${provinces.length} tỉnh thành để xem danh sách văn hoá`
+            : 'Hover hoặc click vào tỉnh thành để xem danh sách văn hoá'}
         </p>
 
         <div className="map-section__content">
