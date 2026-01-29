@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   Table,
@@ -19,6 +19,7 @@ import {
   Tooltip,
   Alert,
   Statistic,
+  Spin,
 } from "antd";
 import {
   PlusOutlined,
@@ -34,6 +35,9 @@ import {
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import dayjs, { Dayjs } from "dayjs";
+import { getPublicTours, getArtisans } from "../../services/api";
+import type { Artisan } from "../../types";
+import type { Tour as ApiTour } from "../../types";
 
 const { RangePicker } = DatePicker;
 
@@ -47,86 +51,44 @@ interface Tour {
   minParticipants: number;
   maxParticipants: number;
   currentParticipants: number;
-  status: "OPEN" | "NEAR_DEADLINE" | "FULL" | "NOT_ENOUGH" | "CANCELLED";
+  status:
+    | "OPEN"
+    | "NEAR_DEADLINE"
+    | "FULL"
+    | "NOT_ENOUGH"
+    | "CANCELLED"
+    | "ACTIVE"
+    | "INACTIVE";
   startDate: string;
   endDate: string;
   artisan?: string;
   artisanId?: string;
   daysUntil?: number;
   discount?: number;
+  totalBookings?: number;
+  averageRating?: number;
+  description?: string;
+  images?: string[];
 }
 
-const statusConfig: Record<string, { label: string; color: string; bgColor?: string }> = {
+const statusConfig: Record<
+  string,
+  { label: string; color: string; bgColor?: string }
+> = {
   OPEN: { label: "Mở đăng ký", color: "#52c41a", bgColor: "#f6ffed" },
+  ACTIVE: { label: "Đang hoạt động", color: "#52c41a", bgColor: "#f6ffed" },
   NEAR_DEADLINE: { label: "Gần hết hạn", color: "#faad14", bgColor: "#fffbe6" },
   FULL: { label: "Đã đầy", color: "#1890ff", bgColor: "#e6f7ff" },
   NOT_ENOUGH: { label: "Không đủ người", color: "#ff4d4f", bgColor: "#fff1f0" },
   CANCELLED: { label: "Đã hủy", color: "#8c8c8c", bgColor: "#fafafa" },
+  INACTIVE: { label: "Không hoạt động", color: "#8c8c8c", bgColor: "#fafafa" },
 };
 
-// Mock data nghệ nhân
-const artisans = [
-  { id: "1", name: "Nghệ nhân Y Kông", specialty: "Cồng chiêng" },
-  { id: "2", name: "Bà H'Bla", specialty: "Dệt thổ cẩm" },
-  { id: "3", name: "Ông A Pui", specialty: "Làm gốm" },
-  { id: "4", name: "Nghệ nhân H'Rơi", specialty: "Hát kể sử thi" },
-];
-
 export default function TourManagement() {
-  const [tours, setTours] = useState<Tour[]>([
-    {
-      key: "1",
-      id: "1",
-      title: "Lễ hội Cồng chiêng",
-      location: "Đắk Lắk",
-      price: 1500000,
-      originalPrice: 2000000,
-      minParticipants: 10,
-      maxParticipants: 20,
-      currentParticipants: 7,
-      status: "NOT_ENOUGH",
-      startDate: "25/01/2025",
-      endDate: "26/01/2025",
-      artisan: "Nghệ nhân Y Kông",
-      artisanId: "1",
-      daysUntil: 12,
-      discount: 25,
-    },
-    {
-      key: "2",
-      id: "2",
-      title: "Tour Ẩm thực Tây Nguyên",
-      location: "Kon Tum",
-      price: 2500000,
-      minParticipants: 12,
-      maxParticipants: 25,
-      currentParticipants: 10,
-      status: "NOT_ENOUGH",
-      startDate: "01/02/2025",
-      endDate: "03/02/2025",
-      artisan: "Nghệ nhân H'Rơi",
-      artisanId: "4",
-      daysUntil: 8,
-    },
-    {
-      key: "3",
-      id: "3",
-      title: "Làng nghề Gốm",
-      location: "Gia Lai",
-      price: 800000,
-      originalPrice: 1000000,
-      minParticipants: 8,
-      maxParticipants: 15,
-      currentParticipants: 5,
-      status: "NOT_ENOUGH",
-      startDate: "08/02/2025",
-      endDate: "08/02/2025",
-      artisan: "Ông A Pui",
-      artisanId: "3",
-      daysUntil: 5,
-      discount: 20,
-    },
-  ]);
+  const [tours, setTours] = useState<Tour[]>([]);
+  const [artisans, setArtisans] = useState<Artisan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [filter, setFilter] = useState<{ status: string; location: string }>({
     status: "all",
@@ -140,9 +102,126 @@ export default function TourManagement() {
   const [discountForm] = Form.useForm();
   const [artisanForm] = Form.useForm();
 
+  // Fetch tours from /api/tours/public and artisans from Admin API
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+
+      // Fetch tours and artisans separately to handle errors independently
+      let publicTours: ApiTour[] = [];
+      let artisansData: Artisan[] = [];
+      let hasToursError = false;
+      let hasArtisansError = false;
+
+      // Fetch tours
+      try {
+        publicTours = await getPublicTours();
+      } catch (toursErr: any) {
+        console.error("Error fetching tours:", toursErr);
+        hasToursError = true;
+        setError("Không thể tải dữ liệu tours. Vui lòng thử lại sau.");
+        message.error("Không thể tải dữ liệu tours");
+      }
+
+      // Fetch artisans from public API (non-blocking, avoids CORS issues)
+      try {
+        artisansData = await getArtisans();
+      } catch (artisansErr: any) {
+        console.error("Error fetching artisans:", artisansErr);
+        hasArtisansError = true;
+        // Don't block tours display if artisans fail
+        message.warning(
+          "Không thể tải danh sách nghệ nhân. Một số chức năng có thể bị hạn chế.",
+        );
+      }
+
+      // Set artisans (empty array if failed)
+      setArtisans(artisansData);
+
+      // Map PublicTour to Tour format
+      const mappedTours: Tour[] = publicTours.map((apiTour: ApiTour) => {
+        // Calculate minParticipants as 50% of maxParticipants (rounded down)
+        const minParticipants = Math.floor(apiTour.maxParticipants * 0.5);
+
+        // Use totalBookings as currentParticipants from API
+        const currentParticipants = apiTour.totalBookings || 0;
+
+        // Map status from API - keep original status if available
+        let status:
+          | "OPEN"
+          | "NEAR_DEADLINE"
+          | "FULL"
+          | "NOT_ENOUGH"
+          | "CANCELLED"
+          | "ACTIVE"
+          | "INACTIVE" = "OPEN";
+        if (apiTour.status) {
+          // Keep status from API, convert to uppercase for consistency
+          const apiStatus = apiTour.status.toUpperCase();
+          if (apiStatus === "ACTIVE" || apiStatus === "OPEN") {
+            status = apiStatus === "ACTIVE" ? "ACTIVE" : "OPEN";
+          } else if (apiStatus === "INACTIVE" || apiStatus === "CANCELLED") {
+            status = apiStatus === "INACTIVE" ? "INACTIVE" : "CANCELLED";
+          } else if (
+            ["NEAR_DEADLINE", "FULL", "NOT_ENOUGH"].includes(apiStatus)
+          ) {
+            status = apiStatus as any;
+          }
+        }
+
+        // Calculate dates from createdAt + durationHours
+        const createdAt = dayjs(apiTour.createdAt);
+        const startDate = createdAt.format("DD/MM/YYYY");
+        const endDate = createdAt
+          .add(apiTour.durationHours, "hour")
+          .format("DD/MM/YYYY");
+        const daysUntil = createdAt.diff(dayjs(), "day");
+
+        return {
+          key: String(apiTour.id),
+          id: String(apiTour.id),
+          title: apiTour.title,
+          location: apiTour.provinceName || "Tây Nguyên",
+          price: apiTour.price,
+          originalPrice: undefined, // Not available in public API
+          minParticipants,
+          maxParticipants: apiTour.maxParticipants,
+          currentParticipants,
+          status,
+          startDate,
+          endDate,
+          artisan: apiTour.artisanName,
+          artisanId: apiTour.artisanId ? String(apiTour.artisanId) : undefined,
+          daysUntil,
+          totalBookings: apiTour.totalBookings,
+          averageRating: apiTour.averageRating,
+          description: apiTour.description,
+          images: apiTour.images,
+        };
+      });
+
+      setTours(mappedTours);
+
+      // Update error message if no tours were loaded
+      if (hasToursError && publicTours.length === 0) {
+        setError("Không thể tải dữ liệu tours. Vui lòng thử lại sau.");
+      } else if (!hasToursError && publicTours.length === 0) {
+        setError("Không có dữ liệu tours để hiển thị.");
+      } else if (!hasToursError) {
+        setError(null); // Clear error if tours loaded successfully
+      }
+
+      setLoading(false);
+    };
+
+    fetchData();
+  }, []);
+
   const filteredTours = tours.filter((tour) => {
     if (filter.status !== "all" && tour.status !== filter.status) return false;
-    if (filter.location !== "all" && tour.location !== filter.location) return false;
+    if (filter.location !== "all" && tour.location !== filter.location)
+      return false;
     return true;
   });
 
@@ -161,7 +240,9 @@ export default function TourManagement() {
       tours.map((tour) => {
         if (tour.id === tourId) {
           const originalPrice = tour.originalPrice || tour.price;
-          const newPrice = Math.round(originalPrice * (1 - discountPercent / 100));
+          const newPrice = Math.round(
+            originalPrice * (1 - discountPercent / 100),
+          );
           return {
             ...tour,
             price: newPrice,
@@ -170,37 +251,37 @@ export default function TourManagement() {
           };
         }
         return tour;
-      })
+      }),
     );
     message.success(`Đã áp dụng giảm giá ${discountPercent}%`);
     setIsDiscountModalOpen(false);
   };
 
   const handleAssignArtisan = (tourId: string, artisanId: string) => {
-    const artisan = artisans.find((a) => a.id === artisanId);
-    if (artisan) {
-      setTours(
-        tours.map((tour) =>
-          tour.id === tourId
-            ? { ...tour, artisan: artisan.name, artisanId: artisan.id }
-            : tour
-        )
-      );
-      message.success(`Đã gắn nghệ nhân ${artisan.name} vào tour`);
-      setIsArtisanModalOpen(false);
-    }
+    // TODO: Implement API call to assign artisan
+    setTours(
+      tours.map((tour) =>
+        tour.id === tourId ? { ...tour, artisanId: artisanId } : tour,
+      ),
+    );
+    message.success("Đã gắn nghệ nhân vào tour");
+    setIsArtisanModalOpen(false);
   };
 
   const handleCancelTour = (tourId: string) => {
     setTours(
       tours.map((tour) =>
-        tour.id === tourId ? { ...tour, status: "CANCELLED" } : tour
-      )
+        tour.id === tourId ? { ...tour, status: "CANCELLED" } : tour,
+      ),
     );
     message.warning("Tour đã được hủy");
   };
 
   const handleCreateTour = (values: any) => {
+    // TODO: Implement API call to create tour
+    const selectedArtisan = artisans.find(
+      (a) => a.id === Number(values.artisan),
+    );
     const newTour: Tour = {
       key: String(tours.length + 1),
       id: String(tours.length + 1),
@@ -214,7 +295,7 @@ export default function TourManagement() {
       startDate: values.dateRange[0].format("DD/MM/YYYY"),
       endDate: values.dateRange[1].format("DD/MM/YYYY"),
       artisanId: values.artisan,
-      artisan: artisans.find((a) => a.id === values.artisan)?.name,
+      artisan: selectedArtisan?.fullName,
       daysUntil: values.dateRange[0].diff(dayjs(), "day"),
     };
     setTours([...tours, newTour]);
@@ -257,7 +338,12 @@ export default function TourManagement() {
               <div
                 style={{
                   fontSize: 12,
-                  color: daysLeft <= 3 ? "#ff4d4f" : daysLeft <= 7 ? "#faad14" : "#52c41a",
+                  color:
+                    daysLeft <= 3
+                      ? "#ff4d4f"
+                      : daysLeft <= 7
+                        ? "#faad14"
+                        : "#52c41a",
                   marginTop: 4,
                 }}
               >
@@ -275,7 +361,13 @@ export default function TourManagement() {
       render: (_, record) => (
         <div>
           {record.originalPrice && (
-            <div style={{ fontSize: 12, color: "#8c8c8c", textDecoration: "line-through" }}>
+            <div
+              style={{
+                fontSize: 12,
+                color: "#8c8c8c",
+                textDecoration: "line-through",
+              }}
+            >
               {record.originalPrice.toLocaleString("vi-VN")}đ
             </div>
           )}
@@ -310,23 +402,36 @@ export default function TourManagement() {
         const progress = getProgress(record);
         const remaining = record.minParticipants - record.currentParticipants;
         const daysLeft = getDaysUntil(record.startDate);
+        const totalBookings = record.totalBookings || 0;
         return (
           <div>
             <div style={{ marginBottom: 8 }}>
-              <strong>{record.currentParticipants}</strong> / {record.minParticipants}
+              <strong>{record.currentParticipants}</strong> /{" "}
+              {record.minParticipants}
+              {totalBookings > 0 && (
+                <div style={{ fontSize: 11, color: "#8c8c8c", marginTop: 2 }}>
+                  Tổng booking: {totalBookings}
+                </div>
+              )}
             </div>
             <Progress
               percent={progress}
-              status={progress >= 100 ? "success" : progress >= 80 ? "active" : "exception"}
+              status={
+                progress >= 100
+                  ? "success"
+                  : progress >= 80
+                    ? "active"
+                    : "exception"
+              }
               size="small"
               strokeColor={
                 progress >= 100
                   ? "#52c41a"
                   : progress >= 80
-                  ? "#1890ff"
-                  : progress >= 50
-                  ? "#faad14"
-                  : "#ff4d4f"
+                    ? "#1890ff"
+                    : progress >= 50
+                      ? "#faad14"
+                      : "#ff4d4f"
               }
               trailColor="#f0f0f0"
             />
@@ -346,6 +451,32 @@ export default function TourManagement() {
                 showIcon
                 style={{ marginTop: 8, fontSize: 11 }}
               />
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      title: "Đánh giá",
+      key: "rating",
+      width: 120,
+      render: (_, record) => {
+        const rating = record.averageRating || 0;
+        const totalBookings = record.totalBookings || 0;
+        if (rating === 0 && totalBookings === 0) {
+          return <span style={{ color: "#8c8c8c" }}>Chưa có</span>;
+        }
+        return (
+          <div>
+            {rating > 0 && (
+              <div style={{ fontSize: 16, fontWeight: 600, color: "#faad14" }}>
+                ⭐ {rating.toFixed(1)}
+              </div>
+            )}
+            {totalBookings > 0 && (
+              <div style={{ fontSize: 11, color: "#8c8c8c", marginTop: 2 }}>
+                {totalBookings} booking
+              </div>
             )}
           </div>
         );
@@ -448,7 +579,12 @@ export default function TourManagement() {
                   okText="Xác nhận"
                   cancelText="Hủy"
                 >
-                  <Button type="link" danger icon={<AlertOutlined />} size="small">
+                  <Button
+                    type="link"
+                    danger
+                    icon={<AlertOutlined />}
+                    size="small"
+                  >
                     Hủy tour
                   </Button>
                 </Popconfirm>
@@ -496,7 +632,9 @@ export default function TourManagement() {
             bodyStyle={{ padding: 20 }}
           >
             <Statistic
-              title={<span style={{ color: "#fff", opacity: 0.9 }}>Tổng Tour</span>}
+              title={
+                <span style={{ color: "#fff", opacity: 0.9 }}>Tổng Tour</span>
+              }
               value={stats.total}
               valueStyle={{ color: "#fff", fontSize: 28, fontWeight: 700 }}
             />
@@ -511,7 +649,9 @@ export default function TourManagement() {
             bodyStyle={{ padding: 20 }}
           >
             <Statistic
-              title={<span style={{ color: "#fff", opacity: 0.9 }}>Mở đăng ký</span>}
+              title={
+                <span style={{ color: "#fff", opacity: 0.9 }}>Mở đăng ký</span>
+              }
               value={stats.open}
               valueStyle={{ color: "#fff", fontSize: 28, fontWeight: 700 }}
             />
@@ -526,7 +666,11 @@ export default function TourManagement() {
             bodyStyle={{ padding: 20 }}
           >
             <Statistic
-              title={<span style={{ color: "#fff", opacity: 0.9 }}>Không đủ người</span>}
+              title={
+                <span style={{ color: "#fff", opacity: 0.9 }}>
+                  Không đủ người
+                </span>
+              }
               value={stats.notEnough}
               valueStyle={{ color: "#fff", fontSize: 28, fontWeight: 700 }}
             />
@@ -541,7 +685,9 @@ export default function TourManagement() {
             bodyStyle={{ padding: 20 }}
           >
             <Statistic
-              title={<span style={{ color: "#fff", opacity: 0.9 }}>Gần hết hạn</span>}
+              title={
+                <span style={{ color: "#fff", opacity: 0.9 }}>Gần hết hạn</span>
+              }
               value={stats.nearDeadline}
               valueStyle={{ color: "#fff", fontSize: 28, fontWeight: 700 }}
             />
@@ -558,7 +704,14 @@ export default function TourManagement() {
       >
         <Row gutter={[16, 16]} align="middle">
           <Col flex="auto">
-            <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: "#262626" }}>
+            <h2
+              style={{
+                margin: 0,
+                fontSize: 24,
+                fontWeight: 700,
+                color: "#262626",
+              }}
+            >
               Quản lý Tour
             </h2>
             <p style={{ margin: "8px 0 0 0", color: "#8c8c8c", fontSize: 14 }}>
@@ -624,16 +777,31 @@ export default function TourManagement() {
           </Col>
         </Row>
 
-        <Table
-          columns={columns}
-          dataSource={filteredTours}
-          scroll={{ x: 1200 }}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) => `Tổng ${total} tour`,
-          }}
-        />
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "40px" }}>
+            <Spin size="large" />
+            <p style={{ marginTop: 16 }}>Đang tải dữ liệu...</p>
+          </div>
+        ) : error ? (
+          <Alert
+            message="Lỗi"
+            description={error}
+            type="error"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+        ) : (
+          <Table
+            columns={columns}
+            dataSource={filteredTours}
+            scroll={{ x: 1200 }}
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: (total) => `Tổng ${total} tour`,
+            }}
+          />
+        )}
       </Card>
 
       {/* Modal Tạo/Sửa Tour */}
@@ -659,7 +827,11 @@ export default function TourManagement() {
           </Form.Item>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item label="Địa điểm" name="location" rules={[{ required: true }]}>
+              <Form.Item
+                label="Địa điểm"
+                name="location"
+                rules={[{ required: true }]}
+              >
                 <Select placeholder="Chọn địa điểm">
                   <Select.Option value="Đắk Lắk">Đắk Lắk</Select.Option>
                   <Select.Option value="Gia Lai">Gia Lai</Select.Option>
@@ -670,8 +842,16 @@ export default function TourManagement() {
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item label="Giá (VNĐ)" name="price" rules={[{ required: true }]}>
-                <InputNumber style={{ width: "100%" }} min={0} placeholder="Nhập giá" />
+              <Form.Item
+                label="Giá (VNĐ)"
+                name="price"
+                rules={[{ required: true }]}
+              >
+                <InputNumber
+                  style={{ width: "100%" }}
+                  min={0}
+                  placeholder="Nhập giá"
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -682,7 +862,11 @@ export default function TourManagement() {
                 name="minParticipants"
                 rules={[{ required: true }]}
               >
-                <InputNumber style={{ width: "100%" }} min={1} placeholder="Min" />
+                <InputNumber
+                  style={{ width: "100%" }}
+                  min={1}
+                  placeholder="Min"
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -691,18 +875,26 @@ export default function TourManagement() {
                 name="maxParticipants"
                 rules={[{ required: true }]}
               >
-                <InputNumber style={{ width: "100%" }} min={1} placeholder="Max" />
+                <InputNumber
+                  style={{ width: "100%" }}
+                  min={1}
+                  placeholder="Max"
+                />
               </Form.Item>
             </Col>
           </Row>
-          <Form.Item label="Thời gian" name="dateRange" rules={[{ required: true }]}>
+          <Form.Item
+            label="Thời gian"
+            name="dateRange"
+            rules={[{ required: true }]}
+          >
             <RangePicker style={{ width: "100%" }} />
           </Form.Item>
           <Form.Item label="Nghệ nhân" name="artisan">
             <Select placeholder="Chọn nghệ nhân">
               {artisans.map((artisan) => (
                 <Select.Option key={artisan.id} value={artisan.id}>
-                  {artisan.name} - {artisan.specialty}
+                  {artisan.fullName} - {artisan.specialization}
                 </Select.Option>
               ))}
             </Select>
@@ -741,7 +933,9 @@ export default function TourManagement() {
           <Form
             form={discountForm}
             layout="vertical"
-            onFinish={(values) => handleApplyDiscount(selectedTour.id, values.discount)}
+            onFinish={(values) =>
+              handleApplyDiscount(selectedTour.id, values.discount)
+            }
           >
             <Alert
               message="Thông tin tour"
@@ -751,11 +945,14 @@ export default function TourManagement() {
                     <strong>Tour:</strong> {selectedTour.title}
                   </div>
                   <div>
-                    <strong>Giá hiện tại:</strong> {selectedTour.price.toLocaleString("vi-VN")}đ
+                    <strong>Giá hiện tại:</strong>{" "}
+                    {selectedTour.price.toLocaleString("vi-VN")}đ
                   </div>
                   <div>
                     <strong>Còn thiếu:</strong>{" "}
-                    {selectedTour.minParticipants - selectedTour.currentParticipants} người
+                    {selectedTour.minParticipants -
+                      selectedTour.currentParticipants}{" "}
+                    người
                   </div>
                 </div>
               }
@@ -780,7 +977,9 @@ export default function TourManagement() {
                 <Button type="primary" htmlType="submit">
                   Áp dụng
                 </Button>
-                <Button onClick={() => setIsDiscountModalOpen(false)}>Hủy</Button>
+                <Button onClick={() => setIsDiscountModalOpen(false)}>
+                  Hủy
+                </Button>
               </Space>
             </Form.Item>
           </Form>
@@ -802,16 +1001,22 @@ export default function TourManagement() {
           <Form
             form={artisanForm}
             layout="vertical"
-            onFinish={(values) => handleAssignArtisan(selectedTour.id, values.artisan)}
+            onFinish={(values) =>
+              handleAssignArtisan(selectedTour.id, values.artisan)
+            }
           >
             <Form.Item label="Tour" name="tour">
               <Input value={selectedTour.title} disabled />
             </Form.Item>
-            <Form.Item label="Nghệ nhân" name="artisan" rules={[{ required: true }]}>
+            <Form.Item
+              label="Nghệ nhân"
+              name="artisan"
+              rules={[{ required: true }]}
+            >
               <Select placeholder="Chọn nghệ nhân">
                 {artisans.map((artisan) => (
                   <Select.Option key={artisan.id} value={artisan.id}>
-                    {artisan.name} - {artisan.specialty}
+                    {artisan.fullName} - {artisan.specialization}
                   </Select.Option>
                 ))}
               </Select>
@@ -821,7 +1026,9 @@ export default function TourManagement() {
                 <Button type="primary" htmlType="submit">
                   Gắn nghệ nhân
                 </Button>
-                <Button onClick={() => setIsArtisanModalOpen(false)}>Hủy</Button>
+                <Button onClick={() => setIsArtisanModalOpen(false)}>
+                  Hủy
+                </Button>
               </Space>
             </Form.Item>
           </Form>
