@@ -7,8 +7,14 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import VerifyCode from "./pages/VerifyCode";
 import ResetPassword from "./pages/ResetPassword";
-import { HomePage } from './pages';
+import { HomePage } from "./pages";
 import Tours from "./pages/Tours";
+import {
+  LearnPage,
+  LessonDetailPage,
+  QuizPage,
+  QuizResultsPage,
+} from "./pages/learn";
 
 // Admin Pages
 import AdminDashboardPage from "./pages/admin/AdminDashboard";
@@ -41,6 +47,13 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/tours" element={<Tours />} />
+          <Route path="/learn" element={<LearnPage />} />
+          <Route path="/learn/:category/:slug" element={<LessonDetailPage />} />
+          <Route path="/learn/:category/:slug/quiz" element={<QuizPage />} />
+          <Route
+            path="/learn/:category/:slug/quiz/results"
+            element={<QuizResultsPage />}
+          />
         </Route>
 
         {/* Admin Routes */}
@@ -57,10 +70,19 @@ function App() {
         {/* Staff Routes */}
         <Route element={<StaffLayout />}>
           <Route path="/staff" element={<StaffDashboardPage />} />
-          <Route path="/staff/bookings" element={<StaffBookingManagementPage />} />
+          <Route
+            path="/staff/bookings"
+            element={<StaffBookingManagementPage />}
+          />
           <Route path="/staff/tours" element={<TourCoordinationPage />} />
-          <Route path="/staff/artisans" element={<StaffArtisanManagementPage />} />
-          <Route path="/staff/content" element={<StaffContentManagementPage />} />
+          <Route
+            path="/staff/artisans"
+            element={<StaffArtisanManagementPage />}
+          />
+          <Route
+            path="/staff/content"
+            element={<StaffContentManagementPage />}
+          />
         </Route>
       </Routes>
     </Router>
