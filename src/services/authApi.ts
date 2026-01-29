@@ -27,6 +27,10 @@ export type ResetPasswordRequest = {
   newPassword: string;
 };
 
+export type GoogleLoginRequest = {
+  idToken: string;
+};
+
 export type AuthLoginResponse = {
   accessToken: string;
   refreshToken: string;
@@ -44,10 +48,6 @@ export const authLogin = async (data: LoginRequest): Promise<AuthLoginResponse> 
     data
   );
   return response.data.data;
-};
-
-export type GoogleLoginRequest = {
-  idToken: string;
 };
 
 export const authGoogleLogin = async (
