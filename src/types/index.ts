@@ -182,11 +182,14 @@ export interface TourSchedule {
 // User
 export interface User {
   id: number;
+  username: string;
   email: string;
   fullName: string;
   phone?: string;
   avatarUrl?: string;
-  role: "USER" | "ADMIN" | "STAFF" | "ARTISAN";
+  dateOfBirth?: string;
+  gender?: "MALE" | "FEMALE" | "OTHER";
+  role: "CUSTOMER" | "ADMIN" | "STAFF" | "ARTISAN";
   status: string;
   createdAt: string;
 }

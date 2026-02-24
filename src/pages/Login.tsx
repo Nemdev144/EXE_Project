@@ -88,6 +88,10 @@ const Login = () => {
       // Chuyển hướng dựa trên role
       if (response.role === "ADMIN") {
         navigate("/admin");
+      } else if (response.role === "STAFF") {
+        navigate("/staff");
+      } else if (response.role === "ARTISAN") {
+        navigate("/artisan");
       } else {
         navigate("/");
       }
@@ -111,6 +115,10 @@ const Login = () => {
       message.success("Đăng nhập với Google thành công!");
       if (response.role === "ADMIN") {
         navigate("/admin");
+      } else if (response.role === "STAFF") {
+        navigate("/staff");
+      } else if (response.role === "ARTISAN") {
+        navigate("/artisan");
       } else {
         navigate("/");
       }

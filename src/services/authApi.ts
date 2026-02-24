@@ -10,6 +10,9 @@ export type RegisterRequest = {
   username: string;
   email: string;
   password: string;
+  phone?: string;
+  fullName?: string;
+  dateOfBirth?: string; // format: YYYY-MM-DD
 };
 
 export type ForgotPasswordRequest = {
@@ -34,8 +37,12 @@ export type AuthLoginResponse = {
   userId: number;
   username: string;
   email: string;
-  role: "CUSTOMER" | "ARTISAN" | "ADMIN";
+  role: "CUSTOMER" | "ARTISAN" | "ADMIN" | "STAFF";
   expiresIn: number;
+};
+
+export type RefreshTokenRequest = {
+  refreshToken: string;
 };
 
 export type GoogleLoginRequest = {
@@ -52,7 +59,7 @@ export const authLogout = async (): Promise<void> => {
 };
 
 export const authRegister = async (data: RegisterRequest): Promise<User> => {
-  const response = await api.post<ApiResponse<User>>("/api/auth/register", data);
+  const response = await api.post<ApiResponse<User>>("/api/users", data);
   return response.data.data;
 };
 
@@ -72,5 +79,12 @@ export const authGoogleLogin = async (
   data: GoogleLoginRequest
 ): Promise<AuthLoginResponse> => {
   const response = await api.post<ApiResponse<AuthLoginResponse>>("/api/auth/google", data);
+  return response.data.data;
+};
+
+export const authRefreshToken = async (
+  data: RefreshTokenRequest
+): Promise<AuthLoginResponse> => {
+  const response = await api.post<ApiResponse<AuthLoginResponse>>("/api/auth/refresh", data);
   return response.data.data;
 };

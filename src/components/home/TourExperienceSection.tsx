@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Star, Clock, Users } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Star, Clock, Tag } from 'lucide-react';
 import { getPublicTours } from '../../services/api';
 import type { Tour } from '../../types';
 import '../../styles/components/tourExperienceSection.scss';
@@ -9,7 +10,7 @@ interface TourExperienceSectionProps {
   limit?: number;
 }
 
-const DEFAULT_LIMIT = 4;
+const DEFAULT_LIMIT = 3;
 
 export default function TourExperienceSection({
   tours,
@@ -69,6 +70,24 @@ export default function TourExperienceSection({
     [tourItems, limit]
   );
 
+  const formatPrice = (value?: number) => {
+    if (!value && value !== 0) return 'Liên hệ';
+    return new Intl.NumberFormat('vi-VN').format(value);
+  };
+
+  const buildImageUrl = (tour: Tour) => {
+    if (tour.thumbnailUrl) return tour.thumbnailUrl;
+    if (tour.images && tour.images.length > 0) return tour.images[0];
+    return '/nen.png';
+  };
+
+  const formatDuration = (hours: number) => {
+    const days = Math.floor(hours / 24);
+    const nights = days > 0 ? days - 1 : 0;
+    if (days > 0) return `${days} ngày ${nights > 0 ? `${nights} đêm` : ''}`;
+    return `${hours}h`;
+  };
+
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }).map((_, i) => (
       <Star
@@ -82,12 +101,7 @@ export default function TourExperienceSection({
     ));
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-    }).format(price);
-  };
+  const navigate = useNavigate();
 
   const hasTours = displayTours.length > 0;
   const shouldShowError = Boolean(error) && !loading && !hasTours;
@@ -100,7 +114,7 @@ export default function TourExperienceSection({
             TOUR TRẢI NGHIỆM VĂN HÓA
           </h2>
           <p className="tour-experience__subtitle">
-            Khám phá văn hóa Tây Nguyên qua những chuyến tour trải nghiệm độc đáo
+            Khám phá văn hoá Tây Nguyên qua những chuyến đi đáng nhớ
           </p>
         </div>
 
@@ -124,67 +138,48 @@ export default function TourExperienceSection({
               const ratingCount = tour.totalReviews ?? 0;
 
               return (
-                <article key={tour.id} className="stamp-card tour-experience__card">
-                <div className="tour-experience__image-wrapper">
-                  <div
-                    className="tour-experience__image"
-                    style={{
-                      backgroundImage: `url('${tour.thumbnailUrl}')`,
-                    }}
-                    role="img"
-                    aria-label={tour.title}
-                  />
-                  {tour.provinceName && (
-                    <div className="tour-experience__badge">{tour.provinceName}</div>
-                  )}
-                </div>
+                <article key={tour.id} className="tour-experience__card">
+                  <div className="tour-experience__image-wrapper">
+                    <div className="tour-experience__image-frame">
+                      <img
+                        className="tour-experience__image"
+                        src={buildImageUrl(tour)}
+                        alt={tour.title}
+                      />
+                    </div>
+                  </div>
 
-                <div className="tour-experience__content">
-                  <h3 className="tour-experience__card-title">{tour.title}</h3>
-                  <p className="tour-experience__description">{tour.description}</p>
+                  <div className="tour-experience__content">
+                    <h3 className="tour-experience__card-title">{tour.title}</h3>
 
-                  <div className="tour-experience__rating">
-                    {ratingCount > 0 ? (
-                      <>
-                        <div className="tour-experience__stars">
-                          {renderStars(ratingValue)}
-                        </div>
-                        <span className="tour-experience__rating-value">
-                          {ratingValue.toFixed(1)}
-                        </span>
-                        <span className="tour-experience__rating-count">
-                          ({ratingCount} đánh giá)
-                        </span>
-                      </>
-                    ) : (
-                      <span className="tour-experience__rating-empty">
-                        Chưa có đánh giá
+                    <div className="tour-experience__meta">
+                      <span className="tour-experience__meta-item">
+                        <Clock className="tour-experience__meta-icon" />
+                        {formatDuration(tour.durationHours)}
                       </span>
-                    )}
-                  </div>
-
-                  <div className="tour-experience__details">
-                    <div className="tour-experience__detail">
-                      <Clock className="tour-experience__detail-icon" />
-                      <span>{tour.durationHours}h</span>
+                      <span className="tour-experience__meta-item">
+                        <Tag className="tour-experience__meta-icon" />
+                        {formatPrice(tour.price)}VND
+                      </span>
                     </div>
-                    <div className="tour-experience__detail">
-                      <Users className="tour-experience__detail-icon" />
-                      <span>Max {tour.maxParticipants}</span>
+
+                    <div className="tour-experience__rating">
+                      <div className="tour-experience__stars">
+                        {renderStars(ratingValue)}
+                      </div>
+                      <span className="tour-experience__rating-text">
+                        {ratingValue.toFixed(1)} ({ratingCount} đánh giá)
+                      </span>
                     </div>
-                  </div>
 
-                  <div className="tour-experience__price">
-                    <span className="tour-experience__price-label">Giá:</span>
-                    <span className="tour-experience__price-value">
-                      {formatPrice(tour.price)}
-                    </span>
+                    <button
+                      type="button"
+                      className="tour-experience__cta"
+                      onClick={() => navigate(`/tours/${tour.id}`)}
+                    >
+                      Đặt ngay
+                    </button>
                   </div>
-
-                  <button className="btn btn-primary tour-experience__button">
-                    Đặt ngay
-                  </button>
-                </div>
                 </article>
               );
             })}

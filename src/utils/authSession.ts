@@ -13,7 +13,7 @@ export const persistAuthSession = (response: AuthLoginResponse) => {
       fullName: response.username || response.email,
       phone: "",
       avatarUrl: "",
-      role: response.role || "USER",
+      role: response.role || "CUSTOMER",
       status: "ACTIVE",
       createdAt: new Date().toISOString(),
     })
