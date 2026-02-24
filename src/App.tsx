@@ -9,6 +9,7 @@ import VerifyCode from "./pages/VerifyCode";
 import ResetPassword from "./pages/ResetPassword";
 import { HomePage } from './pages';
 import Tours from "./pages/Tours";
+import TourDetail from "./components/tour/TourDetail";
 import { About } from "./components/about";
 
 // Admin Pages
@@ -42,6 +43,7 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/tours" element={<Tours />} />
+          <Route path="/tours/:id" element={<TourDetail />} />
           <Route path="/about" element={<About />} />
         </Route>
 

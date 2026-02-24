@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import type { Tour } from '../../types';
 import '../../styles/components/tourCard.scss';
 
@@ -17,8 +18,10 @@ type TourCardProps = {
 };
 
 export default function TourCard({ tour }: TourCardProps) {
+  const navigate = useNavigate();
+
   return (
-    <article className="tour-card">
+    <article className="tour-card" onClick={() => navigate(`/tours/${tour.id}`)} style={{ cursor: 'pointer' }}>
       <div className="tour-card__image-wrapper">
         <div className="tour-card__image-frame">
           <img className="tour-card__image" src={buildImageUrl(tour)} alt={tour.title} />

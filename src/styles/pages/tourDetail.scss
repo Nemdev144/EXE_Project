@@ -1,0 +1,622 @@
+// ============================================
+// Tour Detail Page
+// ============================================
+
+@import '../variables';
+@import '../mixins';
+
+// Stars
+.td-star {
+  width: 1rem;
+  height: 1rem;
+
+  &--active {
+    color: #f59e0b;
+    fill: #f59e0b;
+  }
+
+  &--inactive {
+    color: $color-gray-300;
+  }
+}
+
+// Loading
+.td-loading {
+  @include flex-center;
+  flex-direction: column;
+  gap: $spacing-md;
+  min-height: 50vh;
+  color: $color-gray-600;
+
+  &__spinner {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: 3px solid $color-gray-200;
+    border-top-color: $color-primary;
+    animation: tdSpin 0.8s linear infinite;
+  }
+}
+
+@keyframes tdSpin {
+  to { transform: rotate(360deg); }
+}
+
+// Hero
+.td-hero {
+  width: 100%;
+  max-height: 480px;
+  overflow: hidden;
+
+  &__image {
+    width: 100%;
+    height: 480px;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+// Tabs
+.td-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: $color-white;
+  border-bottom: 2px solid $color-gray-200;
+  box-shadow: $shadow-sm;
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    padding: $spacing-md $spacing-lg;
+    border: none;
+    background: none;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-gray-600;
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 3px solid transparent;
+    transition: all $transition-base;
+
+    &:hover {
+      color: $color-primary;
+      background: $color-red-50;
+    }
+
+    &--active {
+      color: $color-primary;
+      border-bottom-color: $color-primary;
+      font-weight: $font-weight-semibold;
+    }
+  }
+}
+
+// Section common
+.td-section {
+  padding: $spacing-3xl 0;
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 $spacing-md;
+  }
+
+  &__title {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-bold;
+    margin-bottom: $spacing-2xl;
+    text-align: center;
+
+    &--decorated {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: $color-gray-900;
+      font-size: 2rem;
+    }
+
+    &--stamp {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: $color-white;
+      font-size: 2rem;
+    }
+  }
+}
+
+// Intro
+.td-intro {
+  background: $color-white;
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $spacing-2xl;
+
+    @media (min-width: $breakpoint-md) {
+      grid-template-columns: 1.4fr 1fr;
+    }
+  }
+
+  &__text {
+    p {
+      color: $color-gray-700;
+      font-size: $font-size-base;
+      line-height: 1.8;
+      margin-bottom: $spacing-md;
+    }
+  }
+}
+
+// Quick Info sidebar
+.td-quick-info {
+  background: $color-red-50;
+  border: 1px solid $color-red-100;
+  border-radius: $radius-xl;
+  padding: $spacing-xl;
+
+  &__title {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+    margin-bottom: $spacing-lg;
+    text-align: center;
+  }
+
+  &__item {
+    display: flex;
+    gap: $spacing-md;
+    margin-bottom: $spacing-lg;
+    align-items: flex-start;
+
+    > svg {
+      color: $color-primary;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    strong {
+      display: block;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-semibold;
+      color: $color-gray-900;
+      margin-bottom: 2px;
+    }
+
+    p {
+      font-size: $font-size-sm;
+      color: $color-gray-600;
+      line-height: 1.5;
+      margin: 0;
+    }
+  }
+
+  &__cta {
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-top: $spacing-md;
+  }
+}
+
+// Video
+.td-video {
+  background: $color-white;
+  text-align: center;
+  padding: $spacing-2xl 0;
+
+  &__wrapper {
+    max-width: 1000px;
+    margin: 0 auto;
+    position: relative;
+    border-radius: $radius-xl;
+    overflow: hidden;
+    box-shadow: $shadow-xl;
+  }
+
+  &__player {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: none;
+  }
+
+  &__placeholder {
+    position: relative;
+    cursor: pointer;
+
+    img {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      display: block;
+    }
+  }
+
+  &__play-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    @include flex-center;
+    color: $color-primary;
+    box-shadow: $shadow-lg;
+    transition: transform $transition-base;
+
+    &:hover {
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+  }
+
+  &__caption {
+    margin-top: $spacing-xl;
+    padding: 0 $spacing-md;
+
+    h3 {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: $font-size-xl;
+      color: $color-gray-900;
+      margin-bottom: $spacing-sm;
+    }
+
+    p {
+      font-size: $font-size-sm;
+      color: $color-gray-500;
+    }
+  }
+}
+
+// Highlights & Food (red background sections)
+.td-highlights,
+.td-food {
+  background: var(--color-primary);
+  color: $color-white;
+
+  .td-section__title {
+    color: $color-white;
+  }
+}
+
+.td-highlights__grid,
+.td-food__grid {
+  display: grid;
+  gap: $spacing-xl;
+  grid-template-columns: 1fr;
+
+  @media (min-width: $breakpoint-md) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.td-food__empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  padding: $spacing-2xl;
+}
+
+// Stamp Card (reused for highlights + food)
+.td-stamp-card {
+  background: #fbf7f1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform $transition-base, box-shadow $transition-base;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 16px -2px, var(--color-primary) 12px, #b91c1c 12px, #b91c1c 13px, transparent 13px) top left/32px 32px repeat-x,
+      radial-gradient(circle at 16px calc(100% + 2px), var(--color-primary) 12px, #b91c1c 12px, #b91c1c 13px, transparent 13px) bottom left/32px 32px repeat-x,
+      radial-gradient(circle at -2px 16px, var(--color-primary) 12px, #b91c1c 12px, #b91c1c 13px, transparent 13px) top left/32px 32px repeat-y,
+      radial-gradient(circle at calc(100% + 2px) 16px, var(--color-primary) 12px, #b91c1c 12px, #b91c1c 13px, transparent 13px) top right/32px 32px repeat-y;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15);
+  }
+
+  &__image-wrapper {
+    position: relative;
+    padding: 20px 20px 0;
+    z-index: 1;
+  }
+
+  &__image-frame {
+    background: #fefefe;
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
+  }
+
+  &__image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+    border-radius: 8px;
+  }
+
+  &__content {
+    padding: 1.2rem 1.5rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-sm;
+    flex: 1;
+    z-index: 1;
+    position: relative;
+  }
+
+  &__title {
+    font-size: 1.1rem;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+    text-align: center;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    font-size: $font-size-xs;
+    color: $color-gray-500;
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+  }
+
+  &__desc {
+    font-size: $font-size-xs;
+    color: $color-gray-600;
+    line-height: 1.5;
+    text-align: center;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+// Festivals
+.td-festivals {
+  background: $color-white;
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $spacing-2xl;
+
+    @media (min-width: $breakpoint-md) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xl;
+  }
+
+  &__item {
+    display: flex;
+    gap: $spacing-lg;
+    align-items: flex-start;
+
+    h4 {
+      font-size: $font-size-lg;
+      font-weight: $font-weight-bold;
+      color: $color-gray-900;
+      margin-bottom: $spacing-xs;
+    }
+
+    p {
+      font-size: $font-size-sm;
+      color: $color-gray-600;
+      line-height: 1.6;
+    }
+  }
+
+  &__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: $color-red-50;
+    @include flex-center;
+    flex-shrink: 0;
+    color: $color-primary;
+  }
+
+  &__tips-card {
+    background: $color-red-50;
+    border: 1px solid $color-red-100;
+    border-radius: $radius-xl;
+    padding: $spacing-xl;
+
+    h4 {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+      font-size: $font-size-lg;
+      font-weight: $font-weight-bold;
+      color: $color-primary;
+      margin-bottom: $spacing-lg;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      position: relative;
+      padding-left: $spacing-lg;
+      margin-bottom: $spacing-md;
+      font-size: $font-size-sm;
+      color: $color-gray-700;
+      line-height: 1.5;
+
+      &::before {
+        content: '•';
+        position: absolute;
+        left: 0;
+        color: $color-primary;
+        font-weight: bold;
+        font-size: 1.2rem;
+        line-height: 1;
+      }
+    }
+  }
+}
+
+// CTA Banner
+.td-cta-banner {
+  background: $color-red-50;
+  padding: $spacing-3xl 0;
+  text-align: center;
+
+  &__container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 $spacing-md;
+    background: $color-white;
+    border-radius: $radius-2xl;
+    padding: $spacing-2xl $spacing-xl;
+    box-shadow: $shadow-md;
+
+    h3 {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: $font-size-xl;
+      color: $color-gray-900;
+      margin-bottom: $spacing-sm;
+    }
+
+    p {
+      font-size: $font-size-sm;
+      color: $color-gray-500;
+      margin-bottom: $spacing-xl;
+    }
+  }
+
+  &__buttons {
+    display: flex;
+    justify-content: center;
+    gap: $spacing-md;
+    flex-wrap: wrap;
+
+    .btn-outline {
+      border: 2px solid $color-primary;
+      color: $color-primary;
+      background: transparent;
+      padding: 0.6rem 1.5rem;
+      border-radius: $radius-full;
+      font-weight: $font-weight-semibold;
+      font-size: $font-size-sm;
+      cursor: pointer;
+      transition: all $transition-base;
+
+      &:hover {
+        background: $color-primary;
+        color: $color-white;
+      }
+    }
+  }
+}
+
+// Related Tours
+.td-related {
+  background: $color-white;
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $spacing-xl;
+
+    @media (min-width: $breakpoint-md) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  &__card {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform $transition-base;
+
+    &:hover {
+      transform: translateY(-4px);
+    }
+  }
+
+  &__card-images {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: $spacing-xs;
+    border-radius: $radius-lg;
+    overflow: hidden;
+    margin-bottom: $spacing-md;
+  }
+
+  &__thumb {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+
+    &--full {
+      grid-column: 1 / -1;
+      height: 180px;
+    }
+  }
+
+  &__card-content {
+    text-align: center;
+
+    h4 {
+      font-size: $font-size-lg;
+      font-weight: $font-weight-bold;
+      color: $color-primary;
+      margin-bottom: $spacing-xs;
+    }
+  }
+
+  &__price {
+    font-size: $font-size-sm;
+    color: $color-gray-600;
+    margin-bottom: $spacing-sm;
+  }
+
+  &__stars {
+    display: inline-flex;
+    gap: 0.1rem;
+  }
+}
