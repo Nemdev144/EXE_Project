@@ -1,0 +1,782 @@
+// ============================================
+// About Page Styles - Landing Page Style
+// ============================================
+
+@import '../variables';
+@import '../mixins';
+
+.about-page {
+  min-height: 100vh;
+  background: #faf9f6;
+  display: flex;
+  flex-direction: column;
+
+  // ========================================
+  // Container
+  // ========================================
+  &__container {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 $spacing-md;
+
+    @include respond-to(md) {
+      padding: 0 $spacing-lg;
+    }
+
+    @include respond-to(lg) {
+      padding: 0 $spacing-xl;
+    }
+  }
+
+  // ========================================
+  // Section Header (shared)
+  // ========================================
+  &__section-header {
+    text-align: center;
+    margin-bottom: $spacing-2xl;
+
+    @include respond-to(md) {
+      margin-bottom: $spacing-3xl;
+    }
+  }
+
+  &__section-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: $color-primary;
+    margin-bottom: $spacing-sm;
+  }
+
+  &__section-title {
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    color: $color-text-primary;
+    margin-bottom: $spacing-sm !important;
+    line-height: 1.2 !important;
+
+    @include respond-to(md) {
+      font-size: 2.5rem !important;
+    }
+  }
+
+  &__section-desc {
+    font-size: 1.0625rem !important;
+    color: $color-text-secondary;
+    max-width: 40rem;
+    margin: 0 auto !important;
+  }
+
+  // ========================================
+  // Hero Section
+  // ========================================
+  &__hero {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(to bottom, #fff, #faf9f6);
+    padding: $spacing-3xl 0;
+    border-bottom: 1px solid $color-border;
+
+    @include respond-to(md) {
+      padding: $spacing-4xl 0 $spacing-3xl;
+    }
+  }
+
+  &__hero-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  &__hero-pattern {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+    background-size: 16px 16px;
+    opacity: 0.3;
+  }
+
+  &__hero-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(64px);
+
+    &--primary {
+      top: -6rem;
+      right: -6rem;
+      width: 24rem;
+      height: 24rem;
+      background: rgba($color-primary, 0.1);
+    }
+
+    &--secondary {
+      top: 50%;
+      left: -6rem;
+      width: 18rem;
+      height: 18rem;
+      background: rgba(#f59e0b, 0.1);
+    }
+  }
+
+  &__hero-content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+  }
+
+  &__hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: $spacing-xs $spacing-md;
+    background: rgba($color-primary, 0.1);
+    border-radius: $radius-full;
+    margin-bottom: $spacing-lg;
+    color: $color-primary;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  &__title {
+    font-size: 2.25rem !important;
+    font-weight: 700 !important;
+    margin-bottom: $spacing-lg !important;
+    color: $color-text-primary;
+    letter-spacing: -0.02em;
+    line-height: 1.15 !important;
+
+    @include respond-to(md) {
+      font-size: 3rem !important;
+    }
+
+    @include respond-to(lg) {
+      font-size: 3.5rem !important;
+    }
+  }
+
+  &__title-highlight {
+    color: $color-primary;
+    position: relative;
+    display: inline-block;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0.1em;
+      left: 0;
+      width: 100%;
+      height: 0.15em;
+      background: rgba($color-primary, 0.3);
+      border-radius: $radius-full;
+    }
+  }
+
+  &__subtitle {
+    font-size: 1.0625rem !important;
+    color: $color-text-secondary;
+    max-width: 40rem;
+    margin: 0 auto $spacing-xl !important;
+    line-height: 1.75;
+
+    @include respond-to(md) {
+      font-size: 1.125rem !important;
+    }
+  }
+
+  &__hero-actions {
+    display: flex;
+    gap: $spacing-md;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  &__hero-btn {
+    display: inline-flex !important;
+    align-items: center;
+    gap: $spacing-sm;
+    font-weight: 600 !important;
+    border-radius: $radius-lg !important;
+    height: auto !important;
+    padding: $spacing-sm $spacing-xl !important;
+
+    &--outline {
+      background: transparent !important;
+      border: 2px solid $color-border !important;
+      color: $color-text-primary !important;
+
+      &:hover {
+        border-color: $color-primary !important;
+        color: $color-primary !important;
+      }
+    }
+  }
+
+  // ========================================
+  // Stats Section
+  // ========================================
+  &__stats {
+    padding: $spacing-2xl 0;
+    background: #fff;
+    border-bottom: 1px solid $color-border;
+  }
+
+  &__stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-lg;
+
+    @include respond-to(md) {
+      grid-template-columns: repeat(4, 1fr);
+      gap: $spacing-xl;
+    }
+  }
+
+  &__stat-item {
+    text-align: center;
+    padding: $spacing-lg;
+  }
+
+  &__stat-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    color: $color-primary;
+    margin: 0 auto $spacing-sm;
+    opacity: 0.8;
+  }
+
+  &__stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: $color-text-primary;
+    line-height: 1;
+    margin-bottom: $spacing-xs;
+
+    @include respond-to(md) {
+      font-size: 3rem;
+    }
+  }
+
+  &__stat-label {
+    font-size: 0.9375rem;
+    color: $color-text-secondary;
+    font-weight: 500;
+  }
+
+  // ========================================
+  // Mission & Vision Section
+  // ========================================
+  &__mission {
+    padding: $spacing-3xl 0;
+    background: #faf9f6;
+
+    @include respond-to(md) {
+      padding: $spacing-4xl 0;
+    }
+  }
+
+  &__mission-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $spacing-xl;
+
+    @include respond-to(md) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: $spacing-2xl;
+    }
+  }
+
+  &__card {
+    position: relative;
+    padding: $spacing-xl;
+    border-radius: $radius-2xl;
+    border: 1px solid;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+
+    @include respond-to(md) {
+      padding: $spacing-2xl;
+    }
+
+    &--mission {
+      background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%);
+      border-color: rgba(#f59e0b, 0.2);
+    }
+
+    &--vision {
+      background: linear-gradient(135deg, rgba($color-primary, 0.05) 0%, #f0fdfa 100%);
+      border-color: rgba($color-primary, 0.1);
+    }
+  }
+
+  &__card-bg {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: $spacing-lg;
+    opacity: 0.1;
+  }
+
+  &__card-bg-icon {
+    width: 8rem;
+    height: 8rem;
+    color: currentColor;
+
+    &--primary {
+      color: $color-primary;
+    }
+  }
+
+  &__card-content {
+    position: relative;
+    z-index: 10;
+  }
+
+  &__card-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: $radius-lg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: $spacing-lg;
+    color: #fff;
+
+    &--amber {
+      background: #f59e0b;
+      box-shadow: 0 4px 12px rgba(#f59e0b, 0.2);
+    }
+
+    &--primary {
+      background: $color-primary;
+      box-shadow: 0 4px 12px rgba($color-primary, 0.2);
+    }
+  }
+
+  &__card-title {
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    margin-bottom: $spacing-md !important;
+    color: $color-text-primary;
+  }
+
+  &__card-text {
+    font-size: 1rem !important;
+    color: $color-text-secondary;
+    line-height: 1.75;
+    margin-bottom: 0 !important;
+  }
+
+  // ========================================
+  // Features Section
+  // ========================================
+  &__features {
+    padding: $spacing-3xl 0;
+    background: #fff;
+
+    @include respond-to(md) {
+      padding: $spacing-4xl 0;
+    }
+  }
+
+  &__features-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $spacing-lg;
+
+    @include respond-to(sm) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @include respond-to(lg) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  &__feature-card {
+    padding: $spacing-xl;
+    background: #faf9f6;
+    border-radius: $radius-xl;
+    border: 1px solid $color-border;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+      border-color: transparent;
+    }
+  }
+
+  &__feature-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: $radius-md;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: $spacing-md;
+    color: #fff;
+
+    &--primary { background: $color-primary; }
+    &--amber { background: #f59e0b; }
+    &--teal { background: #14b8a6; }
+    &--rose { background: #f43f5e; }
+    &--green { background: #22c55e; }
+    &--blue { background: #3b82f6; }
+  }
+
+  &__feature-title {
+    font-size: 1.125rem !important;
+    font-weight: 600 !important;
+    margin-bottom: $spacing-sm !important;
+    color: $color-text-primary;
+  }
+
+  &__feature-text {
+    font-size: 0.9375rem !important;
+    color: $color-text-secondary;
+    line-height: 1.6;
+    margin-bottom: 0 !important;
+  }
+
+  // ========================================
+  // Values Section
+  // ========================================
+  &__values {
+    padding: $spacing-3xl 0;
+    background: #faf9f6;
+
+    @include respond-to(md) {
+      padding: $spacing-4xl 0;
+    }
+  }
+
+  &__values-wrapper {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $spacing-2xl;
+    align-items: center;
+
+    @include respond-to(lg) {
+      grid-template-columns: 1fr 1fr;
+      gap: $spacing-3xl;
+    }
+  }
+
+  &__values-content {
+    order: 2;
+
+    @include respond-to(lg) {
+      order: 1;
+    }
+  }
+
+  &__values-title {
+    font-size: 1.75rem !important;
+    font-weight: 700 !important;
+    color: $color-text-primary;
+    margin-bottom: $spacing-md !important;
+
+    @include respond-to(md) {
+      font-size: 2rem !important;
+    }
+  }
+
+  &__values-desc {
+    font-size: 1rem !important;
+    color: $color-text-secondary;
+    line-height: 1.75;
+    margin-bottom: $spacing-xl !important;
+  }
+
+  &__values-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+
+  &__values-item {
+    display: flex;
+    align-items: flex-start;
+    gap: $spacing-sm;
+    font-size: 1rem;
+    color: $color-text-primary;
+    font-weight: 500;
+  }
+
+  &__values-check {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: #22c55e;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+  }
+
+  &__values-image {
+    order: 1;
+
+    @include respond-to(lg) {
+      order: 2;
+    }
+  }
+
+  &__values-img-wrapper {
+    position: relative;
+    border-radius: $radius-2xl;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+
+    img {
+      width: 100%;
+      height: auto;
+      display: block;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+    }
+  }
+
+  &__values-badge {
+    position: absolute;
+    bottom: $spacing-lg;
+    left: $spacing-lg;
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    background: #fff;
+    padding: $spacing-sm $spacing-md;
+    border-radius: $radius-full;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $color-text-primary;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    svg {
+      color: #f59e0b;
+    }
+  }
+
+  // ========================================
+  // Timeline Section
+  // ========================================
+  &__timeline {
+    padding: $spacing-3xl 0;
+    background: #fff;
+
+    @include respond-to(md) {
+      padding: $spacing-4xl 0;
+    }
+  }
+
+  &__timeline-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $spacing-lg;
+
+    @include respond-to(md) {
+      grid-template-columns: repeat(4, 1fr);
+      gap: $spacing-md;
+    }
+  }
+
+  &__timeline-item {
+    position: relative;
+    padding: $spacing-lg;
+    background: #faf9f6;
+    border-radius: $radius-xl;
+    border: 1px solid $color-border;
+
+    @include respond-to(md) {
+      text-align: center;
+      padding: $spacing-xl $spacing-md;
+    }
+  }
+
+  &__timeline-year {
+    display: inline-block;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: $color-primary;
+    background: rgba($color-primary, 0.1);
+    padding: $spacing-xs $spacing-sm;
+    border-radius: $radius-md;
+    margin-bottom: $spacing-md;
+  }
+
+  &__timeline-title {
+    font-size: 1.0625rem !important;
+    font-weight: 600 !important;
+    color: $color-text-primary;
+    margin-bottom: $spacing-xs !important;
+  }
+
+  &__timeline-desc {
+    font-size: 0.875rem !important;
+    color: $color-text-secondary;
+    line-height: 1.6;
+    margin-bottom: 0 !important;
+  }
+
+  &__timeline-connector {
+    display: none;
+
+    @include respond-to(md) {
+      display: block;
+      position: absolute;
+      top: 50%;
+      right: -$spacing-md;
+      width: $spacing-md;
+      height: 2px;
+      background: $color-border;
+      transform: translateY(-50%);
+    }
+  }
+
+  // ========================================
+  // Team Section
+  // ========================================
+  &__team {
+    padding: $spacing-3xl 0;
+    background: #faf9f6;
+
+    @include respond-to(md) {
+      padding: $spacing-4xl 0;
+    }
+  }
+
+  &__team-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $spacing-md;
+
+    @include respond-to(md) {
+      grid-template-columns: repeat(3, 1fr);
+      gap: $spacing-lg;
+    }
+  }
+
+  &__team-card {
+    display: flex;
+    align-items: flex-start;
+    gap: $spacing-md;
+    padding: $spacing-lg;
+    background: #fff;
+    border-radius: $radius-xl;
+    border: 1px solid $color-border;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+  }
+
+  &__team-card-icon {
+    flex-shrink: 0;
+    width: 3rem;
+    height: 3rem;
+    border-radius: $radius-md;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+
+    &--primary { background: $color-primary; }
+    &--amber { background: #f59e0b; }
+    &--teal { background: #14b8a6; }
+  }
+
+  &__team-card-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__team-card-title {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    margin-bottom: $spacing-xs !important;
+    color: $color-text-primary;
+  }
+
+  &__team-card-text {
+    font-size: 0.875rem !important;
+    color: $color-text-secondary;
+    line-height: 1.6;
+    margin-bottom: 0 !important;
+  }
+
+  // ========================================
+  // CTA Section
+  // ========================================
+  &__cta {
+    padding: $spacing-3xl 0;
+    background: linear-gradient(135deg, $color-primary 0%, darken($color-primary, 10%) 100%);
+
+    @include respond-to(md) {
+      padding: $spacing-4xl 0;
+    }
+  }
+
+  &__cta-content {
+    text-align: center;
+  }
+
+  &__cta-title {
+    font-size: 1.75rem !important;
+    font-weight: 700 !important;
+    color: #fff !important;
+    margin-bottom: $spacing-md !important;
+
+    @include respond-to(md) {
+      font-size: 2.25rem !important;
+    }
+  }
+
+  &__cta-desc {
+    font-size: 1.0625rem !important;
+    color: rgba(#fff, 0.85) !important;
+    max-width: 32rem;
+    margin: 0 auto $spacing-xl !important;
+    line-height: 1.75;
+  }
+
+  &__cta-actions {
+    display: flex;
+    gap: $spacing-md;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  &__cta-btn {
+    display: inline-flex !important;
+    align-items: center;
+    gap: $spacing-sm;
+    font-weight: 600 !important;
+    border-radius: $radius-lg !important;
+    height: auto !important;
+    padding: $spacing-sm $spacing-xl !important;
+    background: #fff !important;
+    color: $color-primary !important;
+    border: none !important;
+
+    &:hover {
+      background: rgba(#fff, 0.9) !important;
+    }
+
+    &--ghost {
+      background: transparent !important;
+      color: #fff !important;
+      border: 2px solid rgba(#fff, 0.3) !important;
+
+      &:hover {
+        border-color: rgba(#fff, 0.6) !important;
+        background: rgba(#fff, 0.1) !important;
+      }
+    }
+  }
+}

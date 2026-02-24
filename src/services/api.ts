@@ -12,7 +12,7 @@ import type {
 } from "../types";
 
 // API Base Configuration
-const API_BASE_URL = "https://exe-1-k8ma.onrender.com/";
+const API_BASE_URL = "https://legally-actual-mollusk.ngrok-free.app/";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
