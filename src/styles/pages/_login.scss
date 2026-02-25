@@ -2,12 +2,12 @@
 // Login Page Styles
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables';
+@use '../mixins';
 
 .login-page {
-  @include screen-full;
-  background-color: $color-white;
+  @include mixins.screen-full;
+  background-color: variables.$color-white;
   display: flex;
   overflow: hidden;
   position: fixed;
@@ -32,7 +32,7 @@
   &__image-container {
     display: none;
 
-    @include respond-to(lg) {
+    @include mixins.respond-to(lg) {
       display: flex;
       width: 50%;
       height: 100vh;
@@ -72,10 +72,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: $spacing-lg $spacing-md;
+    padding: variables.$spacing-lg variables.$spacing-md;
     overflow-y: auto;
     overflow-x: hidden;
-    background-color: $color-white;
+    background-color: variables.$color-white;
     
     // Ẩn hoàn toàn scrollbar nhưng vẫn cho phép scroll
     scrollbar-width: none; // Firefox
@@ -87,9 +87,9 @@
       height: 0;
     }
 
-    @include respond-to(lg) {
+    @include mixins.respond-to(lg) {
       width: 50%;
-      padding: $spacing-xl $spacing-lg;
+      padding: variables.$spacing-xl variables.$spacing-lg;
     }
   }
 
@@ -127,32 +127,32 @@
   }
 
   &__title {
-    font-size: $font-size-3xl;
-    font-weight: $font-weight-bold;
-    color: $color-primary;
+    font-size: variables.$font-size-3xl;
+    font-weight: variables.$font-weight-bold;
+    color: variables.$color-primary;
     text-align: center;
-    margin-bottom: $spacing-xs;
+    margin-bottom: variables.$spacing-xs;
     letter-spacing: -0.02em;
     line-height: 1.2;
   }
 
   &__subtitle {
     text-align: center;
-    color: $color-gray-600;
-    margin-bottom: $spacing-xl;
-    font-size: $font-size-sm;
+    color: variables.$color-gray-600;
+    margin-bottom: variables.$spacing-xl;
+    font-size: variables.$font-size-sm;
   }
 
   &__hint {
-    margin-top: $spacing-xs;
-    font-size: $font-size-xs;
-    color: $color-gray-500;
+    margin-top: variables.$spacing-xs;
+    font-size: variables.$font-size-xs;
+    color: variables.$color-gray-500;
   }
 
   &__form {
     display: flex;
     flex-direction: column;
-    gap: $spacing-md;
+    gap: variables.$spacing-md;
   }
 
   &__field {
@@ -162,34 +162,34 @@
 
   &__label {
     display: block;
-    font-size: $font-size-sm;
-    font-weight: $font-weight-medium;
-    color: $color-gray-700;
-    margin-bottom: $spacing-sm;
+    font-size: variables.$font-size-sm;
+    font-weight: variables.$font-weight-medium;
+    color: variables.$color-gray-700;
+    margin-bottom: variables.$spacing-sm;
   }
 
   &__input {
-    @include form-input;
-    border-radius: $radius-full;
+    @include mixins.form-input;
+    border-radius: variables.$radius-full;
     min-height: 44px;
-    background-color: $color-gray-100;
-    border: 1px solid $color-gray-200;
-    font-size: $font-size-base;
-    transition: all $transition-base;
+    background-color: variables.$color-gray-100;
+    border: 1px solid variables.$color-gray-200;
+    font-size: variables.$font-size-base;
+    transition: all variables.$transition-base;
     
     &::placeholder {
-      color: $color-gray-500;
-      transition: opacity $transition-fast;
+      color: variables.$color-gray-500;
+      transition: opacity variables.$transition-fast;
     }
 
     &:hover {
-      border-color: $color-gray-300;
-      background-color: $color-white;
+      border-color: variables.$color-gray-300;
+      background-color: variables.$color-white;
     }
 
     &:focus {
-      background-color: $color-white;
-      border-color: $color-primary;
+      background-color: variables.$color-white;
+      border-color: variables.$color-primary;
       box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
       outline: none;
       
@@ -203,27 +203,27 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: $font-size-sm;
+    font-size: variables.$font-size-sm;
   }
 
   &__checkbox-label {
     display: flex;
     align-items: center;
-    gap: $spacing-sm;
+    gap: variables.$spacing-sm;
     cursor: pointer;
-    transition: color $transition-fast;
+    transition: color variables.$transition-fast;
     user-select: none;
 
     &:hover {
-      color: $color-gray-900;
+      color: variables.$color-gray-900;
     }
 
     input[type="checkbox"] {
       width: 1rem;
       height: 1rem;
-      accent-color: $color-primary;
+      accent-color: variables.$color-primary;
       cursor: pointer;
-      transition: transform $transition-fast;
+      transition: transform variables.$transition-fast;
       
       &:hover {
         transform: scale(1.1);
@@ -232,9 +232,9 @@
   }
 
   &__forgot-link {
-    color: $color-primary;
-    font-weight: $font-weight-medium;
-    transition: all $transition-base;
+    color: variables.$color-primary;
+    font-weight: variables.$font-weight-medium;
+    transition: all variables.$transition-base;
     position: relative;
     display: inline-block;
 
@@ -245,12 +245,12 @@
       left: 0;
       width: 0;
       height: 2px;
-      background-color: $color-primary-hover;
-      transition: width $transition-base;
+      background-color: variables.$color-primary-hover;
+      transition: width variables.$transition-base;
     }
 
     &:hover {
-      color: $color-primary-hover;
+      color: variables.$color-primary-hover;
       transform: translateX(2px);
       
       &::after {
@@ -260,13 +260,13 @@
   }
 
   &__submit-button {
-    @include button-primary;
+    @include mixins.button-primary;
     width: 100%;
-    padding: $spacing-md $spacing-xl;
-    font-size: $font-size-base;
-    font-weight: $font-weight-semibold;
+    padding: variables.$spacing-md variables.$spacing-xl;
+    font-size: variables.$font-size-base;
+    font-weight: variables.$font-weight-semibold;
     box-shadow: 0 4px 12px rgba(139, 0, 0, 0.2);
-    transition: all $transition-base;
+    transition: all variables.$transition-base;
     
     &:hover:not(:disabled) {
       transform: translateY(-1px);
@@ -282,45 +282,45 @@
   &__divider {
     display: flex;
     align-items: center;
-    gap: $spacing-lg;
-    margin: $spacing-md 0;
+    gap: variables.$spacing-lg;
+    margin: variables.$spacing-md 0;
 
     &::before,
     &::after {
       content: '';
       flex: 1;
       height: 1px;
-      background-color: $color-gray-300;
+      background-color: variables.$color-gray-300;
     }
 
     > span {
-      font-size: $font-size-sm;
-      color: $color-gray-400;
-      background-color: $color-gray-100;
-      padding: 0 $spacing-sm;
+      font-size: variables.$font-size-sm;
+      color: variables.$color-gray-400;
+      background-color: variables.$color-gray-100;
+      padding: 0 variables.$spacing-sm;
     }
   }
 
   &__google-button {
-    @include button-base;
+    @include mixins.button-base;
     width: 100%;
-    padding: $spacing-md $spacing-xl;
-    border: 1.5px solid $color-gray-300;
-    border-radius: $radius-full;
-    background-color: $color-white;
-    color: $color-gray-900;
+    padding: variables.$spacing-md variables.$spacing-xl;
+    border: 1.5px solid variables.$color-gray-300;
+    border-radius: variables.$radius-full;
+    background-color: variables.$color-white;
+    color: variables.$color-gray-900;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: $spacing-sm;
-    font-size: $font-size-base;
-    font-weight: $font-weight-medium;
-    transition: all $transition-base;
+    gap: variables.$spacing-sm;
+    font-size: variables.$font-size-base;
+    font-weight: variables.$font-weight-medium;
+    transition: all variables.$transition-base;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 
     &:hover:not(:disabled) {
-      background-color: $color-gray-50;
-      border-color: $color-gray-400;
+      background-color: variables.$color-gray-50;
+      border-color: variables.$color-gray-400;
       transform: translateY(-1px);
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
@@ -338,18 +338,18 @@
 
   &__register-link {
     text-align: center;
-    font-size: $font-size-sm;
-    margin-top: $spacing-xl;
-    color: $color-gray-600;
+    font-size: variables.$font-size-sm;
+    margin-top: variables.$spacing-xl;
+    color: variables.$color-gray-600;
 
     a {
-      color: $color-primary;
-      font-weight: $font-weight-semibold;
-      transition: all $transition-base;
+      color: variables.$color-primary;
+      font-weight: variables.$font-weight-semibold;
+      transition: all variables.$transition-base;
       position: relative;
       display: inline-block;
       padding: 0.25rem 0.5rem;
-      border-radius: $radius-sm;
+      border-radius: variables.$radius-sm;
 
       &::before {
         content: '';
@@ -358,13 +358,13 @@
         left: 50%;
         width: 0;
         height: 2px;
-        background-color: $color-primary;
-        transition: all $transition-base;
+        background-color: variables.$color-primary;
+        transition: all variables.$transition-base;
         transform: translateX(-50%);
       }
 
       &:hover {
-        color: $color-primary-hover;
+        color: variables.$color-primary-hover;
         transform: translateY(-2px);
         
         &::before {

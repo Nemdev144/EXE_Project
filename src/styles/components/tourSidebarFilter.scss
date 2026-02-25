@@ -2,8 +2,8 @@
 // Tour Sidebar Filter
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables' as *;
+@use '../mixins' as *;
 
 .tour-sidebar {
   background: $color-white;

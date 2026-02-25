@@ -22,7 +22,10 @@ import {
   UnlockOutlined,
   KeyOutlined,
   MailOutlined,
+  EyeOutlined,
+  PhoneOutlined,
 } from "@ant-design/icons";
+import PersonDetailCard from "./PersonDetailCard";
 import type { ColumnsType } from "antd/es/table";
 import {
   getAdminUsers,
@@ -64,6 +67,8 @@ export default function UserManagement() {
     status: "all",
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [form] = Form.useForm();
 
   const fetchUsers = async () => {
@@ -108,8 +113,12 @@ export default function UserManagement() {
         "users",
       );
 
-      const mappedUsers: User[] = response.data.map(
-        (user: AdminUser, index: number) => {
+      const mappedUsers: User[] = response.data
+        .filter(
+          (user: AdminUser) =>
+            user.role === "CUSTOMER" || user.role === "USER",
+        )
+        .map((user: AdminUser, index: number) => {
           console.log(
             `[UserManagement] 📝 Mapping user ${index + 1}:`,
             JSON.stringify(user, null, 2),
@@ -217,7 +226,7 @@ export default function UserManagement() {
       let errorMessage =
         err?.response?.data?.message ||
         err?.message ||
-        "Không thể tải dữ liệu users. Vui lòng thử lại sau.";
+        "Không thể tải dữ liệu member. Vui lòng thử lại sau.";
 
       // Add CORS-specific message
       if (
@@ -281,7 +290,7 @@ export default function UserManagement() {
 
   const columns: ColumnsType<User> = [
     {
-      title: "Người dùng",
+      title: "Thành viên",
       key: "user",
       width: 280,
       fixed: "left",
@@ -321,9 +330,6 @@ export default function UserManagement() {
         >
           <Select.Option value="CUSTOMER">Khách hàng</Select.Option>
           <Select.Option value="USER">Người dùng</Select.Option>
-          <Select.Option value="STAFF">Nhân viên</Select.Option>
-          <Select.Option value="ADMIN">Quản trị viên</Select.Option>
-          <Select.Option value="ARTISAN">Nghệ nhân</Select.Option>
         </Select>
       ),
     },
@@ -367,23 +373,21 @@ export default function UserManagement() {
       },
     },
     {
-      title: "Ngày tạo",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      width: 120,
-    },
-    {
-      title: "Đăng nhập cuối",
-      dataIndex: "lastLogin",
-      key: "lastLogin",
-      width: 120,
-      render: (text) => text || "Chưa đăng nhập",
-    },
-    {
       title: "Thao tác",
       key: "action",
       render: (_, record) => (
         <Space direction="vertical" size="small">
+          <Button
+            type="link"
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={() => {
+              setSelectedUser(record);
+              setDetailModalOpen(true);
+            }}
+          >
+            Xem
+          </Button>
           <Button type="link" icon={<KeyOutlined />} size="small">
             Reset mật khẩu
           </Button>
@@ -417,10 +421,10 @@ export default function UserManagement() {
         <Row gutter={[16, 16]} align="middle">
           <Col flex="auto">
             <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>
-              Quản lý User/Staff
+              Quản lý Member
             </h2>
             <p style={{ margin: "4px 0 0 0", color: "#8c8c8c", fontSize: 14 }}>
-              Quản lý người dùng và phân quyền
+              Quản lý thành viên khách hàng
             </p>
           </Col>
           <Col>
@@ -429,7 +433,7 @@ export default function UserManagement() {
               icon={<PlusOutlined />}
               onClick={() => setIsModalOpen(true)}
             >
-              Tạo user mới
+              Tạo member mới
             </Button>
           </Col>
         </Row>
@@ -447,9 +451,6 @@ export default function UserManagement() {
               <Select.Option value="all">Tất cả</Select.Option>
               <Select.Option value="CUSTOMER">Khách hàng</Select.Option>
               <Select.Option value="USER">Người dùng</Select.Option>
-              <Select.Option value="STAFF">Nhân viên</Select.Option>
-              <Select.Option value="ADMIN">Quản trị viên</Select.Option>
-              <Select.Option value="ARTISAN">Nghệ nhân</Select.Option>
             </Select>
           </Col>
           <Col xs={24} sm={12} md={6}>
@@ -482,7 +483,7 @@ export default function UserManagement() {
           />
         ) : filteredUsers.length === 0 ? (
           <div style={{ textAlign: "center", padding: "40px" }}>
-            <p style={{ color: "#8c8c8c" }}>Không tìm thấy user nào.</p>
+            <p style={{ color: "#8c8c8c" }}>Không tìm thấy member nào.</p>
           </div>
         ) : (
           <Table
@@ -493,14 +494,88 @@ export default function UserManagement() {
             pagination={{
               pageSize: 10,
               showSizeChanger: true,
-              showTotal: (total) => `Tổng ${total} user`,
+              showTotal: (total) => `Tổng ${total} member`,
             }}
           />
         )}
       </Card>
 
       <Modal
-        title="Tạo user mới"
+        title="Chi tiết Member"
+        open={detailModalOpen}
+        onCancel={() => {
+          setDetailModalOpen(false);
+          setSelectedUser(null);
+        }}
+        footer={[
+          <Button
+            key="close"
+            onClick={() => {
+              setDetailModalOpen(false);
+              setSelectedUser(null);
+            }}
+          >
+            Đóng
+          </Button>,
+        ]}
+        width={800}
+      >
+        {selectedUser && (
+          <PersonDetailCard
+            avatarUrl={selectedUser.avatarUrl}
+            name={selectedUser.name}
+            subtitle={selectedUser.username ? `@${selectedUser.username}` : undefined}
+            status={selectedUser.status}
+            statusLabel={
+              selectedUser.status === "ACTIVE"
+                ? "Hoạt động"
+                : selectedUser.status === "LOCKED"
+                  ? "Đã khóa"
+                  : "Không hoạt động"
+            }
+            infoSections={[
+              {
+                rows: [
+                  {
+                    label: "Email",
+                    value: selectedUser.email,
+                    icon: <MailOutlined />,
+                  },
+                  {
+                    label: "Số điện thoại",
+                    value: selectedUser.phone || "Chưa có",
+                    icon: <PhoneOutlined />,
+                  },
+                  {
+                    label: "Vai trò",
+                    value: roleConfig[selectedUser.role]?.label || selectedUser.role,
+                  },
+                  {
+                    label: "Ngày sinh",
+                    value: selectedUser.dateOfBirth
+                      ? new Date(selectedUser.dateOfBirth).toLocaleDateString("vi-VN")
+                      : "Chưa có",
+                  },
+                  {
+                    label: "Giới tính",
+                    value:
+                      selectedUser.gender === "MALE"
+                        ? "Nam"
+                        : selectedUser.gender === "FEMALE"
+                          ? "Nữ"
+                          : selectedUser.gender === "OTHER"
+                            ? "Khác"
+                            : "Chưa có",
+                  },
+                ],
+              },
+            ]}
+          />
+        )}
+      </Modal>
+
+      <Modal
+        title="Tạo member mới"
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
         footer={null}
@@ -519,16 +594,15 @@ export default function UserManagement() {
           </Form.Item>
           <Form.Item label="Vai trò" name="role" rules={[{ required: true }]}>
             <Select>
+              <Select.Option value="CUSTOMER">Khách hàng</Select.Option>
               <Select.Option value="USER">Người dùng</Select.Option>
-              <Select.Option value="STAFF">Nhân viên</Select.Option>
-              <Select.Option value="ADMIN">Quản trị viên</Select.Option>
             </Select>
           </Form.Item>
           <Form.Item>
             <Space>
               <Button
                 type="primary"
-                onClick={() => message.success("Đã tạo user thành công")}
+                onClick={() => message.success("Đã tạo member thành công")}
               >
                 Tạo
               </Button>

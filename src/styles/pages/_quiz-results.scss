@@ -1,5 +1,5 @@
-@import '../variables';
-@import '../mixins';
+@use '../variables';
+@use '../mixins';
 
 .quiz-results-page {
   min-height: 100vh;
@@ -11,7 +11,7 @@
     margin: 0 auto;
     padding: 0 24px;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       padding: 0 16px;
     }
   }
@@ -22,7 +22,7 @@
     gap: 32px;
     margin-bottom: 48px;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       grid-template-columns: 1fr;
     }
   }
@@ -35,7 +35,7 @@
   &__section-title {
     font-size: 1.5rem;
     font-weight: 700;
-    color: $color-primary;
+    color: variables.$color-primary;
     margin: 0 0 24px 0;
   }
 

@@ -2,8 +2,9 @@
 // About Page Styles - Landing Page Style
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use "sass:color";
+@use '../variables';
+@use '../mixins';
 
 .about-page {
   min-height: 100vh;
@@ -18,14 +19,14 @@
     width: 100%;
     max-width: 1280px;
     margin: 0 auto;
-    padding: 0 $spacing-md;
+    padding: 0 variables.$spacing-md;
 
-    @include respond-to(md) {
-      padding: 0 $spacing-lg;
+    @include mixins.respond-to(md) {
+      padding: 0 variables.$spacing-lg;
     }
 
-    @include respond-to(lg) {
-      padding: 0 $spacing-xl;
+    @include mixins.respond-to(lg) {
+      padding: 0 variables.$spacing-xl;
     }
   }
 
@@ -34,10 +35,10 @@
   // ========================================
   &__section-header {
     text-align: center;
-    margin-bottom: $spacing-2xl;
+    margin-bottom: variables.$spacing-2xl;
 
-    @include respond-to(md) {
-      margin-bottom: $spacing-3xl;
+    @include mixins.respond-to(md) {
+      margin-bottom: variables.$spacing-3xl;
     }
   }
 
@@ -47,25 +48,25 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: $color-primary;
-    margin-bottom: $spacing-sm;
+    color: variables.$color-primary;
+    margin-bottom: variables.$spacing-sm;
   }
 
   &__section-title {
     font-size: 2rem !important;
     font-weight: 700 !important;
-    color: $color-text-primary;
-    margin-bottom: $spacing-sm !important;
+    color: variables.$color-text-primary;
+    margin-bottom: variables.$spacing-sm !important;
     line-height: 1.2 !important;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       font-size: 2.5rem !important;
     }
   }
 
   &__section-desc {
     font-size: 1.0625rem !important;
-    color: $color-text-secondary;
+    color: variables.$color-text-secondary;
     max-width: 40rem;
     margin: 0 auto !important;
   }
@@ -77,13 +78,13 @@
     position: relative;
     overflow: hidden;
     background: linear-gradient(to bottom, #fff, #faf9f6);
-    padding: $spacing-3xl 0;
-    padding-top: calc(var(--navbar-h, 88px) + $spacing-3xl);
-    border-bottom: 1px solid $color-border;
+    padding: variables.$spacing-3xl 0;
+    padding-top: calc(var(--navbar-h, 88px) + variables.$spacing-3xl);
+    border-bottom: 1px solid variables.$color-border;
 
-    @include respond-to(md) {
-      padding: $spacing-4xl 0 $spacing-3xl;
-      padding-top: calc(var(--navbar-h, 88px) + $spacing-4xl);
+    @include mixins.respond-to(md) {
+      padding: variables.$spacing-4xl 0 variables.$spacing-3xl;
+      padding-top: calc(var(--navbar-h, 88px) + variables.$spacing-4xl);
     }
   }
 
@@ -111,7 +112,7 @@
       right: -6rem;
       width: 24rem;
       height: 24rem;
-      background: rgba($color-primary, 0.1);
+      background: rgba(variables.$color-primary, 0.1);
     }
 
     &--secondary {
@@ -132,12 +133,12 @@
   &__hero-badge {
     display: inline-flex;
     align-items: center;
-    gap: $spacing-xs;
-    padding: $spacing-xs $spacing-md;
-    background: rgba($color-primary, 0.1);
-    border-radius: $radius-full;
-    margin-bottom: $spacing-lg;
-    color: $color-primary;
+    gap: variables.$spacing-xs;
+    padding: variables.$spacing-xs variables.$spacing-md;
+    background: rgba(variables.$color-primary, 0.1);
+    border-radius: variables.$radius-full;
+    margin-bottom: variables.$spacing-lg;
+    color: variables.$color-primary;
     font-size: 0.875rem;
     font-weight: 600;
   }
@@ -145,22 +146,22 @@
   &__title {
     font-size: 2.25rem !important;
     font-weight: 700 !important;
-    margin-bottom: $spacing-lg !important;
-    color: $color-text-primary;
+    margin-bottom: variables.$spacing-lg !important;
+    color: variables.$color-text-primary;
     letter-spacing: -0.02em;
     line-height: 1.15 !important;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       font-size: 3rem !important;
     }
 
-    @include respond-to(lg) {
+    @include mixins.respond-to(lg) {
       font-size: 3.5rem !important;
     }
   }
 
   &__title-highlight {
-    color: $color-primary;
+    color: variables.$color-primary;
     position: relative;
     display: inline-block;
 
@@ -171,26 +172,26 @@
       left: 0;
       width: 100%;
       height: 0.15em;
-      background: rgba($color-primary, 0.3);
-      border-radius: $radius-full;
+      background: rgba(variables.$color-primary, 0.3);
+      border-radius: variables.$radius-full;
     }
   }
 
   &__subtitle {
     font-size: 1.0625rem !important;
-    color: $color-text-secondary;
+    color: variables.$color-text-secondary;
     max-width: 40rem;
-    margin: 0 auto $spacing-xl !important;
+    margin: 0 auto variables.$spacing-xl !important;
     line-height: 1.75;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       font-size: 1.125rem !important;
     }
   }
 
   &__hero-actions {
     display: flex;
-    gap: $spacing-md;
+    gap: variables.$spacing-md;
     justify-content: center;
     flex-wrap: wrap;
   }
@@ -198,20 +199,20 @@
   &__hero-btn {
     display: inline-flex !important;
     align-items: center;
-    gap: $spacing-sm;
+    gap: variables.$spacing-sm;
     font-weight: 600 !important;
-    border-radius: $radius-lg !important;
+    border-radius: variables.$radius-lg !important;
     height: auto !important;
-    padding: $spacing-sm $spacing-xl !important;
+    padding: variables.$spacing-sm variables.$spacing-xl !important;
 
     &--outline {
       background: transparent !important;
-      border: 2px solid $color-border !important;
-      color: $color-text-primary !important;
+      border: 2px solid variables.$color-border !important;
+      color: variables.$color-text-primary !important;
 
       &:hover {
-        border-color: $color-primary !important;
-        color: $color-primary !important;
+        border-color: variables.$color-primary !important;
+        color: variables.$color-primary !important;
       }
     }
   }
@@ -220,50 +221,50 @@
   // Stats Section
   // ========================================
   &__stats {
-    padding: $spacing-2xl 0;
+    padding: variables.$spacing-2xl 0;
     background: #fff;
-    border-bottom: 1px solid $color-border;
+    border-bottom: 1px solid variables.$color-border;
   }
 
   &__stats-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: $spacing-lg;
+    gap: variables.$spacing-lg;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       grid-template-columns: repeat(4, 1fr);
-      gap: $spacing-xl;
+      gap: variables.$spacing-xl;
     }
   }
 
   &__stat-item {
     text-align: center;
-    padding: $spacing-lg;
+    padding: variables.$spacing-lg;
   }
 
   &__stat-icon {
     width: 2.5rem;
     height: 2.5rem;
-    color: $color-primary;
-    margin: 0 auto $spacing-sm;
+    color: variables.$color-primary;
+    margin: 0 auto variables.$spacing-sm;
     opacity: 0.8;
   }
 
   &__stat-number {
     font-size: 2.5rem;
     font-weight: 700;
-    color: $color-text-primary;
+    color: variables.$color-text-primary;
     line-height: 1;
-    margin-bottom: $spacing-xs;
+    margin-bottom: variables.$spacing-xs;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       font-size: 3rem;
     }
   }
 
   &__stat-label {
     font-size: 0.9375rem;
-    color: $color-text-secondary;
+    color: variables.$color-text-secondary;
     font-weight: 500;
   }
 
@@ -271,35 +272,35 @@
   // Mission & Vision Section
   // ========================================
   &__mission {
-    padding: $spacing-3xl 0;
+    padding: variables.$spacing-3xl 0;
     background: #faf9f6;
 
-    @include respond-to(md) {
-      padding: $spacing-4xl 0;
+    @include mixins.respond-to(md) {
+      padding: variables.$spacing-4xl 0;
     }
   }
 
   &__mission-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: $spacing-xl;
+    gap: variables.$spacing-xl;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       grid-template-columns: repeat(2, 1fr);
-      gap: $spacing-2xl;
+      gap: variables.$spacing-2xl;
     }
   }
 
   &__card {
     position: relative;
-    padding: $spacing-xl;
-    border-radius: $radius-2xl;
+    padding: variables.$spacing-xl;
+    border-radius: variables.$radius-2xl;
     border: 1px solid;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     overflow: hidden;
 
-    @include respond-to(md) {
-      padding: $spacing-2xl;
+    @include mixins.respond-to(md) {
+      padding: variables.$spacing-2xl;
     }
 
     &--mission {
@@ -308,8 +309,8 @@
     }
 
     &--vision {
-      background: linear-gradient(135deg, rgba($color-primary, 0.05) 0%, #f0fdfa 100%);
-      border-color: rgba($color-primary, 0.1);
+      background: linear-gradient(135deg, rgba(variables.$color-primary, 0.05) 0%, #f0fdfa 100%);
+      border-color: rgba(variables.$color-primary, 0.1);
     }
   }
 
@@ -317,7 +318,7 @@
     position: absolute;
     top: 0;
     right: 0;
-    padding: $spacing-lg;
+    padding: variables.$spacing-lg;
     opacity: 0.1;
   }
 
@@ -327,7 +328,7 @@
     color: currentColor;
 
     &--primary {
-      color: $color-primary;
+      color: variables.$color-primary;
     }
   }
 
@@ -339,11 +340,11 @@
   &__card-icon {
     width: 3.5rem;
     height: 3.5rem;
-    border-radius: $radius-lg;
+    border-radius: variables.$radius-lg;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: $spacing-lg;
+    margin-bottom: variables.$spacing-lg;
     color: #fff;
 
     &--amber {
@@ -352,21 +353,21 @@
     }
 
     &--primary {
-      background: $color-primary;
-      box-shadow: 0 4px 12px rgba($color-primary, 0.2);
+      background: variables.$color-primary;
+      box-shadow: 0 4px 12px rgba(variables.$color-primary, 0.2);
     }
   }
 
   &__card-title {
     font-size: 1.5rem !important;
     font-weight: 700 !important;
-    margin-bottom: $spacing-md !important;
-    color: $color-text-primary;
+    margin-bottom: variables.$spacing-md !important;
+    color: variables.$color-text-primary;
   }
 
   &__card-text {
     font-size: 1rem !important;
-    color: $color-text-secondary;
+    color: variables.$color-text-secondary;
     line-height: 1.75;
     margin-bottom: 0 !important;
   }
@@ -375,33 +376,33 @@
   // Features Section
   // ========================================
   &__features {
-    padding: $spacing-3xl 0;
+    padding: variables.$spacing-3xl 0;
     background: #fff;
 
-    @include respond-to(md) {
-      padding: $spacing-4xl 0;
+    @include mixins.respond-to(md) {
+      padding: variables.$spacing-4xl 0;
     }
   }
 
   &__features-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: $spacing-lg;
+    gap: variables.$spacing-lg;
 
-    @include respond-to(sm) {
+    @include mixins.respond-to(sm) {
       grid-template-columns: repeat(2, 1fr);
     }
 
-    @include respond-to(lg) {
+    @include mixins.respond-to(lg) {
       grid-template-columns: repeat(3, 1fr);
     }
   }
 
   &__feature-card {
-    padding: $spacing-xl;
+    padding: variables.$spacing-xl;
     background: #faf9f6;
-    border-radius: $radius-xl;
-    border: 1px solid $color-border;
+    border-radius: variables.$radius-xl;
+    border: 1px solid variables.$color-border;
     transition: all 0.3s ease;
 
     &:hover {
@@ -414,14 +415,14 @@
   &__feature-icon {
     width: 3rem;
     height: 3rem;
-    border-radius: $radius-md;
+    border-radius: variables.$radius-md;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: $spacing-md;
+    margin-bottom: variables.$spacing-md;
     color: #fff;
 
-    &--primary { background: $color-primary; }
+    &--primary { background: variables.$color-primary; }
     &--amber { background: #f59e0b; }
     &--teal { background: #14b8a6; }
     &--rose { background: #f43f5e; }
@@ -432,13 +433,13 @@
   &__feature-title {
     font-size: 1.125rem !important;
     font-weight: 600 !important;
-    margin-bottom: $spacing-sm !important;
-    color: $color-text-primary;
+    margin-bottom: variables.$spacing-sm !important;
+    color: variables.$color-text-primary;
   }
 
   &__feature-text {
     font-size: 0.9375rem !important;
-    color: $color-text-secondary;
+    color: variables.$color-text-secondary;
     line-height: 1.6;
     margin-bottom: 0 !important;
   }
@@ -447,30 +448,30 @@
   // Values Section
   // ========================================
   &__values {
-    padding: $spacing-3xl 0;
+    padding: variables.$spacing-3xl 0;
     background: #faf9f6;
 
-    @include respond-to(md) {
-      padding: $spacing-4xl 0;
+    @include mixins.respond-to(md) {
+      padding: variables.$spacing-4xl 0;
     }
   }
 
   &__values-wrapper {
     display: grid;
     grid-template-columns: 1fr;
-    gap: $spacing-2xl;
+    gap: variables.$spacing-2xl;
     align-items: center;
 
-    @include respond-to(lg) {
+    @include mixins.respond-to(lg) {
       grid-template-columns: 1fr 1fr;
-      gap: $spacing-3xl;
+      gap: variables.$spacing-3xl;
     }
   }
 
   &__values-content {
     order: 2;
 
-    @include respond-to(lg) {
+    @include mixins.respond-to(lg) {
       order: 1;
     }
   }
@@ -478,19 +479,19 @@
   &__values-title {
     font-size: 1.75rem !important;
     font-weight: 700 !important;
-    color: $color-text-primary;
-    margin-bottom: $spacing-md !important;
+    color: variables.$color-text-primary;
+    margin-bottom: variables.$spacing-md !important;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       font-size: 2rem !important;
     }
   }
 
   &__values-desc {
     font-size: 1rem !important;
-    color: $color-text-secondary;
+    color: variables.$color-text-secondary;
     line-height: 1.75;
-    margin-bottom: $spacing-xl !important;
+    margin-bottom: variables.$spacing-xl !important;
   }
 
   &__values-list {
@@ -499,15 +500,15 @@
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: $spacing-md;
+    gap: variables.$spacing-md;
   }
 
   &__values-item {
     display: flex;
     align-items: flex-start;
-    gap: $spacing-sm;
+    gap: variables.$spacing-sm;
     font-size: 1rem;
-    color: $color-text-primary;
+    color: variables.$color-text-primary;
     font-weight: 500;
   }
 
@@ -522,14 +523,14 @@
   &__values-image {
     order: 1;
 
-    @include respond-to(lg) {
+    @include mixins.respond-to(lg) {
       order: 2;
     }
   }
 
   &__values-img-wrapper {
     position: relative;
-    border-radius: $radius-2xl;
+    border-radius: variables.$radius-2xl;
     overflow: hidden;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 
@@ -544,17 +545,17 @@
 
   &__values-badge {
     position: absolute;
-    bottom: $spacing-lg;
-    left: $spacing-lg;
+    bottom: variables.$spacing-lg;
+    left: variables.$spacing-lg;
     display: flex;
     align-items: center;
-    gap: $spacing-xs;
+    gap: variables.$spacing-xs;
     background: #fff;
-    padding: $spacing-sm $spacing-md;
-    border-radius: $radius-full;
+    padding: variables.$spacing-sm variables.$spacing-md;
+    border-radius: variables.$radius-full;
     font-size: 0.875rem;
     font-weight: 600;
-    color: $color-text-primary;
+    color: variables.$color-text-primary;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
     svg {
@@ -566,35 +567,35 @@
   // Timeline Section
   // ========================================
   &__timeline {
-    padding: $spacing-3xl 0;
+    padding: variables.$spacing-3xl 0;
     background: #fff;
 
-    @include respond-to(md) {
-      padding: $spacing-4xl 0;
+    @include mixins.respond-to(md) {
+      padding: variables.$spacing-4xl 0;
     }
   }
 
   &__timeline-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: $spacing-lg;
+    gap: variables.$spacing-lg;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       grid-template-columns: repeat(4, 1fr);
-      gap: $spacing-md;
+      gap: variables.$spacing-md;
     }
   }
 
   &__timeline-item {
     position: relative;
-    padding: $spacing-lg;
+    padding: variables.$spacing-lg;
     background: #faf9f6;
-    border-radius: $radius-xl;
-    border: 1px solid $color-border;
+    border-radius: variables.$radius-xl;
+    border: 1px solid variables.$color-border;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       text-align: center;
-      padding: $spacing-xl $spacing-md;
+      padding: variables.$spacing-xl variables.$spacing-md;
     }
   }
 
@@ -602,23 +603,23 @@
     display: inline-block;
     font-size: 0.875rem;
     font-weight: 700;
-    color: $color-primary;
-    background: rgba($color-primary, 0.1);
-    padding: $spacing-xs $spacing-sm;
-    border-radius: $radius-md;
-    margin-bottom: $spacing-md;
+    color: variables.$color-primary;
+    background: rgba(variables.$color-primary, 0.1);
+    padding: variables.$spacing-xs variables.$spacing-sm;
+    border-radius: variables.$radius-md;
+    margin-bottom: variables.$spacing-md;
   }
 
   &__timeline-title {
     font-size: 1.0625rem !important;
     font-weight: 600 !important;
-    color: $color-text-primary;
-    margin-bottom: $spacing-xs !important;
+    color: variables.$color-text-primary;
+    margin-bottom: variables.$spacing-xs !important;
   }
 
   &__timeline-desc {
     font-size: 0.875rem !important;
-    color: $color-text-secondary;
+    color: variables.$color-text-secondary;
     line-height: 1.6;
     margin-bottom: 0 !important;
   }
@@ -626,14 +627,14 @@
   &__timeline-connector {
     display: none;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       display: block;
       position: absolute;
       top: 50%;
-      right: -$spacing-md;
-      width: $spacing-md;
+      right: -(variables.$spacing-md);
+      width: variables.$spacing-md;
       height: 2px;
-      background: $color-border;
+      background: variables.$color-border;
       transform: translateY(-50%);
     }
   }
@@ -642,33 +643,33 @@
   // Team Section
   // ========================================
   &__team {
-    padding: $spacing-3xl 0;
+    padding: variables.$spacing-3xl 0;
     background: #faf9f6;
 
-    @include respond-to(md) {
-      padding: $spacing-4xl 0;
+    @include mixins.respond-to(md) {
+      padding: variables.$spacing-4xl 0;
     }
   }
 
   &__team-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: $spacing-md;
+    gap: variables.$spacing-md;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       grid-template-columns: repeat(3, 1fr);
-      gap: $spacing-lg;
+      gap: variables.$spacing-lg;
     }
   }
 
   &__team-card {
     display: flex;
     align-items: flex-start;
-    gap: $spacing-md;
-    padding: $spacing-lg;
+    gap: variables.$spacing-md;
+    padding: variables.$spacing-lg;
     background: #fff;
-    border-radius: $radius-xl;
-    border: 1px solid $color-border;
+    border-radius: variables.$radius-xl;
+    border: 1px solid variables.$color-border;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     transition: box-shadow 0.2s ease, transform 0.2s ease;
 
@@ -682,13 +683,13 @@
     flex-shrink: 0;
     width: 3rem;
     height: 3rem;
-    border-radius: $radius-md;
+    border-radius: variables.$radius-md;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
 
-    &--primary { background: $color-primary; }
+    &--primary { background: variables.$color-primary; }
     &--amber { background: #f59e0b; }
     &--teal { background: #14b8a6; }
   }
@@ -701,13 +702,13 @@
   &__team-card-title {
     font-size: 1rem !important;
     font-weight: 600 !important;
-    margin-bottom: $spacing-xs !important;
-    color: $color-text-primary;
+    margin-bottom: variables.$spacing-xs !important;
+    color: variables.$color-text-primary;
   }
 
   &__team-card-text {
     font-size: 0.875rem !important;
-    color: $color-text-secondary;
+    color: variables.$color-text-secondary;
     line-height: 1.6;
     margin-bottom: 0 !important;
   }
@@ -716,11 +717,11 @@
   // CTA Section
   // ========================================
   &__cta {
-    padding: $spacing-3xl 0;
-    background: linear-gradient(135deg, $color-primary 0%, darken($color-primary, 10%) 100%);
+    padding: variables.$spacing-3xl 0;
+    background: linear-gradient(135deg, variables.$color-primary 0%, color.adjust(variables.$color-primary, $lightness: -10%) 100%);
 
-    @include respond-to(md) {
-      padding: $spacing-4xl 0;
+    @include mixins.respond-to(md) {
+      padding: variables.$spacing-4xl 0;
     }
   }
 
@@ -732,9 +733,9 @@
     font-size: 1.75rem !important;
     font-weight: 700 !important;
     color: #fff !important;
-    margin-bottom: $spacing-md !important;
+    margin-bottom: variables.$spacing-md !important;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       font-size: 2.25rem !important;
     }
   }
@@ -743,13 +744,13 @@
     font-size: 1.0625rem !important;
     color: rgba(#fff, 0.85) !important;
     max-width: 32rem;
-    margin: 0 auto $spacing-xl !important;
+    margin: 0 auto variables.$spacing-xl !important;
     line-height: 1.75;
   }
 
   &__cta-actions {
     display: flex;
-    gap: $spacing-md;
+    gap: variables.$spacing-md;
     justify-content: center;
     flex-wrap: wrap;
   }
@@ -757,13 +758,13 @@
   &__cta-btn {
     display: inline-flex !important;
     align-items: center;
-    gap: $spacing-sm;
+    gap: variables.$spacing-sm;
     font-weight: 600 !important;
-    border-radius: $radius-lg !important;
+    border-radius: variables.$radius-lg !important;
     height: auto !important;
-    padding: $spacing-sm $spacing-xl !important;
+    padding: variables.$spacing-sm variables.$spacing-xl !important;
     background: #fff !important;
-    color: $color-primary !important;
+    color: variables.$color-primary !important;
     border: none !important;
 
     &:hover {

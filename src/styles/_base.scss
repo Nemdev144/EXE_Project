@@ -2,7 +2,7 @@
 // Base Styles - Resets & Global
 // ============================================
 
-@import 'variables';
+@use 'variables';
 
 * {
   margin: 0;
@@ -29,7 +29,7 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
-  font-family: $font-family-base;
+  font-family: variables.$font-family-base;
   background-color: var(--color-bg);
   color: var(--color-text);
   line-height: 1.6;
@@ -71,7 +71,7 @@ button svg {
 a {
   color: inherit;
   text-decoration: none;
-  transition: color $transition-base;
+  transition: color variables.$transition-base;
 
   &:hover {
     text-decoration: underline;
@@ -84,7 +84,7 @@ a {
   input[type="password"],
   input[type="email"],
   input[type="tel"] {
-    transition: all $transition-base;
+    transition: all variables.$transition-base;
   }
 
   input[type="text"]:focus,

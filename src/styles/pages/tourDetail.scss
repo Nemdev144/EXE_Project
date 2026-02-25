@@ -2,8 +2,8 @@
 // Tour Detail Page
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables' as *;
+@use '../mixins' as *;
 
 // Stars
 .td-star {

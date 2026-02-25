@@ -1,106 +1,122 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import { QuizHeader, QuizQuestionCard, QuizSidebar } from '../../components/learn';
+import { getQuizById } from '../../services/api';
+import type { LearnQuiz, LearnQuizQuestion } from '../../types';
 import '../../styles/pages/_quiz.scss';
-
-interface Question {
-  id: number;
-  question: string;
-  options: string[];
-  correctAnswer: number;
-  explanation?: string;
-  hint?: string;
-}
-
-const sampleQuestions: Question[] = [
-  {
-    id: 1,
-    question: 'Cồng chiêng Tây Nguyên là nhạc cụ truyền thống của dân tộc nào?',
-    options: ['Dân tộc Kinh', 'Dân tộc Ê-đê', 'Dân tộc Tày', 'Dân tộc Mường'],
-    correctAnswer: 1,
-    explanation: 'Cồng chiêng là nhạc cụ truyền thống đặc trưng của các dân tộc Tây Nguyên như Gia Rai, Ê Đê, Ba Na...',
-    hint: 'Cồng chiêng là di sản văn hóa của các dân tộc vùng Tây Nguyên',
-  },
-  {
-    id: 2,
-    question: 'Cồng chiêng Tây Nguyên thường được sử dụng trong dịp nào?',
-    options: ['Lễ hội', 'Đám cưới', 'Lễ mừng lúa mới', 'Tất cả các đáp án trên'],
-    correctAnswer: 3,
-    explanation: 'Cồng chiêng được sử dụng trong nhiều dịp quan trọng của cộng đồng Tây Nguyên.',
-    hint: 'Cồng chiêng có vai trò quan trọng trong nhiều nghi lễ',
-  },
-  {
-    id: 3,
-    question: 'Số lượng chiếc trong một bộ cồng chiêng truyền thống thường là bao nhiêu?',
-    options: ['3-5 chiếc', '6-12 chiếc', '15-20 chiếc', 'Không giới hạn'],
-    correctAnswer: 1,
-    explanation: 'Một dàn cồng chiêng thường có từ 6-12 chiếc, mỗi chiếc có âm thanh khác nhau.',
-    hint: 'Một bộ cồng chiêng thường có số lượng từ 6 đến 12 chiếc',
-  },
-  {
-    id: 4,
-    question: 'Cồng chiêng Tây Nguyên được UNESCO công nhận là gì?',
-    options: ['Di sản văn hóa vật thể', 'Di sản văn hóa phi vật thể', 'Di sản thiên nhiên', 'Di sản hỗn hợp'],
-    correctAnswer: 1,
-    explanation: 'Cồng chiêng Tây Nguyên được UNESCO công nhận là Di sản văn hóa phi vật thể của nhân loại năm 2005.',
-    hint: 'UNESCO công nhận cồng chiêng là di sản văn hóa phi vật thể',
-  },
-  {
-    id: 5,
-    question: 'Chất liệu chính để làm cồng chiêng Tây Nguyên là gì?',
-    options: ['Gỗ', 'Đồng', 'Sắt', 'Nhôm'],
-    correctAnswer: 1,
-    explanation: 'Cồng chiêng được làm từ đồng, một loại hợp kim có khả năng tạo ra âm thanh đặc trưng.',
-    hint: 'Cồng chiêng được làm từ kim loại màu đỏ',
-  },
-];
 
 export default function QuizPage() {
   const { category, slug } = useParams<{ category: string; slug: string }>();
   const navigate = useNavigate();
-  const [questions] = useState<Question[]>(sampleQuestions);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
-  const [timeLeft, setTimeLeft] = useState(120); // 2 phút = 120 giây
+  const location = useLocation();
+
+  const quizIdFromState = (location.state as { quizId?: number })?.quizId;
+  const quizIdFromQuery = Number(new URLSearchParams(location.search).get('quizId')) || undefined;
+  const quizId = quizIdFromState ?? quizIdFromQuery;
+
+  const [quiz, setQuiz] = useState<LearnQuiz | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({}); // questionId -> option index
+  const timeLimitSeconds = quiz ? quiz.timeLimitMinutes * 60 : 0;
+  const [timeLeft, setTimeLeft] = useState(timeLimitSeconds);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   useEffect(() => {
-    if (timeLeft > 0 && !isSubmitted) {
-      const timer = setTimeout(() => {
-        setTimeLeft(timeLeft - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && !isSubmitted) {
-      handleSubmit();
+    if (!quizId) {
+      setLoading(false);
+      setError('Thiếu mã đề quiz. Vui lòng vào từ trang bài học.');
+      return;
     }
-  }, [timeLeft, isSubmitted]);
+    let cancelled = false;
+    getQuizById(quizId)
+      .then((data) => {
+        if (!cancelled) {
+          setQuiz(data);
+          setTimeLeft(data.timeLimitMinutes * 60);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err?.message || 'Không tải được đề quiz.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [quizId]);
 
-  const handleAnswerSelect = (questionId: number, answerIndex: number) => {
-    if (isSubmitted) return;
-    setSelectedAnswers({
-      ...selectedAnswers,
-      [questionId]: answerIndex,
-    });
-  };
+  useEffect(() => {
+    if (!quiz || timeLeft <= 0 || isSubmitted) return;
+    const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [quiz, timeLeft, isSubmitted]);
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    if (timeLeft !== 0 || isSubmitted || !quiz || !category || !slug) return;
     setIsSubmitted(true);
     navigate(`/learn/${category}/${slug}/quiz/results`, {
       state: {
-        questions,
+        quizId: quiz.id,
+        quizTitle: quiz.title,
+        questions: quiz.questions,
         selectedAnswers,
-        timeSpent: 120 - timeLeft,
+        timeSpent: quiz.timeLimitMinutes * 60,
+      },
+    });
+  }, [timeLeft, isSubmitted, quiz, category, slug, navigate, selectedAnswers]);
+
+  const handleAnswerSelect = (questionId: number, optionIndex: number) => {
+    if (isSubmitted || !quiz) return;
+    setSelectedAnswers((prev) => ({ ...prev, [questionId]: optionIndex }));
+  };
+
+  const handleSubmit = () => {
+    if (!quiz) return;
+    setIsSubmitted(true);
+    navigate(`/learn/${category}/${slug}/quiz/results`, {
+      state: {
+        quizId: quiz.id,
+        quizTitle: quiz.title,
+        questions: quiz.questions,
+        selectedAnswers,
+        timeSpent: quiz.timeLimitMinutes * 60 - timeLeft,
       },
     });
   };
 
+  if (loading) {
+    return (
+      <div className="quiz-page">
+        <div className="quiz-page__container">
+          <p className="quiz-page__loading">Đang tải đề quiz...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !quiz) {
+    return (
+      <div className="quiz-page">
+        <div className="quiz-page__container">
+          <p className="quiz-page__error">{error || 'Không tìm thấy đề quiz.'}</p>
+          <button type="button" onClick={() => navigate(`/learn/${category}/${slug}`)}>
+            Quay về bài học
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const questions = quiz.questions;
   const answeredCount = Object.keys(selectedAnswers).length;
   const canSubmit = answeredCount === questions.length;
 
   const breadcrumbItems = [
     { label: 'Học nhanh', path: '/learn' },
-    { label: category || 'Cồng chiêng', path: `/learn/${category}` },
-    { label: 'Quiz: 5 câu hỏi' },
+    { label: category || 'Bài học', path: `/learn/${category}` },
+    { label: `Quiz: ${quiz.title}` },
   ];
 
   return (
@@ -109,23 +125,26 @@ export default function QuizPage() {
         <Breadcrumbs items={breadcrumbItems} />
 
         <QuizHeader
-          title="Không gian Cồng chiêng"
-          questionCount={questions.length}
-          duration={2}
+          title={quiz.title}
+          questionCount={quiz.totalQuestions}
+          durationMinutes={quiz.timeLimitMinutes}
+          difficulty={quiz.difficulty}
+          objective={quiz.objective}
+          rules={quiz.rules}
           answeredCount={answeredCount}
         />
 
         <div className="quiz-page__content">
           <div className="quiz-page__questions">
-            {questions.map((question, index) => (
+            {questions.map((question: LearnQuizQuestion, index: number) => (
               <QuizQuestionCard
                 key={question.id}
                 questionNumber={index + 1}
-                question={question.question}
-                options={question.options}
+                questionText={question.questionText}
+                options={question.options.map((o) => o.optionText)}
                 selectedAnswer={selectedAnswers[question.id]}
-                onAnswerSelect={(answerIndex) => handleAnswerSelect(question.id, answerIndex)}
-                hint={question.hint}
+                onAnswerSelect={(optionIndex) => handleAnswerSelect(question.id, optionIndex)}
+                hintText={question.hintText}
                 disabled={isSubmitted}
               />
             ))}
@@ -133,7 +152,7 @@ export default function QuizPage() {
 
           <QuizSidebar
             timeLeft={timeLeft}
-            totalQuestions={questions.length}
+            totalQuestions={quiz.totalQuestions}
             answeredCount={answeredCount}
             onSubmit={handleSubmit}
             backUrl={`/learn/${category}/${slug}`}

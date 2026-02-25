@@ -2,8 +2,8 @@
 // Navbar Component Styles
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables';
+@use '../mixins';
 
 // Custom Font for Brand Name
 @font-face {
@@ -66,17 +66,17 @@
     white-space: nowrap;
     z-index: 10;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       left: 40px;
     }
 
-    @include respond-to(lg) {
+    @include mixins.respond-to(lg) {
       left: 100px;
     }
 
     &-link {
       display: block;
-      transition: opacity $transition-base;
+      transition: opacity variables.$transition-base;
 
       &:hover {
         opacity: 0.9;
@@ -103,7 +103,7 @@
   &__menu {
     display: none;
 
-    @include respond-to(lg) {
+    @include mixins.respond-to(lg) {
       display: flex;
       position: absolute;
       left: 0;
@@ -133,7 +133,7 @@
       font-size: 18px;
       font-weight: 400;
       color: #000000;
-      transition: color $transition-base;
+      transition: color variables.$transition-base;
       white-space: nowrap;
       text-align: center;
       text-decoration: none;
@@ -156,7 +156,7 @@
   &__auth {
     display: none;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       display: flex;
       align-items: center;
       justify-content: flex-end;
@@ -168,7 +168,7 @@
       transform: translateY(-50%);
     }
 
-    @include respond-to(lg) {
+    @include mixins.respond-to(lg) {
       right: 100px;
     }
 
@@ -213,7 +213,7 @@
       border-radius: 8px;
       font-size: 18px;
       font-weight: 600;
-      transition: all $transition-base;
+      transition: all variables.$transition-base;
       white-space: nowrap;
       text-decoration: none;
       cursor: pointer;
@@ -280,11 +280,11 @@
     top: 50%;
     transform: translateY(-50%);
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       right: 40px;
     }
 
-    @include respond-to(lg) {
+    @include mixins.respond-to(lg) {
       display: none;
     }
 
@@ -295,7 +295,7 @@
       border: none;
       border-radius: 50%;
       cursor: pointer;
-      transition: background $transition-base;
+      transition: background variables.$transition-base;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -334,7 +334,7 @@
         border: none;
         border-radius: 50%;
         cursor: pointer;
-        transition: background $transition-base;
+        transition: background variables.$transition-base;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -357,7 +357,7 @@
       border-radius: 8px;
       font-weight: 500;
       font-size: 16px;
-      transition: all $transition-base;
+      transition: all variables.$transition-base;
       text-decoration: none;
       color: #4b5563;
 
@@ -391,7 +391,7 @@
         justify-content: center;
         gap: 8px;
         text-decoration: none;
-        transition: all $transition-base;
+        transition: all variables.$transition-base;
         border: 1px solid;
 
         &--login {

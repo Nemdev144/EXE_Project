@@ -32,6 +32,7 @@ import {
   SearchOutlined,
   QuestionCircleOutlined,
   GlobalOutlined,
+  IdcardOutlined,
 } from "@ant-design/icons";
 import { antdTheme } from "../../config/antd-theme";
 
@@ -71,7 +72,12 @@ const menuItems: MenuProps["items"] = [
   {
     key: "/admin/users",
     icon: <UserOutlined />,
-    label: <Link to="/admin/users">Quản lý User/Staff</Link>,
+    label: <Link to="/admin/users">Quản lý Member</Link>,
+  },
+  {
+    key: "/admin/staff",
+    icon: <IdcardOutlined />,
+    label: <Link to="/admin/staff">Quản lý Staff</Link>,
   },
   {
     key: "/admin/emails",
@@ -86,7 +92,8 @@ const pageTitles: Record<string, string> = {
   "/admin/tours": "Quản lý Tour",
   "/admin/bookings": "Quản lý Booking",
   "/admin/artisans": "Quản lý Nghệ nhân",
-  "/admin/users": "Quản lý User/Staff",
+  "/admin/users": "Quản lý Member",
+  "/admin/staff": "Quản lý Staff",
   "/admin/emails": "Email Templates",
 };
 
@@ -96,7 +103,8 @@ const breadcrumbMap: Record<string, { title: string; path?: string }[]> = {
   "/admin/tours": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Tour" }],
   "/admin/bookings": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Booking" }],
   "/admin/artisans": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Nghệ nhân" }],
-  "/admin/users": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý User/Staff" }],
+  "/admin/users": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Member" }],
+  "/admin/staff": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Staff" }],
   "/admin/emails": [{ title: "Dashboard", path: "/admin" }, { title: "Email Templates" }],
 };
 
