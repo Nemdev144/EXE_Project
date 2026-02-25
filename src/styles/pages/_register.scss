@@ -2,8 +2,8 @@
 // Register Page Styles
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables' as *;
+@use '../mixins' as *;
 
 .register-page {
   @include screen-full;

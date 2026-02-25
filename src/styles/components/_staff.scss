@@ -2,8 +2,8 @@
 // Staff Components Styles
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables' as *;
+@use '../mixins' as *;
 
 // Staff card - tương tự admin-card nhưng có thể tùy chỉnh riêng
 .staff-card {

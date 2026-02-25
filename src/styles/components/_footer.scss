@@ -2,8 +2,8 @@
 // Footer Component Styles
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables' as *;
+@use '../mixins' as *;
 
 // Custom Font for Brand Name
 @font-face {

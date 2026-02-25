@@ -2,8 +2,8 @@
 // Layout Components (Navbar, Footer, Layout)
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables' as *;
+@use '../mixins' as *;
 
 // Main Layout
 .main-layout {

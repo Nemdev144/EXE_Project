@@ -2,7 +2,7 @@
 // Ant Design Overrides
 // ============================================
 
-@import 'variables';
+@use 'variables' as *;
 
 /* Ant Design Overrides - Phải giữ lại vì override thư viện bên ngoài */
 .ant-layout-sider {

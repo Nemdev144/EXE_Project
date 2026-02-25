@@ -2,8 +2,8 @@
 // Tour Hero
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables' as *;
+@use '../mixins' as *;
 
 @font-face {
   font-family: 'iCiel Lodestone';

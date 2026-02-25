@@ -37,7 +37,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor for token refresh and error handling
@@ -49,7 +49,7 @@ api.interceptors.response.use(
   (error) => {
     console.error("[API] ❌ Error:", error.response?.data || error.message);
     return Promise.reject(error);
-  }
+  },
 );
 
 // ========== In-memory cache (load 1 lần, dùng chung) ==========
@@ -76,12 +76,14 @@ export function clearApiCache(): void {
 }
 
 // ========== Home API ==========
-export const getHomePageData = async (limit = 10): Promise<HomePageResponse> => {
+export const getHomePageData = async (
+  limit = 10,
+): Promise<HomePageResponse> => {
   const key = `home:${limit}`;
   const cached = getCached<HomePageResponse>(key);
   if (cached !== undefined) return cached;
   const response = await api.get<ApiResponse<HomePageResponse>>(
-    `/api/public/home?limit=${limit}`
+    `/api/public/home?limit=${limit}`,
   );
   const data = response.data.data;
   setCached(key, data);
@@ -94,7 +96,7 @@ export const getProvinces = async (): Promise<Province[]> => {
   const cached = getCached<Province[]>(key);
   if (cached !== undefined) return cached;
   const response = await api.get<ApiResponse<Province[]>>(
-    "/api/provinces/public"
+    "/api/provinces/public",
   );
   const data = response.data.data;
   setCached(key, data);
@@ -106,7 +108,7 @@ export const getProvinceById = async (id: number): Promise<Province> => {
   const cached = getCached<Province>(key);
   if (cached !== undefined) return cached;
   const response = await api.get<ApiResponse<Province>>(
-    `/api/provinces/public/${id}`
+    `/api/provinces/public/${id}`,
   );
   const data = response.data.data;
   setCached(key, data);
@@ -118,7 +120,7 @@ export const getProvinceBySlug = async (slug: string): Promise<Province> => {
   const cached = getCached<Province>(key);
   if (cached !== undefined) return cached;
   const response = await api.get<ApiResponse<Province>>(
-    `/api/provinces/public/slug/${slug}`
+    `/api/provinces/public/slug/${slug}`,
   );
   const data = response.data.data;
   setCached(key, data);
@@ -165,7 +167,7 @@ const parseTourImages = (images?: string | string[]): string[] => {
   if (Array.isArray(images)) return images;
   const trimmed = images.trim();
   if (!trimmed) return [];
-  if (trimmed.startsWith('[')) {
+  if (trimmed.startsWith("[")) {
     try {
       const parsed = JSON.parse(trimmed);
       return Array.isArray(parsed) ? parsed : [];
@@ -173,16 +175,18 @@ const parseTourImages = (images?: string | string[]): string[] => {
       return [];
     }
   }
-  return trimmed.split(',').map((item) => item.trim()).filter(Boolean);
+  return trimmed
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
 };
 
 export const getPublicTours = async (): Promise<Tour[]> => {
   const key = "publicTours";
   const cached = getCached<Tour[]>(key);
   if (cached !== undefined) return cached;
-  const response = await api.get<ApiResponse<PublicTourResponse[]>>(
-    "/api/tours/public"
-  );
+  const response =
+    await api.get<ApiResponse<PublicTourResponse[]>>("/api/tours/public");
   const raw = response.data.data ?? [];
   const data = raw.map((item) => ({
     id: item.id,
@@ -200,8 +204,8 @@ export const getPublicTours = async (): Promise<Tour[]> => {
     artisanName: item.artisan?.fullName,
     averageRating: item.averageRating ?? 0,
     totalReviews: 0,
-    createdAt: item.createdAt ?? '',
-    updatedAt: item.createdAt ?? '',
+    createdAt: item.createdAt ?? "",
+    updatedAt: item.createdAt ?? "",
   }));
   setCached(key, data);
   return data;
@@ -217,12 +221,14 @@ export const getTourById = async (id: number): Promise<Tour> => {
   return data;
 };
 
-export const getToursByProvince = async (provinceId: number): Promise<Tour[]> => {
+export const getToursByProvince = async (
+  provinceId: number,
+): Promise<Tour[]> => {
   const key = `tours:province:${provinceId}`;
   const cached = getCached<Tour[]>(key);
   if (cached !== undefined) return cached;
   const response = await api.get<ApiResponse<Tour[]>>(
-    `/api/tours/public/province/${provinceId}`
+    `/api/tours/public/province/${provinceId}`,
   );
   const data = response.data.data;
   setCached(key, data);
@@ -235,7 +241,7 @@ export const getTourReviews = async (tourId: number): Promise<Review[]> => {
   const cached = getCached<Review[]>(key);
   if (cached !== undefined) return cached;
   const response = await api.get<ApiResponse<Review[]>>(
-    `/api/reviews/tour/${tourId}`
+    `/api/reviews/tour/${tourId}`,
   );
   const data = response.data.data;
   setCached(key, data);
@@ -248,7 +254,7 @@ export const getCultureItems = async (): Promise<CultureItem[]> => {
   const cached = getCached<CultureItem[]>(key);
   if (cached !== undefined) return cached;
   const response = await api.get<ApiResponse<CultureItem[]>>(
-    "/api/culture-items/public"
+    "/api/culture-items/public",
   );
   const data = response.data.data;
   setCached(key, data);
@@ -260,7 +266,7 @@ export const getCultureItemById = async (id: number): Promise<CultureItem> => {
   const cached = getCached<CultureItem>(key);
   if (cached !== undefined) return cached;
   const response = await api.get<ApiResponse<CultureItem>>(
-    `/api/culture-items/public/${id}`
+    `/api/culture-items/public/${id}`,
   );
   const data = response.data.data;
   setCached(key, data);
@@ -268,13 +274,13 @@ export const getCultureItemById = async (id: number): Promise<CultureItem> => {
 };
 
 export const getCultureItemsByProvince = async (
-  provinceId: number
+  provinceId: number,
 ): Promise<CultureItem[]> => {
   const key = `cultureItems:province:${provinceId}`;
   const cached = getCached<CultureItem[]>(key);
   if (cached !== undefined) return cached;
   const response = await api.get<ApiResponse<CultureItem[]>>(
-    `/api/culture-items/public/province/${provinceId}`
+    `/api/culture-items/public/province/${provinceId}`,
   );
   const data = response.data.data;
   setCached(key, data);
@@ -286,7 +292,9 @@ export const getArtisans = async (): Promise<Artisan[]> => {
   const key = "artisans";
   const cached = getCached<Artisan[]>(key);
   if (cached !== undefined) return cached;
-  const response = await api.get<ApiResponse<Artisan[]>>("/api/artisans/public");
+  const response = await api.get<ApiResponse<Artisan[]>>(
+    "/api/artisans/public",
+  );
   const data = response.data.data;
   setCached(key, data);
   return data;
@@ -297,7 +305,7 @@ export const getArtisanById = async (id: number): Promise<Artisan> => {
   const cached = getCached<Artisan>(key);
   if (cached !== undefined) return cached;
   const response = await api.get<ApiResponse<Artisan>>(
-    `/api/artisans/public/${id}`
+    `/api/artisans/public/${id}`,
   );
   const data = response.data.data;
   setCached(key, data);
@@ -310,7 +318,7 @@ export const getBlogPosts = async (): Promise<BlogPost[]> => {
   const cached = getCached<BlogPost[]>(key);
   if (cached !== undefined) return cached;
   const response = await api.get<ApiResponse<BlogPost[]>>(
-    "/api/blog-posts/public"
+    "/api/blog-posts/public",
   );
   const data = response.data.data;
   setCached(key, data);
@@ -322,7 +330,7 @@ export const getBlogPostById = async (id: number): Promise<BlogPost> => {
   const cached = getCached<BlogPost>(key);
   if (cached !== undefined) return cached;
   const response = await api.get<ApiResponse<BlogPost>>(
-    `/api/blog-posts/public/${id}`
+    `/api/blog-posts/public/${id}`,
   );
   const data = response.data.data;
   setCached(key, data);
@@ -344,7 +352,9 @@ export const getVideoById = async (id: number): Promise<Video> => {
   const key = `video:${id}`;
   const cached = getCached<Video>(key);
   if (cached !== undefined) return cached;
-  const response = await api.get<ApiResponse<Video>>(`/api/videos/public/${id}`);
+  const response = await api.get<ApiResponse<Video>>(
+    `/api/videos/public/${id}`,
+  );
   const data = response.data.data;
   setCached(key, data);
   return data;

@@ -3,49 +3,49 @@
 // ============================================
 
 // Tailwind CSS
-@import 'tailwind';
+@use 'tailwind';
 
 // Theme System (CSS Variables)
-@import 'theme';
+@use 'theme';
 
 // Variables (SCSS Variables)
-@import 'variables';
+@use 'variables' as *;
 
 // Mixins
-@import 'mixins';
+@use 'mixins' as *;
 
 // Base Styles
-@import 'base';
+@use 'base';
 
 // Animations
-@import 'animations';
+@use 'animations';
 
 // Utilities
-@import 'utilities';
+@use 'utilities';
 
 // Ant Design Overrides
-@import 'antd-overrides';
+@use 'antd-overrides';
 
 // Components
-@import 'components/button';
-@import 'components/card';
-@import 'components/section';
-@import 'components/form';
-@import 'components/layout';
-@import 'components/admin';
-@import 'components/staff';
-@import 'components/navbar';
-@import 'components/footer';
-@import 'components/hero-section';
+@use 'components/button';
+@use 'components/card';
+@use 'components/section';
+@use 'components/form';
+@use 'components/layout';
+@use 'components/admin';
+@use 'components/staff';
+@use 'components/navbar';
+@use 'components/footer';
+@use 'components/hero-section';
 
 // Pages
-@import 'pages/login';
-@import 'pages/register';
-@import 'pages/forgot-password';
-@import 'pages/verify-code';
-@import 'pages/reset-password';
-@import 'pages/learn';
-@import 'pages/lesson-detail';
-@import 'pages/quiz';
-@import 'pages/quiz-results';
-@import 'pages/about';
+@use 'pages/login';
+@use 'pages/register';
+@use 'pages/forgot-password';
+@use 'pages/verify-code';
+@use 'pages/reset-password';
+@use 'pages/learn';
+@use 'pages/lesson-detail';
+@use 'pages/quiz';
+@use 'pages/quiz-results';
+@use 'pages/about';

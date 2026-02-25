@@ -2,7 +2,7 @@
 // Section & UI Component Styles
 // ============================================
 
-@import '../variables';
+@use '../variables' as *;
 
 // Custom Font
 @font-face {

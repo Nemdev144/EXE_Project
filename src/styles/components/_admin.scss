@@ -2,8 +2,8 @@
 // Admin Components Styles
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables' as *;
+@use '../mixins' as *;
 
 .admin-card {
   background-color: $color-white;

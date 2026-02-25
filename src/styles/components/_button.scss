@@ -2,8 +2,8 @@
 // Button Component
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables' as *;
+@use '../mixins' as *;
 
 // --------------------------------------------
 // Base Button Style

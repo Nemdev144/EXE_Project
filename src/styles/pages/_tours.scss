@@ -2,8 +2,8 @@
 // Tours Page Styles
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables' as *;
+@use '../mixins' as *;
 
 .tour-page {
   background: #faf9f6;

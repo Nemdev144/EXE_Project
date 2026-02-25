@@ -1,5 +1,5 @@
-@import '../../variables';
-@import '../../mixins';
+@use '../../variables' as *;
+@use '../../mixins' as *;
 
 .lesson-quick-notes {
   background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);

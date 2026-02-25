@@ -2,7 +2,7 @@
 // Mixins - Reusable Styles
 // ============================================
 
-@import 'variables';
+@use 'variables' as *;
 
 // Responsive Breakpoints
 @mixin respond-to($breakpoint) {

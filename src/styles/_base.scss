@@ -2,7 +2,7 @@
 // Base Styles - Resets & Global
 // ============================================
 
-@import 'variables';
+@use 'variables' as *;
 
 * {
   margin: 0;
