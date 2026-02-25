@@ -1,21 +1,31 @@
-export { default as LessonCardSkeleton } from './LessonCardSkeleton';
-export { default as LearnPageContent } from './LearnPageContent';
-export { default as LessonCard } from './LessonCard';
-export { default as CategoryFilter } from './CategoryFilter';
-export { default as PromoBanner } from './PromoBanner';
-export { default as LessonHero } from './LessonHero';
-export { default as LessonHeader } from './LessonHeader';
-export { default as LessonObjectives } from './LessonObjectives';
-export { default as LessonSummary } from './LessonSummary';
-export { default as LessonVocabulary } from './LessonVocabulary';
-export { default as LessonQuickNotes } from './LessonQuickNotes';
-export { default as LessonRelated } from './LessonRelated';
-export { default as LessonQuizCTA } from './LessonQuizCTA';
-export { default as QuizHeader } from './QuizHeader';
-export { default as QuizQuestionCard } from './QuizQuestionCard';
-export { default as QuizSidebar } from './QuizSidebar';
-export { default as QuizResultBanner } from './QuizResultBanner';
-export { default as QuizResultSummary } from './QuizResultSummary';
-export { default as QuizExplanationCard } from './QuizExplanationCard';
-export { default as RelatedTours } from './RelatedTours';
-export type { LessonGroup } from './LearnPageContent';
+/**
+ * Learn – barrel export từ 4 file chính (LearnList, LessonDetail, Quiz, QuizResults)
+ */
+
+// Trang danh sách module
+export { default as LearnPageContent } from './LearnList';
+export type { LessonGroup } from './LearnList';
+
+// Chi tiết bài học
+export {
+  LessonHero,
+  LessonHeader,
+  LessonObjectives,
+  LessonSummary,
+  LessonVocabulary,
+  LessonQuickNotes,
+  LessonRelated,
+  LessonQuizCTA,
+} from './LessonDetail';
+
+// Quiz
+export { QuizHeader, QuizQuestionCard, QuizSidebar } from './Quiz';
+export type { QuizDifficulty } from './Quiz';
+
+// Kết quả Quiz
+export {
+  QuizResultBanner,
+  QuizResultSummary,
+  QuizExplanationCard,
+  RelatedTours,
+} from './QuizResults';

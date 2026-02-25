@@ -2,8 +2,8 @@
 // Hero Section (Slider) Component Styles
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables';
+@use '../mixins';
 
 // Custom Font for Title
 @font-face {
@@ -37,11 +37,11 @@
   height: 600px;
   overflow: hidden;
 
-  @include respond-to(md) {
+  @include mixins.respond-to(md) {
     height: 700px;
   }
 
-  @include respond-to(lg) {
+  @include mixins.respond-to(lg) {
     height: 100vh;
   }
 
@@ -114,11 +114,11 @@
     margin: 0 auto;
     padding: 0 40px;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       padding: 0 64px;
     }
 
-    @include respond-to(lg) {
+    @include mixins.respond-to(lg) {
       padding: 0 96px;
     }
   }
@@ -130,7 +130,7 @@
     gap: 24px;
     padding: 40px 0;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       gap: 32px;
     }
   }
@@ -172,7 +172,7 @@
       letter-spacing: 0.05em;
       padding: 0 4px;
 
-      @include respond-to(md) {
+      @include mixins.respond-to(md) {
         font-size: 16px;
       }
     }
@@ -185,11 +185,11 @@
       line-height: 1.2;
       padding: 0 8px;
 
-      @include respond-to(md) {
+      @include mixins.respond-to(md) {
         font-size: 60px;
       }
 
-      @include respond-to(lg) {
+      @include mixins.respond-to(lg) {
         font-size: 72px;
       }
 
@@ -217,7 +217,7 @@
       max-width: 672px;
       padding: 0 8px;
 
-      @include respond-to(md) {
+      @include mixins.respond-to(md) {
         font-size: 20px;
       }
     }
@@ -230,7 +230,7 @@
     gap: 24px;
     padding: 40px 48px 0;
 
-    @include respond-to(sm) {
+    @include mixins.respond-to(sm) {
       flex-direction: row;
     }
   }
@@ -339,7 +339,7 @@
     padding: 0 32px;
     pointer-events: none;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       padding: 0 48px;
     }
 

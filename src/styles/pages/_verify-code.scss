@@ -2,12 +2,12 @@
 // Verify Code Page Styles
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables';
+@use '../mixins';
 
 .verify-code-page {
-  @include screen-full;
-  background-color: $color-white;
+  @include mixins.screen-full;
+  background-color: variables.$color-white;
   display: flex;
   overflow: hidden;
   position: fixed;
@@ -26,10 +26,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: $spacing-lg $spacing-md;
+    padding: variables.$spacing-lg variables.$spacing-md;
     overflow-y: auto;
     overflow-x: hidden;
-    background-color: $color-white;
+    background-color: variables.$color-white;
     
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -40,8 +40,8 @@
       height: 0;
     }
 
-    @include respond-to(lg) {
-      padding: $spacing-xl $spacing-lg;
+    @include mixins.respond-to(lg) {
+      padding: variables.$spacing-xl variables.$spacing-lg;
     }
   }
 
@@ -64,35 +64,35 @@
   }
 
   &__title {
-    font-size: $font-size-3xl;
-    font-weight: $font-weight-bold;
-    color: $color-primary;
+    font-size: variables.$font-size-3xl;
+    font-weight: variables.$font-weight-bold;
+    color: variables.$color-primary;
     text-align: center;
-    margin-bottom: $spacing-xs;
+    margin-bottom: variables.$spacing-xs;
     letter-spacing: -0.02em;
     line-height: 1.2;
   }
 
   &__subtitle {
     text-align: center;
-    color: $color-gray-600;
-    margin-bottom: $spacing-xl;
-    font-size: $font-size-sm;
+    color: variables.$color-gray-600;
+    margin-bottom: variables.$spacing-xl;
+    font-size: variables.$font-size-sm;
     line-height: 1.6;
   }
 
   &__hint {
     text-align: center;
-    margin-top: -$spacing-md;
-    margin-bottom: $spacing-lg;
-    font-size: $font-size-xs;
-    color: $color-gray-500;
+    margin-top: -(variables.$spacing-md);
+    margin-bottom: variables.$spacing-lg;
+    font-size: variables.$font-size-xs;
+    color: variables.$color-gray-500;
   }
 
   &__form {
     display: flex;
     flex-direction: column;
-    gap: $spacing-md;
+    gap: variables.$spacing-md;
   }
 
   &__field {
@@ -101,38 +101,38 @@
   }
 
   &__input {
-    @include form-input;
-    border-radius: $radius-full;
+    @include mixins.form-input;
+    border-radius: variables.$radius-full;
     min-height: 44px;
-    background-color: $color-gray-100;
-    border: 1px solid $color-gray-200;
-    font-size: $font-size-base;
-    transition: all $transition-base;
+    background-color: variables.$color-gray-100;
+    border: 1px solid variables.$color-gray-200;
+    font-size: variables.$font-size-base;
+    transition: all variables.$transition-base;
     text-align: center;
     letter-spacing: 0.5em;
-    font-weight: $font-weight-semibold;
-    font-size: $font-size-xl;
+    font-weight: variables.$font-weight-semibold;
+    font-size: variables.$font-size-xl;
     
     &--code {
       font-family: 'Courier New', monospace;
     }
     
     &::placeholder {
-      color: $color-gray-500;
-      transition: opacity $transition-fast;
+      color: variables.$color-gray-500;
+      transition: opacity variables.$transition-fast;
       letter-spacing: normal;
       font-weight: normal;
-      font-size: $font-size-base;
+      font-size: variables.$font-size-base;
     }
 
     &:hover {
-      border-color: $color-gray-300;
-      background-color: $color-white;
+      border-color: variables.$color-gray-300;
+      background-color: variables.$color-white;
     }
 
     &:focus {
-      background-color: $color-white;
-      border-color: $color-primary;
+      background-color: variables.$color-white;
+      border-color: variables.$color-primary;
       box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
       outline: none;
       
@@ -143,13 +143,13 @@
   }
 
   &__submit-button {
-    @include button-primary;
+    @include mixins.button-primary;
     width: 100%;
-    padding: $spacing-md $spacing-xl;
-    font-size: $font-size-base;
-    font-weight: $font-weight-semibold;
+    padding: variables.$spacing-md variables.$spacing-xl;
+    font-size: variables.$font-size-base;
+    font-weight: variables.$font-weight-semibold;
     box-shadow: 0 4px 12px rgba(139, 0, 0, 0.2);
-    transition: all $transition-base;
+    transition: all variables.$transition-base;
     
     &:hover:not(:disabled) {
       transform: translateY(-1px);
@@ -164,28 +164,28 @@
 
   &__resend-link {
     text-align: center;
-    font-size: $font-size-sm;
-    margin-top: $spacing-md;
-    color: $color-gray-600;
+    font-size: variables.$font-size-sm;
+    margin-top: variables.$spacing-md;
+    color: variables.$color-gray-600;
   }
 
   &__resend-button {
     background: none;
     border: none;
-    color: $color-primary;
-    font-weight: $font-weight-semibold;
+    color: variables.$color-primary;
+    font-weight: variables.$font-weight-semibold;
     cursor: pointer;
     padding: 0;
-    transition: all $transition-fast;
+    transition: all variables.$transition-fast;
 
     &:hover {
       text-decoration: underline;
-      color: $color-primary-hover;
+      color: variables.$color-primary-hover;
     }
   }
 
   &__cooldown {
-    color: $color-gray-500;
-    font-weight: $font-weight-medium;
+    color: variables.$color-gray-500;
+    font-weight: variables.$font-weight-medium;
   }
 }

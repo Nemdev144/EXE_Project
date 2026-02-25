@@ -200,3 +200,115 @@ export interface AuthResponse {
   refreshToken: string;
   user: User;
 }
+
+// ========== Learn (public) ==========
+export type LearnQuizDifficulty = "BASIC" | "INTERMEDIATE" | "ADVANCED";
+
+export interface LearnQuizOption {
+  id: number;
+  label: string;
+  optionText: string;
+  isCorrect?: boolean;
+}
+
+export interface LearnQuizQuestion {
+  id: number;
+  questionText: string;
+  hintText: string;
+  orderIndex: number;
+  options: LearnQuizOption[];
+}
+
+export interface LearnQuiz {
+  id: number;
+  moduleId: number;
+  title: string;
+  timeLimitMinutes: number;
+  difficulty: LearnQuizDifficulty;
+  objective: string;
+  rules: string[];
+  totalQuestions: number;
+  questions: LearnQuizQuestion[];
+}
+
+// GET /api/learn/public/modules
+export interface LearnModuleLesson {
+  id: number;
+  title: string;
+  slug: string;
+  thumbnailUrl: string;
+  duration: number;
+  videoUrl: string;
+  orderIndex: number;
+}
+
+// GET /api/learn/public/categories
+export interface LearnCategory {
+  id: number;
+  name: string;
+  slug: string;
+  orderIndex: number;
+}
+
+export interface LearnQuizPrompt {
+  id: number;
+  title: string;
+  totalQuestions: number;
+  timeLimitMinutes: number;
+}
+
+export interface LearnSuggestedTour {
+  id: number;
+  title: string;
+  slug: string;
+  thumbnailUrl: string;
+  location: string;
+  description: string;
+  price: number;
+}
+
+export interface LearnModule {
+  id: number;
+  title: string;
+  slug: string;
+  thumbnailUrl: string;
+  categoryId: number;
+  categoryName: string;
+  quickNotesJson: string;
+  culturalEtiquetteTitle: string;
+  culturalEtiquetteText: string;
+  lessonsCount: number;
+  durationMinutes: number;
+  lessons: LearnModuleLesson[];
+  quizPrompt?: LearnQuizPrompt;
+  suggestedTours?: LearnSuggestedTour[];
+}
+
+// GET /api/learn/public/lessons/{id}
+export type LearnLessonDifficulty = "BASIC" | "INTERMEDIATE" | "ADVANCED";
+
+export interface LearnLessonAuthor {
+  id: number;
+  fullName: string;
+  profileImageUrl: string;
+}
+
+export interface LearnLesson {
+  id: number;
+  title: string;
+  slug: string;
+  imageUrl: string;
+  contentJson: string;
+  vocabularyJson: string;
+  objectiveText: string;
+  difficulty: LearnLessonDifficulty;
+  estimatedMinutes: number;
+  videoUrl: string;
+  viewsCount: number;
+  orderIndex: number;
+  totalLessonsInModule: number;
+  author?: LearnLessonAuthor;
+  moduleId: number;
+  moduleTitle: string;
+  categoryName: string;
+}

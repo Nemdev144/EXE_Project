@@ -21,6 +21,7 @@ import {
 import {
   PlusOutlined,
   EditOutlined,
+  EyeOutlined,
   EnvironmentOutlined,
   TrophyOutlined,
   TeamOutlined,
@@ -28,9 +29,14 @@ import {
   StarOutlined,
   CalendarOutlined,
   HomeOutlined,
-  FileTextOutlined,
 } from "@ant-design/icons";
-import { getArtisans } from "../../services/api";
+import PersonDetailCard from "./PersonDetailCard";
+import {
+  getAdminArtisans,
+  updateArtisan,
+  type AdminArtisan,
+} from "../../services/adminApi";
+import { getArtisans, getProvinces } from "../../services/api";
 import type { Artisan as ApiArtisan } from "../../types";
 import dayjs from "dayjs";
 
@@ -42,6 +48,7 @@ interface Artisan {
   title: string;
   specialty: string;
   location: string;
+  provinceId?: number;
   experience: string;
   tours: string[];
   status: "ACTIVE" | "INACTIVE";
@@ -50,12 +57,15 @@ interface Artisan {
   workshopAddress?: string;
   totalTours?: number;
   averageRating?: number;
+  images?: string[];
+  createdAt?: string;
 }
 
 export default function ArtisanManagement() {
   const [artisans, setArtisans] = useState<Artisan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
 
   const [filter, setFilter] = useState<{
     location: string;
@@ -67,33 +77,39 @@ export default function ArtisanManagement() {
     search: "",
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedArtisan, setSelectedArtisan] = useState<Artisan | null>(null);
+  const [provinces, setProvinces] = useState<{ id: number; name: string }[]>(
+    [],
+  );
   const [form] = Form.useForm();
+  const [editForm] = Form.useForm();
+  const [saving, setSaving] = useState(false);
 
-  // Fetch artisans from API
+  // Fetch provinces for edit form
   useEffect(() => {
-    const fetchArtisans = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const apiArtisans = await getArtisans();
+    getProvinces().then((list) =>
+      setProvinces(list.map((p) => ({ id: p.id, name: p.name }))),
+    );
+  }, []);
 
-        // Map API artisans to component format
-        const mappedArtisans: Artisan[] = apiArtisans.map(
-          (apiArtisan: ApiArtisan) => {
-            // Calculate experience from createdAt (years since creation)
+  // Fetch artisans: thử Admin API trước, fallback sang Public API nếu lỗi 500
+  const fetchArtisans = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      setFallbackNotice(null);
+
+      try {
+        const { data } = await getAdminArtisans();
+        const mappedArtisans: Artisan[] = (data || []).map(
+          (apiArtisan: AdminArtisan) => {
             const createdAt = dayjs(apiArtisan.createdAt);
             const yearsSince = dayjs().diff(createdAt, "year");
             const experience = yearsSince > 0 ? `${yearsSince} năm` : "Mới";
-
-            // Create title from specialization
             const title = `Nghệ nhân ${apiArtisan.specialization}`;
-
-            // Tours list - show totalReviews as totalTours
-            const tours: string[] = [];
             const totalTours = apiArtisan.totalReviews || 0;
-            if (totalTours > 0) {
-              tours.push(`${totalTours} tour`);
-            }
 
             return {
               id: String(apiArtisan.id),
@@ -101,35 +117,85 @@ export default function ArtisanManagement() {
               title,
               specialty: apiArtisan.specialization,
               location: apiArtisan.provinceName || "Tây Nguyên",
+              provinceId: apiArtisan.provinceId,
               experience,
-              tours,
-              status: "ACTIVE" as const,
+              tours: totalTours > 0 ? [`${totalTours} tour`] : [],
+              status: apiArtisan.status,
               profileImageUrl: apiArtisan.profileImageUrl,
               bio: apiArtisan.bio,
               workshopAddress: apiArtisan.workshopAddress,
               totalTours,
               averageRating: apiArtisan.averageRating,
+              images: apiArtisan.images,
+              createdAt: apiArtisan.createdAt,
             };
           },
         );
-
         setArtisans(mappedArtisans);
-      } catch (err) {
-        console.error("Error fetching artisans:", err);
-        setError("Không thể tải dữ liệu nghệ nhân. Vui lòng thử lại sau.");
-        message.error("Không thể tải dữ liệu nghệ nhân");
-      } finally {
-        setLoading(false);
+      } catch (adminErr: unknown) {
+        const status = (adminErr as { response?: { status?: number } })
+          ?.response?.status;
+        // Fallback: dùng API public khi admin API lỗi (500, 502, 503, 401, 403, 404...)
+        if (
+          status === 500 ||
+          status === 502 ||
+          status === 503 ||
+          status === 401 ||
+          status === 403 ||
+          status === 404
+        ) {
+          const apiArtisans = await getArtisans();
+          const mapped: Artisan[] = apiArtisans.map((a: ApiArtisan) => {
+            const createdAt = dayjs(a.createdAt);
+            const yearsSince = dayjs().diff(createdAt, "year");
+            const experience = yearsSince > 0 ? `${yearsSince} năm` : "Mới";
+            return {
+              id: String(a.id),
+              name: a.fullName,
+              title: `Nghệ nhân ${a.specialization}`,
+              specialty: a.specialization,
+              location: a.provinceName || "Tây Nguyên",
+              provinceId: a.provinceId,
+              experience,
+              tours:
+                (a.totalReviews || 0) > 0 ? [`${a.totalReviews} tour`] : [],
+              status: "ACTIVE" as const,
+              profileImageUrl: a.profileImageUrl,
+              bio: a.bio,
+              workshopAddress: a.workshopAddress,
+              totalTours: a.totalReviews,
+              averageRating: a.averageRating,
+              images: a.images,
+              createdAt: a.createdAt,
+            };
+          });
+          setArtisans(mapped);
+          setFallbackNotice(
+            "API Admin đang bảo trì. Đang hiển thị dữ liệu từ nguồn công khai (chỉ xem, không sửa được).",
+          );
+        } else {
+          throw adminErr;
+        }
       }
-    };
+    } catch (err) {
+      console.error("Error fetching artisans:", err);
+      setError("Không thể tải dữ liệu nghệ nhân. Vui lòng thử lại sau.");
+      message.error("Không thể tải dữ liệu nghệ nhân");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchArtisans();
   }, []);
 
-  // Get unique provinces from artisans
-  const provinces = Array.from(
-    new Set(artisans.map((a) => a.location).filter(Boolean)),
-  ).sort();
+  // Province options for filter (combine API provinces + unique from artisans)
+  const provinceOptions = [
+    ...provinces.map((p) => p.name),
+    ...Array.from(new Set(artisans.map((a) => a.location).filter(Boolean))),
+  ].filter(Boolean);
+  const uniqueProvinces = Array.from(new Set(provinceOptions)).sort();
 
   const filteredArtisans = artisans.filter((artisan) => {
     if (filter.location !== "all" && artisan.location !== filter.location)
@@ -151,6 +217,47 @@ export default function ArtisanManagement() {
       ),
     );
     message.success("Cập nhật trạng thái thành công");
+  };
+
+  const handleViewDetail = (record: Artisan) => {
+    setSelectedArtisan(record);
+    setDetailModalOpen(true);
+  };
+
+  const handleOpenEdit = (record: Artisan) => {
+    setSelectedArtisan(record);
+    editForm.setFieldsValue({
+      specialization: record.specialty,
+      bio: record.bio || "",
+      profileImageUrl: record.profileImageUrl || "",
+      workshopAddress: record.workshopAddress || "",
+      provinceId: record.provinceId,
+    });
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedArtisan) return;
+    try {
+      const values = await editForm.validateFields();
+      setSaving(true);
+      await updateArtisan(parseInt(selectedArtisan.id), {
+        specialization: values.specialization,
+        bio: values.bio,
+        profileImageUrl: values.profileImageUrl || "",
+        workshopAddress: values.workshopAddress,
+        provinceId: values.provinceId,
+      });
+      message.success("Cập nhật nghệ nhân thành công");
+      setEditModalOpen(false);
+      setSelectedArtisan(null);
+      fetchArtisans();
+    } catch (err) {
+      if (err && typeof err === "object" && "errorFields" in err) return;
+      message.error("Cập nhật thất bại. Vui lòng thử lại.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const stats = {
@@ -315,7 +422,7 @@ export default function ArtisanManagement() {
               size="large"
             >
               <Select.Option value="all">Tất cả</Select.Option>
-              {provinces.map((province) => (
+              {uniqueProvinces.map((province) => (
                 <Select.Option key={province} value={province}>
                   {province}
                 </Select.Option>
@@ -344,6 +451,15 @@ export default function ArtisanManagement() {
             />
           </Col>
         </Row>
+
+        {fallbackNotice && (
+          <Alert
+            message={fallbackNotice}
+            type="warning"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+        )}
 
         {loading ? (
           <div style={{ textAlign: "center", padding: "40px" }}>
@@ -576,14 +692,22 @@ export default function ArtisanManagement() {
               {
                 title: "Thao tác",
                 key: "action",
-                width: 150,
+                width: 180,
                 fixed: "right",
                 render: (_, record) => (
                   <Space>
                     <Button
                       type="link"
+                      icon={<EyeOutlined />}
+                      onClick={() => handleViewDetail(record)}
+                      style={{ padding: 0 }}
+                    >
+                      Xem
+                    </Button>
+                    <Button
+                      type="link"
                       icon={<EditOutlined />}
-                      onClick={() => message.info("Chức năng đang phát triển")}
+                      onClick={() => handleOpenEdit(record)}
                       style={{ padding: 0 }}
                     >
                       Sửa
@@ -682,6 +806,168 @@ export default function ArtisanManagement() {
               </Button>
               <Button onClick={() => setIsModalOpen(false)}>Hủy</Button>
             </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Modal xem chi tiết */}
+      <Modal
+        title="Chi tiết nghệ nhân"
+        open={detailModalOpen}
+        onCancel={() => {
+          setDetailModalOpen(false);
+          setSelectedArtisan(null);
+        }}
+        footer={[
+          <Button
+            key="edit"
+            type="primary"
+            icon={<EditOutlined />}
+            onClick={() => {
+              setDetailModalOpen(false);
+              if (selectedArtisan) handleOpenEdit(selectedArtisan);
+            }}
+          >
+            Chỉnh sửa
+          </Button>,
+          <Button
+            key="close"
+            onClick={() => {
+              setDetailModalOpen(false);
+              setSelectedArtisan(null);
+            }}
+          >
+            Đóng
+          </Button>,
+        ]}
+        width={800}
+      >
+        {selectedArtisan && (
+          <PersonDetailCard
+            avatarUrl={selectedArtisan.profileImageUrl}
+            name={selectedArtisan.name}
+            subtitle={selectedArtisan.title}
+            status={selectedArtisan.status}
+            infoSections={[
+              {
+                rows: [
+                  {
+                    label: "Chuyên môn",
+                    value: selectedArtisan.specialty,
+                    icon: <TrophyOutlined />,
+                  },
+                  {
+                    label: "Địa điểm",
+                    value: selectedArtisan.location,
+                    icon: <EnvironmentOutlined />,
+                  },
+                  {
+                    label: "Địa chỉ xưởng",
+                    value: selectedArtisan.workshopAddress || "Chưa có",
+                    icon: <HomeOutlined />,
+                  },
+                  {
+                    label: "Kinh nghiệm / Đánh giá",
+                    value: (
+                      <>
+                        {selectedArtisan.experience} ·{" "}
+                        {(selectedArtisan.averageRating || 0).toFixed(1)}/5 (
+                        {selectedArtisan.totalTours || 0} tour)
+                      </>
+                    ),
+                    icon: <CalendarOutlined />,
+                  },
+                ],
+              },
+              {
+                title: "Giới thiệu",
+                rows: [
+                  {
+                    label: "",
+                    value: selectedArtisan.bio || "Chưa có",
+                  },
+                ],
+              },
+            ]}
+            extraContent={
+              selectedArtisan.images && selectedArtisan.images.length > 0 ? (
+                <Card
+                  size="small"
+                  title="Hình ảnh"
+                  style={{
+                    marginTop: 20,
+                    borderRadius: 12,
+                    border: "1px solid #e8e8e8",
+                  }}
+                  styles={{ body: { padding: 16 } }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 12,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    {selectedArtisan.images.map((img, i) => (
+                      <img
+                        key={i}
+                        src={img}
+                        alt=""
+                        style={{
+                          width: 100,
+                          height: 100,
+                          objectFit: "cover",
+                          borderRadius: 8,
+                        }}
+                      />
+                    ))}
+                  </div>
+                </Card>
+              ) : undefined
+            }
+          />
+        )}
+      </Modal>
+
+      {/* Modal chỉnh sửa */}
+      <Modal
+        title="Chỉnh sửa nghệ nhân"
+        open={editModalOpen}
+        onCancel={() => {
+          setEditModalOpen(false);
+          setSelectedArtisan(null);
+        }}
+        onOk={handleSaveEdit}
+        confirmLoading={saving}
+        okText="Lưu"
+        cancelText="Hủy"
+        width={560}
+      >
+        <Form form={editForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item
+            label="Chuyên môn"
+            name="specialization"
+            rules={[{ required: true, message: "Vui lòng nhập chuyên môn" }]}
+          >
+            <Input placeholder="VD: Gốm, Đan lát..." />
+          </Form.Item>
+          <Form.Item label="Giới thiệu" name="bio">
+            <Input.TextArea rows={4} placeholder="Mô tả ngắn về nghệ nhân" />
+          </Form.Item>
+          <Form.Item label="Ảnh đại diện (URL)" name="profileImageUrl">
+            <Input placeholder="https://..." />
+          </Form.Item>
+          <Form.Item label="Tỉnh thành" name="provinceId">
+            <Select placeholder="Chọn tỉnh thành" allowClear>
+              {provinces.map((p) => (
+                <Select.Option key={p.id} value={p.id}>
+                  {p.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item label="Địa chỉ xưởng" name="workshopAddress">
+            <Input placeholder="Địa chỉ cụ thể" />
           </Form.Item>
         </Form>
       </Modal>

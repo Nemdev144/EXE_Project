@@ -7,18 +7,13 @@ import {
   QuizExplanationCard,
   RelatedTours,
 } from '../../components/learn';
+import type { LearnQuizQuestion } from '../../types';
 import '../../styles/pages/_quiz-results.scss';
 
-interface Question {
-  id: number;
-  question: string;
-  options: string[];
-  correctAnswer: number;
-  explanation?: string;
-}
-
-interface QuizResultsProps {
-  questions?: Question[];
+interface QuizResultsState {
+  quizId?: number;
+  quizTitle?: string;
+  questions?: LearnQuizQuestion[];
   selectedAnswers?: Record<number, number>;
   timeSpent?: number;
 }
@@ -28,32 +23,31 @@ export default function QuizResultsPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const state = location.state as QuizResultsProps;
-  const questions = state?.questions || [];
-  const selectedAnswers = state?.selectedAnswers || {};
-  const timeSpent = state?.timeSpent || 0;
+  const state = location.state as QuizResultsState | undefined;
+  const questions = state?.questions ?? [];
+  const selectedAnswers = state?.selectedAnswers ?? {};
+  const timeSpent = state?.timeSpent ?? 0;
 
   useEffect(() => {
     if (!questions.length) {
-      navigate(`/learn/${category}/${slug}`);
+      navigate(`/learn/${category ?? ''}/${slug ?? ''}`, { replace: true });
     }
-  }, [questions, category, slug, navigate]);
+  }, [questions.length, category, slug, navigate]);
 
-  const calculateScore = () => {
-    let correct = 0;
-    questions.forEach((q) => {
-      if (selectedAnswers[q.id] === q.correctAnswer) {
-        correct++;
-      }
-    });
-    return {
-      correct,
-      total: questions.length,
-      percentage: Math.round((correct / questions.length) * 100),
-    };
-  };
-
-  const score = calculateScore();
+  const totalCount = questions.length;
+  const hasCorrectFromApi = questions.some(
+    (q) => q.options?.some((o) => o.isCorrect === true)
+  );
+  const correctCount = hasCorrectFromApi
+    ? questions.filter((q) => {
+        const idx = selectedAnswers[q.id];
+        return idx !== undefined && q.options?.[idx]?.isCorrect === true;
+      }).length
+    : undefined;
+  const percentage =
+    totalCount > 0 && correctCount !== undefined
+      ? Math.round((correctCount / totalCount) * 100)
+      : undefined;
 
   const relatedTours = [
     {
@@ -81,9 +75,13 @@ export default function QuizResultsPage() {
 
   const breadcrumbItems = [
     { label: 'Học nhanh', path: '/learn' },
-    { label: category || 'Cồng chiêng', path: `/learn/${category}` },
+    { label: category ?? 'Bài học', path: `/learn/${category ?? ''}` },
     { label: 'Kết quả Quiz' },
   ];
+
+  if (!questions.length) {
+    return null;
+  }
 
   return (
     <div className="quiz-results-page">
@@ -91,37 +89,44 @@ export default function QuizResultsPage() {
         <Breadcrumbs items={breadcrumbItems} />
 
         <QuizResultBanner
-          correctCount={score.correct}
-          totalCount={score.total}
-          percentage={score.percentage}
+          correctCount={correctCount}
+          totalCount={totalCount}
+          percentage={percentage}
+          submittedOnly={correctCount === undefined}
         />
 
         <div className="quiz-results-page__content">
           <div className="quiz-results-page__main">
             <h2 className="quiz-results-page__section-title">
-              Giải thích & Kết quả chi tiết
+              Đáp án bạn chọn
             </h2>
 
-            {questions.map((question, index) => (
-              <QuizExplanationCard
-                key={question.id}
-                questionNumber={index + 1}
-                question={question.question}
-                options={question.options}
-                correctAnswer={question.correctAnswer}
-                selectedAnswer={selectedAnswers[question.id]}
-                explanation={question.explanation}
-              />
-            ))}
+            {questions.map((question, index) => {
+              const optionTexts = question.options?.map((o) => o.optionText) ?? [];
+              const correctIndex =
+                question.options?.findIndex((o) => o.isCorrect === true) ?? -1;
+
+              return (
+                <QuizExplanationCard
+                  key={question.id}
+                  questionNumber={index + 1}
+                  questionText={question.questionText}
+                  options={optionTexts}
+                  selectedAnswer={selectedAnswers[question.id]}
+                  correctAnswer={correctIndex >= 0 ? correctIndex : undefined}
+                  explanation={undefined}
+                />
+              );
+            })}
           </div>
 
           <div className="quiz-results-page__sidebar">
             <QuizResultSummary
-              score={score.percentage}
+              score={percentage}
               timeSpent={timeSpent}
-              correctCount={score.correct}
-              totalCount={score.total}
-              retakeUrl={`/learn/${category}/${slug}/quiz`}
+              correctCount={correctCount}
+              totalCount={totalCount}
+              retakeUrl={`/learn/${category}/${slug}/quiz${state?.quizId ? `?quizId=${state.quizId}` : ''}`}
               backUrl={`/learn/${category}/${slug}`}
             />
           </div>

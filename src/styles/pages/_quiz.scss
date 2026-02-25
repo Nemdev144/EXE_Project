@@ -1,5 +1,5 @@
-@import '../variables';
-@import '../mixins';
+@use '../variables';
+@use '../mixins';
 
 .quiz-page {
   min-height: 100vh;
@@ -11,7 +11,7 @@
     margin: 0 auto;
     padding: 0 24px;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       padding: 0 16px;
     }
   }
@@ -21,7 +21,7 @@
     grid-template-columns: 1fr 320px;
     gap: 32px;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       grid-template-columns: 1fr;
     }
   }

@@ -2,7 +2,7 @@
 // Ant Design Overrides
 // ============================================
 
-@import 'variables';
+@use 'variables';
 
 /* Ant Design Overrides - Phải giữ lại vì override thư viện bên ngoài */
 .ant-layout-sider {
@@ -22,7 +22,7 @@
 }
 
 .ant-input:focus {
-  border-color: $color-primary !important;
+  border-color: variables.$color-primary !important;
   box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.1) !important;
 }
 
@@ -31,11 +31,11 @@
 }
 
 .ant-menu-item:hover {
-  transition: all $transition-base;
+  transition: all variables.$transition-base;
 }
 
 .ant-avatar {
-  transition: transform $transition-base, box-shadow $transition-base;
+  transition: transform variables.$transition-base, box-shadow variables.$transition-base;
 }
 
 .ant-avatar:hover {
@@ -44,26 +44,26 @@
 }
 
 .ant-card {
-  background: $color-white !important;
-  border: 1px solid $color-gray-200 !important;
-  border-radius: $radius-lg !important;
+  background: variables.$color-white !important;
+  border: 1px solid variables.$color-gray-200 !important;
+  border-radius: variables.$radius-lg !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
 }
 
 .ant-card-head {
-  border-bottom: 1px solid $color-gray-200 !important;
-  background: $color-white !important;
+  border-bottom: 1px solid variables.$color-gray-200 !important;
+  background: variables.$color-white !important;
 }
 
 .ant-card-body {
-  background: $color-white !important;
+  background: variables.$color-white !important;
 }
 
 .ant-statistic-title {
-  color: $color-gray-500 !important;
-  font-weight: $font-weight-medium !important;
+  color: variables.$color-gray-500 !important;
+  font-weight: variables.$font-weight-medium !important;
 }
 
 .ant-statistic-content {
-  color: $color-gray-900 !important;
+  color: variables.$color-gray-900 !important;
 }
