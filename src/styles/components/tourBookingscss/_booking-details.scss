@@ -1,0 +1,306 @@
+// ============================================
+// Booking Details - Calendar, Participants, etc.
+// ============================================
+
+.booking-details {
+  margin-bottom: 1.5rem;
+
+  &__heading {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: #8B0000;
+    margin-bottom: 1.25rem;
+  }
+
+  &__section {
+    margin-bottom: 1.25rem;
+  }
+
+  &__label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+  }
+
+  &__required {
+    color: #dc2626;
+  }
+
+  &__input {
+    width: 100%;
+    height: 42px;
+    padding: 0 0.875rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #111827;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s ease;
+
+    &::placeholder {
+      color: #9ca3af;
+    }
+
+    &:focus {
+      border-color: #8B0000;
+      box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.08);
+    }
+  }
+
+  // Participants
+  &__participants {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__participant-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 1rem;
+
+    > span {
+      font-size: 0.9rem;
+      color: #374151;
+    }
+  }
+
+  &__counter {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  &__counter-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #f9fafb;
+    border: none;
+    cursor: pointer;
+    color: #374151;
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: #e5e7eb;
+    }
+
+    &:active {
+      background: #d1d5db;
+    }
+  }
+
+  &__counter-value {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 36px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #111827;
+    border-left: 1px solid #d1d5db;
+    border-right: 1px solid #d1d5db;
+  }
+
+  // Tour type
+  &__tour-type {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  &__tour-type-label {
+    font-size: 0.9rem;
+    color: #374151;
+    font-weight: 500;
+  }
+
+  &__tour-type-options {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  &__tour-type-btn {
+    padding: 0.5rem 1.25rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 0.875rem;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: #8B0000;
+      color: #8B0000;
+    }
+
+    &--active {
+      background: #8B0000;
+      color: #fff;
+      border-color: #8B0000;
+
+      &:hover {
+        background: #6B0000;
+        color: #fff;
+      }
+    }
+  }
+
+  // Terms
+  &__terms {
+    margin-top: 0.5rem;
+  }
+
+  &__checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: #374151;
+    line-height: 1.5;
+
+    input[type='checkbox'] {
+      margin-top: 3px;
+      accent-color: #8B0000;
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+  }
+
+  &__terms-link {
+    color: #8B0000;
+    text-decoration: underline;
+    font-weight: 500;
+
+    &:hover {
+      color: #6B0000;
+    }
+  }
+}
+
+// ============================================
+// Calendar
+// ============================================
+
+.booking-calendar {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1rem;
+  background: #fff;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+
+  &__month {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  &__nav {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  &__nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+    color: #8B0000;
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: #fef2f2;
+    }
+  }
+
+  &__weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0;
+    margin-bottom: 0.25rem;
+  }
+
+  &__weekday {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #9ca3af;
+    padding: 0.25rem 0;
+    text-transform: uppercase;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+
+  &__day {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    font-size: 0.875rem;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover:not(&--disabled):not(&--empty):not(&--selected) {
+      background: #fef2f2;
+      color: #8B0000;
+    }
+
+    &--empty {
+      cursor: default;
+    }
+
+    &--disabled {
+      color: #d1d5db;
+      cursor: not-allowed;
+    }
+
+    &--today {
+      font-weight: 700;
+      color: #8B0000;
+      border: 1px solid #8B0000;
+    }
+
+    &--selected {
+      background: #8B0000;
+      color: #fff;
+      font-weight: 600;
+
+      &:hover {
+        background: #6B0000;
+      }
+    }
+  }
+}

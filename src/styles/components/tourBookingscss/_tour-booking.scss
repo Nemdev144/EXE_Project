@@ -1,0 +1,113 @@
+// ============================================
+// Tour Booking - Main Layout
+// ============================================
+
+.tour-booking {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem 3rem;
+  padding-top: calc(var(--navbar-h, 88px) + 1rem);
+
+  &__top-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  &__back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #e5e7eb;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #374151;
+    flex-shrink: 0;
+
+    &:hover {
+      background: #f3f4f6;
+      border-color: #d1d5db;
+    }
+  }
+
+  &__content {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 2rem 2.5rem;
+  }
+
+  &__sidebar {
+    position: sticky;
+    top: calc(var(--navbar-h, 88px) + 1rem);
+  }
+}
+
+// Loading state
+.tour-booking-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+
+  &__spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #8B0000;
+    border-radius: 50%;
+    animation: tb-spin 0.8s linear infinite;
+  }
+
+  p {
+    color: #6b7280;
+    font-size: 0.95rem;
+  }
+}
+
+@keyframes tb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Responsive
+@media (max-width: 1024px) {
+  .tour-booking {
+    &__content {
+      grid-template-columns: 1fr;
+    }
+
+    &__sidebar {
+      position: static;
+      order: -1;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .tour-booking {
+    padding: 0.75rem 1rem 2rem;
+
+    &__form {
+      padding: 1.25rem 1rem;
+    }
+  }
+}

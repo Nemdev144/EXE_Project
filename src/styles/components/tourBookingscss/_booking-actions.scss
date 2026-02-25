@@ -1,0 +1,56 @@
+// ============================================
+// Booking Actions - Submit / Back buttons
+// ============================================
+
+.booking-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+
+  &__btn {
+    flex: 1;
+    height: 46px;
+    border-radius: 24px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+
+    &--primary {
+      background: #8B0000;
+      color: #fff;
+      border-color: #8B0000;
+
+      &:hover:not(:disabled) {
+        background: #6B0000;
+        border-color: #6B0000;
+      }
+
+      &:disabled {
+        background: #d1d5db;
+        border-color: #d1d5db;
+        color: #9ca3af;
+        cursor: not-allowed;
+      }
+    }
+
+    &--outline {
+      background: #fff;
+      color: #8B0000;
+      border-color: #8B0000;
+
+      &:hover {
+        background: #fef2f2;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .booking-actions {
+    flex-direction: column;
+  }
+}

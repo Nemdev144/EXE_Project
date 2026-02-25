@@ -149,7 +149,7 @@ export default function StaffDashboard() {
               prefix={<CalendarOutlined style={{ color: "#8B0000" }} />}
               valueStyle={{ color: "#8B0000", fontWeight: 700 }}
               suffix={
-                <span className="text-sm text-green-500 font-semibold">
+                <span style={{ fontSize: '0.875rem', color: '#22c55e', fontWeight: 600 }}>
                   <ArrowUpOutlined /> +5
                 </span>
               }

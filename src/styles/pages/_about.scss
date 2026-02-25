@@ -78,10 +78,12 @@
     overflow: hidden;
     background: linear-gradient(to bottom, #fff, #faf9f6);
     padding: $spacing-3xl 0;
+    padding-top: calc(var(--navbar-h, 88px) + $spacing-3xl);
     border-bottom: 1px solid $color-border;
 
     @include respond-to(md) {
       padding: $spacing-4xl 0 $spacing-3xl;
+      padding-top: calc(var(--navbar-h, 88px) + $spacing-4xl);
     }
   }
 

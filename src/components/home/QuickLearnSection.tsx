@@ -136,7 +136,7 @@ export default function QuickLearnSection() {
                           👁️ {post.viewCount} lượt xem
                         </span>
                         <button className="quick-learn__link">
-                          Xem thêm <ArrowRight className="w-4 h-4" />
+                          Xem thêm <ArrowRight size={16} />
                         </button>
                       </div>
                     </div>
@@ -160,7 +160,7 @@ export default function QuickLearnSection() {
                       {/* Play Button */}
                       <div className="quick-learn__video-overlay">
                         <button className="quick-learn__play">
-                          <Play className="w-6 h-6 fill-current" />
+                          <Play size={24} style={{ fill: 'currentColor' }} />
                         </button>
                       </div>
                       <div className="quick-learn__badge">
@@ -178,7 +178,7 @@ export default function QuickLearnSection() {
                           👁️ {video.viewCount} lượt xem
                         </span>
                         <button className="quick-learn__link">
-                          Xem video <ArrowRight className="w-4 h-4" />
+                          Xem video <ArrowRight size={16} />
                         </button>
                       </div>
                     </div>
@@ -200,8 +200,8 @@ export default function QuickLearnSection() {
         {/* View All Button */}
         {hasItems && !loading && !shouldShowError && (
           <div className="quick-learn__footer">
-            <button className="btn btn-primary text-lg px-8 py-3">
-              Xem tất cả <ArrowRight className="w-5 h-5 ml-2" />
+            <button className="btn btn-primary quick-learn__btn-all">
+              Xem tất cả <ArrowRight size={20} />
             </button>
           </div>
         )}

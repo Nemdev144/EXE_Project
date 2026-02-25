@@ -1,0 +1,37 @@
+// ============================================
+// Confirm Notes
+// ============================================
+
+.confirm-notes {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid #e5e7eb;
+
+  &__label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.75rem;
+  }
+
+  &__label-icon {
+    font-size: 1rem;
+  }
+
+  &__box {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 0.875rem 1rem;
+
+    p {
+      font-size: 0.875rem;
+      color: #374151;
+      line-height: 1.6;
+      margin: 0;
+    }
+  }
+}
