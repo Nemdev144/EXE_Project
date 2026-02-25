@@ -2,8 +2,8 @@
 // Footer Component Styles
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables';
+@use '../mixins';
 
 // Custom Font for Brand Name
 @font-face {
@@ -16,52 +16,52 @@
 
 .footer {
   width: 100%;
-  background: $color-primary;
-  color: $color-white;
-  padding: $spacing-2xl 0;
+  background: variables.$color-primary;
+  color: variables.$color-white;
+  padding: variables.$spacing-2xl 0;
 
   &__container {
     width: 100%;
     max-width: 1280px;
     margin: 0 auto;
-    padding: 0 $spacing-lg;
+    padding: 0 variables.$spacing-lg;
 
-    @include respond-to(md) {
-      padding: 0 $spacing-xl;
+    @include mixins.respond-to(md) {
+      padding: 0 variables.$spacing-xl;
     }
 
-    @include respond-to(lg) {
-      padding: 0 $spacing-2xl;
+    @include mixins.respond-to(lg) {
+      padding: 0 variables.$spacing-2xl;
     }
   }
 
   &__content {
     display: grid;
     grid-template-columns: 1fr;
-    gap: $spacing-2xl;
+    gap: variables.$spacing-2xl;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       grid-template-columns: repeat(2, 1fr);
     }
 
-    @include respond-to(lg) {
+    @include mixins.respond-to(lg) {
       grid-template-columns: repeat(4, 1fr);
     }
   }
 
   // Brand Column
   &__brand {
-    @include respond-to(lg) {
+    @include mixins.respond-to(lg) {
       grid-column: span 1;
     }
 
     &-link {
       display: flex;
       align-items: center;
-      gap: $spacing-md;
-      margin-bottom: $spacing-lg;
+      gap: variables.$spacing-md;
+      margin-bottom: variables.$spacing-lg;
       text-decoration: none;
-      transition: opacity $transition-base;
+      transition: opacity variables.$transition-base;
 
       &:hover {
         opacity: 0.9;
@@ -78,25 +78,25 @@
 
     &-text {
       font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
-      font-size: $font-size-2xl;
+      font-size: variables.$font-size-2xl;
       font-weight: normal;
-      color: $color-white;
+      color: variables.$color-white;
       line-height: 1;
       letter-spacing: 0.02em;
     }
 
     &-description {
       color: rgba(255, 255, 255, 0.8);
-      font-size: $font-size-sm;
+      font-size: variables.$font-size-sm;
       line-height: 1.6;
-      margin-bottom: $spacing-lg;
+      margin-bottom: variables.$spacing-lg;
     }
   }
 
   // Social Links
   &__social {
     display: flex;
-    gap: $spacing-md;
+    gap: variables.$spacing-md;
 
     &-link {
       width: 40px;
@@ -106,8 +106,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      color: $color-white;
-      transition: all $transition-base;
+      color: variables.$color-white;
+      transition: all variables.$transition-base;
       text-decoration: none;
 
       &:hover {
@@ -129,12 +129,12 @@
   }
 
   &__title {
-    font-size: $font-size-sm;
-    font-weight: $font-weight-semibold;
+    font-size: variables.$font-size-sm;
+    font-weight: variables.$font-weight-semibold;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-bottom: $spacing-lg;
-    color: $color-white;
+    margin-bottom: variables.$spacing-lg;
+    color: variables.$color-white;
   }
 
   &__links {
@@ -143,7 +143,7 @@
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: $spacing-md;
+    gap: variables.$spacing-md;
   }
 
   &__link-item {
@@ -152,13 +152,13 @@
 
   &__link {
     color: rgba(255, 255, 255, 0.7);
-    font-size: $font-size-sm;
+    font-size: variables.$font-size-sm;
     text-decoration: none;
-    transition: color $transition-base;
+    transition: color variables.$transition-base;
     display: inline-block;
 
     &:hover {
-      color: $color-white;
+      color: variables.$color-white;
     }
   }
 
@@ -169,15 +169,15 @@
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: $spacing-md;
+    gap: variables.$spacing-md;
   }
 
   &__contact-item {
     display: flex;
     align-items: flex-start;
-    gap: $spacing-md;
+    gap: variables.$spacing-md;
     color: rgba(255, 255, 255, 0.7);
-    font-size: $font-size-sm;
+    font-size: variables.$font-size-sm;
     line-height: 1.5;
 
     svg {
@@ -190,15 +190,15 @@
 
   // Bottom Bar
   &__bottom {
-    margin-top: $spacing-2xl;
-    padding-top: $spacing-xl;
+    margin-top: variables.$spacing-2xl;
+    padding-top: variables.$spacing-xl;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     flex-direction: column;
-    gap: $spacing-lg;
+    gap: variables.$spacing-lg;
     align-items: center;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       flex-direction: row;
       justify-content: space-between;
       align-items: center;
@@ -207,33 +207,33 @@
 
   &__copyright {
     color: rgba(255, 255, 255, 0.6);
-    font-size: $font-size-sm;
+    font-size: variables.$font-size-sm;
     text-align: center;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       text-align: left;
     }
   }
 
   &__legal {
     display: flex;
-    gap: $spacing-xl;
+    gap: variables.$spacing-xl;
     flex-wrap: wrap;
     justify-content: center;
 
-    @include respond-to(md) {
+    @include mixins.respond-to(md) {
       justify-content: flex-end;
     }
   }
 
   &__legal-link {
     color: rgba(255, 255, 255, 0.6);
-    font-size: $font-size-sm;
+    font-size: variables.$font-size-sm;
     text-decoration: none;
-    transition: color $transition-base;
+    transition: color variables.$transition-base;
 
     &:hover {
-      color: $color-white;
+      color: variables.$color-white;
     }
   }
 }

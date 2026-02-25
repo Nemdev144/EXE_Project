@@ -9,6 +9,10 @@ import type {
   BlogPost,
   Video,
   Review,
+  LearnQuiz,
+  LearnModule,
+  LearnLesson,
+  LearnCategory,
 } from "../types";
 
 // API Base Configuration
@@ -53,6 +57,19 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+/** Lấy thông báo lỗi thân thiện từ response API hoặc axios (dùng cho UI). */
+export function getApiErrorMessage(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const msg = error.response?.data?.message;
+    if (typeof msg === "string" && msg.trim()) return msg.trim();
+    if (error.response?.status === 500)
+      return "Lỗi máy chủ. Vui lòng thử lại sau.";
+    if (error.response?.status)
+      return `Lỗi ${error.response.status}. Vui lòng thử lại.`;
+  }
+  return error instanceof Error ? error.message : "Đã xảy ra lỗi.";
+}
 
 // ========== In-memory cache (load 1 lần, dùng chung) ==========
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 phút
@@ -347,6 +364,67 @@ export const getVideoById = async (id: number): Promise<Video> => {
   const cached = getCached<Video>(key);
   if (cached !== undefined) return cached;
   const response = await api.get<ApiResponse<Video>>(`/api/videos/public/${id}`);
+  const data = response.data.data;
+  setCached(key, data);
+  return data;
+};
+
+// ========== Learn (public) ==========
+export const getLearnCategories = async (): Promise<LearnCategory[]> => {
+  const key = "learn:categories";
+  const cached = getCached<LearnCategory[]>(key);
+  if (cached !== undefined) return cached;
+  const response = await api.get<ApiResponse<LearnCategory[]>>(
+    "/api/learn/public/categories"
+  );
+  const data = response.data.data ?? [];
+  setCached(key, data);
+  return data;
+};
+
+export const getLearnModules = async (): Promise<LearnModule[]> => {
+  const key = "learn:modules";
+  const cached = getCached<LearnModule[]>(key);
+  if (cached !== undefined) return cached;
+  const response = await api.get<ApiResponse<LearnModule[]>>(
+    "/api/learn/public/modules"
+  );
+  const data = response.data.data ?? [];
+  setCached(key, data);
+  return data;
+};
+
+export const getModuleById = async (id: number): Promise<LearnModule> => {
+  const key = `learn:module:${id}`;
+  const cached = getCached<LearnModule>(key);
+  if (cached !== undefined) return cached;
+  const response = await api.get<ApiResponse<LearnModule>>(
+    `/api/learn/public/modules/${id}`
+  );
+  const data = response.data.data;
+  setCached(key, data);
+  return data;
+};
+
+export const getLessonById = async (id: number): Promise<LearnLesson> => {
+  const key = `learn:lesson:${id}`;
+  const cached = getCached<LearnLesson>(key);
+  if (cached !== undefined) return cached;
+  const response = await api.get<ApiResponse<LearnLesson>>(
+    `/api/learn/public/lessons/${id}`
+  );
+  const data = response.data.data;
+  setCached(key, data);
+  return data;
+};
+
+export const getQuizById = async (id: number): Promise<LearnQuiz> => {
+  const key = `learn:quiz:${id}`;
+  const cached = getCached<LearnQuiz>(key);
+  if (cached !== undefined) return cached;
+  const response = await api.get<ApiResponse<LearnQuiz>>(
+    `/api/learn/public/quizzes/${id}`
+  );
   const data = response.data.data;
   setCached(key, data);
   return data;

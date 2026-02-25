@@ -2,8 +2,8 @@
 // Tour Grid
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables' as *;
+@use '../mixins' as *;
 
 .tour-grid {
   display: grid;

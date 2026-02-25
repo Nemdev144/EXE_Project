@@ -2,24 +2,24 @@
 // Mixins - Reusable Styles
 // ============================================
 
-@import 'variables';
+@use 'variables';
 
 // Responsive Breakpoints
 @mixin respond-to($breakpoint) {
   @if $breakpoint == sm {
-    @media (min-width: $breakpoint-sm) { @content; }
+    @media (min-width: variables.$breakpoint-sm) { @content; }
   }
   @if $breakpoint == md {
-    @media (min-width: $breakpoint-md) { @content; }
+    @media (min-width: variables.$breakpoint-md) { @content; }
   }
   @if $breakpoint == lg {
-    @media (min-width: $breakpoint-lg) { @content; }
+    @media (min-width: variables.$breakpoint-lg) { @content; }
   }
   @if $breakpoint == xl {
-    @media (min-width: $breakpoint-xl) { @content; }
+    @media (min-width: variables.$breakpoint-xl) { @content; }
   }
   @if $breakpoint == 2xl {
-    @media (min-width: $breakpoint-2xl) { @content; }
+    @media (min-width: variables.$breakpoint-2xl) { @content; }
   }
 }
 
@@ -44,16 +44,16 @@
 // Form Input Styles
 @mixin form-input {
   width: 100%;
-  padding: $spacing-md $spacing-lg;
-  background-color: $color-gray-100;
-  border: 1px solid $color-gray-200;
-  border-radius: $radius-xl;
-  font-size: $font-size-base;
-  color: $color-gray-900;
-  transition: all $transition-base;
+  padding: variables.$spacing-md variables.$spacing-lg;
+  background-color: variables.$color-gray-100;
+  border: 1px solid variables.$color-gray-200;
+  border-radius: variables.$radius-xl;
+  font-size: variables.$font-size-base;
+  color: variables.$color-gray-900;
+  transition: all variables.$transition-base;
 
   &::placeholder {
-    color: $color-gray-500;
+    color: variables.$color-gray-500;
   }
 
   &:focus {
@@ -70,10 +70,10 @@
 
 // Button Variants
 @mixin button-base {
-  padding: $spacing-sm $spacing-xl;
-  border-radius: $radius-full;
-  font-weight: $font-weight-semibold;
-  transition: all $transition-base;
+  padding: variables.$spacing-sm variables.$spacing-xl;
+  border-radius: variables.$radius-full;
+  font-weight: variables.$font-weight-semibold;
+  transition: all variables.$transition-base;
   cursor: pointer;
   border: none;
   min-height: 40px;
@@ -89,40 +89,40 @@
 
 @mixin button-primary {
   @include button-base;
-  background-color: $color-primary;
-  color: $color-white;
+  background-color: variables.$color-primary;
+  color: variables.$color-white;
 
   &:hover:not(:disabled) {
-    background-color: $color-primary-hover;
+    background-color: variables.$color-primary-hover;
   }
 }
 
 @mixin button-secondary {
   @include button-base;
-  background-color: $color-gray-600;
-  color: $color-white;
+  background-color: variables.$color-gray-600;
+  color: variables.$color-white;
 
   &:hover:not(:disabled) {
-    background-color: $color-gray-700;
+    background-color: variables.$color-gray-700;
   }
 }
 
 @mixin button-danger {
   @include button-base;
-  background-color: $color-red-600;
-  color: $color-white;
+  background-color: variables.$color-red-600;
+  color: variables.$color-white;
 
   &:hover:not(:disabled) {
-    background-color: $color-red-700;
+    background-color: variables.$color-red-700;
   }
 }
 
 // Card Styles
 @mixin card {
-  background-color: $color-white;
-  border-radius: $radius-lg;
-  box-shadow: $shadow-lg;
-  padding: $spacing-xl;
+  background-color: variables.$color-white;
+  border-radius: variables.$radius-lg;
+  box-shadow: variables.$shadow-lg;
+  padding: variables.$spacing-xl;
 }
 
 // Screen Full Height/Width
@@ -137,9 +137,9 @@
 }
 
 @mixin text-bold {
-  font-weight: $font-weight-bold;
+  font-weight: variables.$font-weight-bold;
 }
 
 @mixin text-semibold {
-  font-weight: $font-weight-semibold;
+  font-weight: variables.$font-weight-semibold;
 }

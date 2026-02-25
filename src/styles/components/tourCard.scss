@@ -2,8 +2,8 @@
 // Tour Card
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables' as *;
+@use '../mixins' as *;
 
 .tour-card {
   background: #fbf7f1;

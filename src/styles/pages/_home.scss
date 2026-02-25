@@ -2,13 +2,13 @@
 // Home Page
 // ============================================
 
-@import '../variables';
+@use '../variables';
 
 // Warning banner
 .home-warning {
   background: #fefce8;
   border-left: 4px solid #facc15;
-  padding: $spacing-md;
+  padding: variables.$spacing-md;
 
   &__inner {
     display: flex;
@@ -17,12 +17,12 @@
 
   &__icon {
     color: #ca8a04;
-    margin-right: $spacing-sm;
+    margin-right: variables.$spacing-sm;
   }
 
   &__text {
     color: #a16207;
-    font-size: $font-size-sm;
+    font-size: variables.$font-size-sm;
   }
 }
 
@@ -32,8 +32,8 @@
   bottom: 1rem;
   right: 1rem;
   background: #fff;
-  box-shadow: $shadow-lg;
-  border-radius: $radius-lg;
+  box-shadow: variables.$shadow-lg;
+  border-radius: variables.$radius-lg;
   padding: 0.75rem;
   display: flex;
   align-items: center;
@@ -50,8 +50,8 @@
   }
 
   &__text {
-    font-size: $font-size-sm;
-    color: $color-gray-600;
+    font-size: variables.$font-size-sm;
+    color: variables.$color-gray-600;
   }
 }
 

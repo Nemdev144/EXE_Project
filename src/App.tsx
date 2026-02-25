@@ -14,6 +14,7 @@ import TourBooking from "./components/tourBooking";
 import BookingConfirm from "./components/tourBooking/step2";
 import PaymentPage from "./components/paymentMethods";
 import { About } from "./components/about";
+import { LearnPage, LessonDetailPage, QuizPage, QuizResultsPage } from "./pages/learn";
 
 // Admin Pages
 import AdminDashboardPage from "./pages/admin/AdminDashboard";
@@ -22,6 +23,7 @@ import TourManagementPage from "./pages/admin/TourManagement";
 import BookingManagementPage from "./pages/admin/BookingManagement";
 import ArtisanManagementPage from "./pages/admin/ArtisanManagement";
 import UserManagementPage from "./pages/admin/UserManagement";
+import StaffManagementPage from "./pages/admin/StaffManagement";
 import EmailTemplatesPage from "./pages/admin/EmailTemplates";
 
 // Staff Pages
@@ -51,6 +53,10 @@ function App() {
           <Route path="/tours/:id/booking/confirm" element={<BookingConfirm />} />
           <Route path="/tours/:id/booking/payment" element={<PaymentPage />} />
           <Route path="/about" element={<About />} />
+          <Route path="/learn" element={<LearnPage />} />
+          <Route path="/learn/:category/:slug" element={<LessonDetailPage />} />
+          <Route path="/learn/:category/:slug/quiz" element={<QuizPage />} />
+          <Route path="/learn/:category/:slug/quiz/results" element={<QuizResultsPage />} />
         </Route>
 
         {/* Admin Routes */}
@@ -61,6 +67,7 @@ function App() {
           <Route path="/admin/bookings" element={<BookingManagementPage />} />
           <Route path="/admin/artisans" element={<ArtisanManagementPage />} />
           <Route path="/admin/users" element={<UserManagementPage />} />
+          <Route path="/admin/staff" element={<StaffManagementPage />} />
           <Route path="/admin/emails" element={<EmailTemplatesPage />} />
         </Route>
 

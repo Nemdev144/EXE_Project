@@ -2,27 +2,27 @@
 // Card Component
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables';
+@use '../mixins';
 
 // Base Card
 .card {
   background: white;
-  border-radius: var(--radius-lg, $radius-lg);
-  box-shadow: var(--shadow-md, $shadow-md);
+  border-radius: var(--radius-lg, variables.$radius-lg);
+  box-shadow: var(--shadow-md, variables.$shadow-md);
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-xl, $shadow-xl);
+    box-shadow: var(--shadow-xl, variables.$shadow-xl);
   }
 
   &__title {
-    font-size: $font-size-xl;
-    font-weight: $font-weight-bold;
-    color: $color-gray-900;
-    margin-bottom: $spacing-lg;
+    font-size: variables.$font-size-xl;
+    font-weight: variables.$font-weight-bold;
+    color: variables.$color-gray-900;
+    margin-bottom: variables.$spacing-lg;
   }
 }
 
@@ -30,7 +30,7 @@
 .stamp-card {
   position: relative;
   background: white;
-  border-radius: $radius-lg;
+  border-radius: variables.$radius-lg;
   overflow: hidden;
   border: 8px solid var(--color-primary);
   box-shadow: var(--color-primary) 0px 10px 20px -8px;

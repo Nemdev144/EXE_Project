@@ -2,7 +2,7 @@
 // Quick Learn Section
 // ============================================
 
-@import '../variables';
+@use '../variables' as *;
 
 .quick-learn {
   background: var(--color-bg);

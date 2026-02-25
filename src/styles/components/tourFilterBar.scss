@@ -2,8 +2,8 @@
 // Tour Filter Bar
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables' as *;
+@use '../mixins' as *;
 
 .tour-filter {
   background: $color-white;

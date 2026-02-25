@@ -124,21 +124,39 @@ export const deleteTour = async (id: number): Promise<void> => {
 };
 
 // ========== Admin Bookings API ==========
+// GET /api/bookings – response.data là mảng theo JSON bạn cung cấp
+export type BookingPaymentStatus = "UNPAID" | "PAID" | "PARTIAL" | "REFUNDED";
+export type BookingPaymentMethod =
+  | "CREDIT_CARD"
+  | "BANK_TRANSFER"
+  | "CASH"
+  | "EWALLET"
+  | string;
+export type BookingStatus = "PENDING" | "CONFIRMED" | "PAID" | "CANCELLED" | "REFUNDED";
+
 export interface AdminBooking {
   id: number;
-  tourId: number;
-  tourTitle?: string;
+  bookingCode: string;
   userId: number;
-  customerName: string;
-  email: string;
-  phone: string;
-  participants: number;
-  totalAmount: number;
-  status: "PENDING" | "PAID" | "CANCELLED" | "REFUNDED";
-  bookingDate: string;
+  tourId: number;
+  tourTitle: string;
+  tourScheduleId: number;
   tourDate: string;
-  paymentMethod?: string;
-  notes?: string;
+  tourStartTime: string;
+  numParticipants: number;
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+  totalAmount: number;
+  discountAmount: number;
+  finalAmount: number;
+  paymentStatus: BookingPaymentStatus;
+  paymentMethod: BookingPaymentMethod;
+  paidAt: string | null;
+  cancelledAt: string | null;
+  cancellationFee: number;
+  refundAmount: number;
+  status: BookingStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -152,7 +170,8 @@ export interface CreateBookingRequest {
 }
 
 export interface UpdateBookingRequest {
-  status?: "PENDING" | "PAID" | "CANCELLED" | "REFUNDED";
+  status?: BookingStatus;
+  paymentStatus?: BookingPaymentStatus;
   notes?: string;
 }
 
@@ -164,12 +183,15 @@ export const getAdminBookings = async (params?: {
   startDate?: string;
   endDate?: string;
 }): Promise<{ data: AdminBooking[]; total: number }> => {
-  const response = await api.get<
-    ApiResponse<{ bookings: AdminBooking[]; total: number }>
-  >("/api/admin/bookings", { params });
+  const response = await api.get<ApiResponse<AdminBooking[]>>(
+    "/api/bookings",
+    { params },
+  );
+  const raw = response.data.data;
+  const data = Array.isArray(raw) ? raw : [];
   return {
-    data: response.data.data.bookings || response.data.data,
-    total: response.data.data.total || 0,
+    data,
+    total: data.length,
   };
 };
 
@@ -177,7 +199,7 @@ export const getAdminBookingById = async (
   id: number,
 ): Promise<AdminBooking> => {
   const response = await api.get<ApiResponse<AdminBooking>>(
-    `/api/admin/bookings/${id}`,
+    `/api/bookings/${id}`,
   );
   return response.data.data;
 };
@@ -187,7 +209,7 @@ export const updateBooking = async (
   data: UpdateBookingRequest,
 ): Promise<AdminBooking> => {
   const response = await api.put<ApiResponse<AdminBooking>>(
-    `/api/admin/bookings/${id}`,
+    `/api/bookings/${id}`,
     data,
   );
   return response.data.data;
@@ -198,7 +220,7 @@ export const cancelBooking = async (
   reason?: string,
 ): Promise<AdminBooking> => {
   const response = await api.post<ApiResponse<AdminBooking>>(
-    `/api/admin/bookings/${id}/cancel`,
+    `/api/bookings/${id}/cancel`,
     { reason },
   );
   return response.data.data;
@@ -209,13 +231,51 @@ export const refundBooking = async (
   amount?: number,
 ): Promise<AdminBooking> => {
   const response = await api.post<ApiResponse<AdminBooking>>(
-    `/api/admin/bookings/${id}/refund`,
+    `/api/bookings/${id}/refund`,
     { amount },
   );
   return response.data.data;
 };
 
-// ========== Admin Users API ==========
+// --- Theo Swagger: GET /api/bookings/{id}/cancellation-fee ---
+export interface BookingCancellationFee {
+  fee: number;
+  percent?: number;
+  currency?: string;
+}
+
+export const getBookingCancellationFee = async (
+  id: number,
+): Promise<BookingCancellationFee> => {
+  const response = await api.get<ApiResponse<BookingCancellationFee>>(
+    `/api/bookings/${id}/cancellation-fee`,
+  );
+  return response.data.data;
+};
+
+// --- Theo Swagger: GET /api/bookings/check-availability ---
+export interface CheckAvailabilityParams {
+  tourId: number;
+  date?: string; // ISO date
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface CheckAvailabilityResult {
+  available: boolean;
+  remainingSlots?: number;
+  message?: string;
+}
+
+export const checkBookingAvailability = async (
+  params: CheckAvailabilityParams,
+): Promise<CheckAvailabilityResult> => {
+  const response = await api.get<ApiResponse<CheckAvailabilityResult>>(
+    "/api/bookings/check-availability",
+    { params },
+  );
+  return response.data.data;
+};
 export interface AdminUser {
   id: number;
   username: string;

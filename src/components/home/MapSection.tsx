@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { getCultureItemsByProvince, getProvinces } from '../../services/api';
 import type { CultureItem, Province } from '../../types';
 import { Loader2, MapPin, X } from 'lucide-react';

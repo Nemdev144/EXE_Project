@@ -2,8 +2,8 @@
 // Tour Pagination
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables' as *;
+@use '../mixins' as *;
 
 .tour-pagination {
   margin-top: $spacing-2xl;

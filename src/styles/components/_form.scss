@@ -2,34 +2,34 @@
 // Form Components
 // ============================================
 
-@import '../variables';
-@import '../mixins';
+@use '../variables';
+@use '../mixins';
 
 .form {
   &__group {
-    margin-bottom: $spacing-md;
+    margin-bottom: variables.$spacing-md;
   }
 
   &__label {
     display: block;
-    font-size: $font-size-sm;
-    font-weight: $font-weight-medium;
-    color: $color-gray-700;
-    margin-bottom: $spacing-sm;
+    font-size: variables.$font-size-sm;
+    font-weight: variables.$font-weight-medium;
+    color: variables.$color-gray-700;
+    margin-bottom: variables.$spacing-sm;
   }
 
   &__input {
-    @include form-input;
+    @include mixins.form-input;
   }
 
   &__error {
-    font-size: $font-size-sm;
-    color: $color-red-700;
-    background-color: $color-red-50;
-    padding: $spacing-md $spacing-lg;
-    border-radius: $radius-lg;
-    margin-bottom: $spacing-md;
-    border: 1px solid $color-red-100;
+    font-size: variables.$font-size-sm;
+    color: variables.$color-red-700;
+    background-color: variables.$color-red-50;
+    padding: variables.$spacing-md variables.$spacing-lg;
+    border-radius: variables.$radius-lg;
+    margin-bottom: variables.$spacing-md;
+    border: 1px solid variables.$color-red-100;
     animation: slideDown 0.3s ease-out;
     line-height: 1.5;
   }
@@ -46,6 +46,6 @@
   }
 
   &__required {
-    color: $color-red-600;
+    color: variables.$color-red-600;
   }
 }
