@@ -13,6 +13,7 @@ import TourDetail from "./components/tour/TourDetail";
 import TourBooking from "./components/tourBooking";
 import BookingConfirm from "./components/tourBooking/step2";
 import PaymentPage from "./components/paymentMethods";
+import { ProfilePage } from "./components/profile";
 import { About } from "./components/about";
 import { LearnPage, LessonDetailPage, QuizPage, QuizResultsPage } from "./pages/learn";
 
@@ -52,6 +53,7 @@ function App() {
           <Route path="/tours/:id/booking" element={<TourBooking />} />
           <Route path="/tours/:id/booking/confirm" element={<BookingConfirm />} />
           <Route path="/tours/:id/booking/payment" element={<PaymentPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/about" element={<About />} />
           <Route path="/learn" element={<LearnPage />} />
           <Route path="/learn/:category/:slug" element={<LessonDetailPage />} />
