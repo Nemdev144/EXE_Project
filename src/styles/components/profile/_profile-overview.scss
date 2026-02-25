@@ -1,0 +1,142 @@
+// ============================================
+// Profile Overview – Personal Info + Quick Summary
+// ============================================
+@use '../../variables' as *;
+
+.profile-overview {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.5rem;
+
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: 1fr;
+  }
+
+  &__card {
+    background: $color-white;
+    border: 1px solid $color-gray-200;
+    border-radius: $radius-lg;
+    padding: 1.5rem;
+  }
+
+  &__card-title {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+    margin: 0 0 1rem;
+
+    &--accent {
+      color: $color-primary;
+    }
+  }
+
+  // Info table
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+
+    tr + tr {
+      border-top: 1px solid $color-gray-100;
+    }
+
+    td {
+      padding: 0.6rem 0;
+      font-size: $font-size-sm;
+    }
+  }
+
+  &__table-label {
+    color: $color-gray-500;
+    width: 140px;
+  }
+
+  &__table-value {
+    color: $color-text-primary;
+    font-weight: $font-weight-medium;
+  }
+
+  // Stat rows
+  &__stat-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  &__stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid $color-gray-100;
+    font-size: $font-size-sm;
+
+    span {
+      color: $color-gray-600;
+    }
+
+    strong {
+      color: $color-text-primary;
+    }
+
+    &--progress {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.35rem;
+
+      span {
+        font-size: $font-size-sm;
+      }
+    }
+  }
+
+  // Progress bar
+  &__progress {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  &__progress-bar {
+    flex: 1;
+    height: 8px;
+    background: $color-gray-200;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 100%;
+      background: $color-primary;
+      border-radius: 4px;
+    }
+  }
+
+  &__progress-text {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $color-primary;
+    min-width: 40px;
+    text-align: right;
+  }
+
+  // Voucher link
+  &__voucher-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: $font-size-sm;
+    color: $color-primary;
+    text-decoration: none;
+    margin-top: 0.5rem;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

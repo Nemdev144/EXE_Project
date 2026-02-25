@@ -1,0 +1,203 @@
+// ============================================
+// Profile Learn – Stats + Featured Courses
+// ============================================
+@use '../../variables' as *;
+
+.profile-learn {
+  &__title {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+    margin: 0 0 1.25rem;
+  }
+
+  // Empty
+  &__empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: $color-gray-500;
+
+    svg {
+      color: $color-gray-300;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      margin: 0.5rem 0;
+    }
+  }
+
+  &__start-btn {
+    display: inline-block;
+    margin-top: 0.75rem;
+    padding: 0.5rem 1.5rem;
+    border-radius: $radius-full;
+    background: $color-primary;
+    color: $color-white;
+    font-weight: $font-weight-semibold;
+    text-decoration: none;
+    font-size: $font-size-sm;
+
+    &:hover {
+      background: $color-primary-hover;
+    }
+  }
+
+  // Achievement banner
+  &__banner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: $color-white;
+    border: 2px solid $color-primary;
+    border-radius: $radius-lg;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+
+    @media (max-width: $breakpoint-sm) {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+
+  &__banner-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: $color-red-50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $color-primary;
+    flex-shrink: 0;
+  }
+
+  &__banner-content {
+    flex: 1;
+
+    strong {
+      color: $color-text-primary;
+      font-size: $font-size-base;
+    }
+
+    p {
+      margin: 0.15rem 0 0;
+      font-size: $font-size-sm;
+      color: $color-gray-600;
+    }
+  }
+
+  &__banner-note {
+    font-size: $font-size-xs !important;
+    color: $color-gray-400 !important;
+  }
+
+  &__claim-btn {
+    padding: 0.45rem 1.25rem;
+    border-radius: $radius-full;
+    border: none;
+    background: $color-primary;
+    color: $color-white;
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-sm;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+      background: $color-primary-hover;
+    }
+  }
+
+  // Stats cards
+  &__stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+
+    @media (max-width: $breakpoint-sm) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__stat-card {
+    text-align: center;
+    padding: 1rem;
+  }
+
+  &__stat-value {
+    display: block;
+    font-size: 3.5rem;
+    font-weight: $font-weight-bold;
+    line-height: 1.1;
+    margin-bottom: 0.35rem;
+
+    &--primary { color: $color-primary; }
+    &--accent { color: $color-primary-light; }
+    &--blue { color: #2563eb; }
+  }
+
+  &__stat-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    font-size: $font-size-sm;
+    color: $color-gray-500;
+  }
+
+  // Courses grid
+  &__courses {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1rem;
+  }
+
+  &__course-card {
+    display: flex;
+    flex-direction: column;
+    border-radius: $radius-lg;
+    overflow: hidden;
+    text-decoration: none;
+    color: $color-text-primary;
+    transition: transform $transition-base, box-shadow $transition-base;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: $shadow-md;
+    }
+  }
+
+  &__course-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+  }
+
+  &__course-title {
+    margin: 0.75rem 0 0.25rem;
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    color: $color-primary;
+  }
+
+  &__course-date {
+    font-size: $font-size-xs;
+    color: $color-gray-500;
+    margin-bottom: 0.35rem;
+  }
+
+  &__course-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: $font-size-sm;
+    color: $color-gray-600;
+    margin-top: auto;
+
+    &:hover {
+      color: $color-primary;
+    }
+  }
+}
