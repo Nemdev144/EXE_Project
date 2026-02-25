@@ -88,10 +88,9 @@ export default function BookingConfirm() {
 
   const handleConfirm = () => {
     if (!tour) return;
-    // TODO: call actual payment / booking API
-    console.log('Confirmed booking:', { contactInfo, bookingDetails, tourId: tour.id });
-    alert('Xác nhận thành công! Chuyển sang thanh toán...');
-    // Future: navigate to Step 3 (payment)
+    navigate(`/tours/${tour.id}/booking/payment`, {
+      state: { contactInfo, bookingDetails },
+    });
   };
 
   const handleBack = () => {

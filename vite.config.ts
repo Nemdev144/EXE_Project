@@ -7,4 +7,13 @@ export default defineConfig({
   optimizeDeps: {
     include: ['leaflet'],
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://exe-1-k8ma.onrender.com',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
 })
