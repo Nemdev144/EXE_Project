@@ -12,7 +12,9 @@ import type {
 } from "../types";
 
 // API Base Configuration
-const API_BASE_URL = "https://exe-1-k8ma.onrender.com/";
+// In dev mode Vite proxy forwards /api → backend (avoids CORS).
+// Set VITE_API_URL in .env.production for prod builds.
+const API_BASE_URL = "";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,

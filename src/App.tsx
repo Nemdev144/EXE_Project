@@ -12,6 +12,7 @@ import Tours from "./pages/Tours";
 import TourDetail from "./components/tour/TourDetail";
 import TourBooking from "./components/tourBooking";
 import BookingConfirm from "./components/tourBooking/step2";
+import PaymentPage from "./components/paymentMethods";
 import { About } from "./components/about";
 
 // Admin Pages
@@ -48,6 +49,7 @@ function App() {
           <Route path="/tours/:id" element={<TourDetail />} />
           <Route path="/tours/:id/booking" element={<TourBooking />} />
           <Route path="/tours/:id/booking/confirm" element={<BookingConfirm />} />
+          <Route path="/tours/:id/booking/payment" element={<PaymentPage />} />
           <Route path="/about" element={<About />} />
         </Route>
 

@@ -1,0 +1,127 @@
+// ============================================
+// Bank Card Form - Card input fields
+// ============================================
+@use '../../variables' as *;
+
+.bank-card-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+
+    &--half {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  &__row {
+    display: flex;
+    gap: 1rem;
+
+    @media (max-width: $breakpoint-sm) {
+      flex-direction: column;
+    }
+  }
+
+  &__label {
+    font-size: 0.8rem;
+    font-weight: $font-weight-medium;
+    color: $color-gray-500;
+    text-transform: none;
+  }
+
+  &__input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  &__input {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid $color-gray-300;
+    border-radius: $radius-md;
+    font-size: 0.9rem;
+    color: $color-gray-900;
+    background: #fff;
+    outline: none;
+    transition: border-color $transition-fast;
+
+    &::placeholder {
+      color: $color-gray-400;
+    }
+
+    &:focus {
+      border-color: $color-primary;
+      box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.08);
+    }
+
+    .bank-card-form__input-wrapper & {
+      padding-right: 2.5rem;
+    }
+  }
+
+  &__icon {
+    position: absolute;
+    right: 0.75rem;
+    color: $color-gray-400;
+    pointer-events: none;
+  }
+
+  &__toggle-cvv {
+    position: absolute;
+    right: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: $color-gray-400;
+    cursor: pointer;
+    padding: 0;
+
+    &:hover {
+      color: $color-gray-600;
+    }
+  }
+
+  // Footer: save card + security
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 0.5rem;
+
+    @media (max-width: $breakpoint-sm) {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  &__save-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: $color-gray-700;
+    cursor: pointer;
+
+    input[type='checkbox'] {
+      accent-color: $color-primary;
+      width: 15px;
+      height: 15px;
+    }
+  }
+
+  &__secure-note {
+    font-size: 0.8rem;
+    color: $color-gray-400;
+    font-style: italic;
+  }
+}

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { MapPin } from 'lucide-react';
 import type { Tour } from '../../../types';
 import type { BookingDetailsData } from '../BookingDetails';
@@ -21,6 +22,10 @@ export default function ConfirmSidebar({
   const childPrice = Math.round(tour.price * 0.3);
   const childTotal = bookingDetails.children * childPrice;
   const totalPrice = adultTotal + childTotal;
+
+  const [infoChecked, setInfoChecked] = useState(false);
+  const [termsChecked, setTermsChecked] = useState(false);
+  const canConfirm = infoChecked && termsChecked;
 
   return (
     <div className="confirm-sidebar">
@@ -53,11 +58,19 @@ export default function ConfirmSidebar({
         {/* Checkboxes */}
         <div className="confirm-sidebar__checks">
           <label className="confirm-sidebar__check-label">
-            <input type="checkbox" defaultChecked={false} />
+            <input
+              type="checkbox"
+              checked={infoChecked}
+              onChange={(e) => setInfoChecked(e.target.checked)}
+            />
             <span>Tôi đã kiểm tra đúng thông tin.</span>
           </label>
           <label className="confirm-sidebar__check-label">
-            <input type="checkbox" defaultChecked={false} />
+            <input
+              type="checkbox"
+              checked={termsChecked}
+              onChange={(e) => setTermsChecked(e.target.checked)}
+            />
             <span>
               Tôi đồng ý với{' '}
               <a href="#" className="confirm-sidebar__terms-link">
@@ -73,6 +86,7 @@ export default function ConfirmSidebar({
           <button
             type="button"
             className="confirm-sidebar__btn confirm-sidebar__btn--primary"
+            disabled={!canConfirm}
             onClick={onConfirm}
           >
             Xác nhận và thanh toán

@@ -1,0 +1,153 @@
+import type { ApiResponse, TourSchedule } from '../types';
+import { api } from './api';
+
+// ========== Payment Method ==========
+
+export type PaymentMethod = 'VNPAY' | 'MOMO' | 'COD';
+
+// ========== Tour Schedules ==========
+
+/**
+ * GET /api/tour-schedules/tour/{tourId}
+ * Lấy danh sách lịch khởi hành của tour.
+ * Vite proxy handles CORS in dev mode.
+ */
+export const getTourSchedules = async (tourId: number): Promise<TourSchedule[]> => {
+  const response = await api.get<ApiResponse<TourSchedule[]>>(
+    `/api/tour-schedules/tour/${tourId}`,
+  );
+  return response.data.data;
+};
+
+/**
+ * GET /api/tour-schedules/{id}
+ * Lấy thông tin 1 schedule.
+ */
+export const getTourScheduleById = async (id: number): Promise<TourSchedule> => {
+  const response = await api.get<ApiResponse<TourSchedule>>(
+    `/api/tour-schedules/${id}`,
+  );
+  return response.data.data;
+};
+
+// ========== Booking ==========
+
+export interface CreateBookingRequest {
+  tourId: number;
+  tourScheduleId: number;
+  numParticipants: number;
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+  voucherCode?: string;
+  paymentMethod: PaymentMethod;
+}
+
+export interface BookingResponse {
+  id: number;
+  bookingCode: string;
+  userId: number;
+  tourId: number;
+  tourTitle: string;
+  tourScheduleId: number;
+  tourDate: string;
+  tourStartTime: string;
+  numParticipants: number;
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+  totalAmount: number;
+  discountAmount: number;
+  finalAmount: number;
+  paymentStatus: string;
+  paymentMethod: string;
+  paidAt: string | null;
+  cancelledAt: string | null;
+  cancellationFee: number;
+  refundAmount: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * POST /api/bookings
+ * Tạo booking mới → trả về bookingId.
+ */
+export const createBooking = async (
+  data: CreateBookingRequest,
+): Promise<BookingResponse> => {
+  const response = await api.post<ApiResponse<BookingResponse>>(
+    '/api/bookings',
+    data,
+  );
+  return response.data.data;
+};
+
+// ========== Payment ==========
+
+export interface CreatePaymentRequest {
+  bookingId: number;
+  paymentMethod: PaymentMethod;
+}
+
+export interface CreatePaymentResponse {
+  id: number;
+  bookingId: number;
+  bookingCode: string;
+  transactionId: string;
+  paymentMethod: string;
+  amount: number;
+  status: string;
+  gatewayTransactionId: string;
+  paymentUrl: string;
+  paidAt: string | null;
+  createdAt: string;
+}
+
+/**
+ * POST /api/payments/create
+ * Tạo payment từ bookingId → trả về paymentUrl (MoMo/VNPay redirect).
+ */
+export const createPayment = async (
+  data: CreatePaymentRequest,
+): Promise<CreatePaymentResponse> => {
+  const response = await api.post<ApiResponse<CreatePaymentResponse>>(
+    '/api/payments/create',
+    data,
+  );
+  return response.data.data;
+};
+
+/**
+ * GET /api/payments/{id}
+ * Lấy thông tin payment.
+ */
+export const getPaymentById = async (id: number): Promise<CreatePaymentResponse> => {
+  const response = await api.get<ApiResponse<CreatePaymentResponse>>(
+    `/api/payments/${id}`,
+  );
+  return response.data.data;
+};
+
+/**
+ * GET /api/payments/vnpay/return
+ * VNPay payment return callback (browser redirect).
+ */
+export const getVnpayReturn = async (queryString: string): Promise<CreatePaymentResponse> => {
+  const response = await api.get<ApiResponse<CreatePaymentResponse>>(
+    `/api/payments/vnpay/return?${queryString}`,
+  );
+  return response.data.data;
+};
+
+/**
+ * GET /api/payments/momo/return
+ * MoMo payment return callback (browser redirect).
+ */
+export const getMomoReturn = async (queryString: string): Promise<CreatePaymentResponse> => {
+  const response = await api.get<ApiResponse<CreatePaymentResponse>>(
+    `/api/payments/momo/return?${queryString}`,
+  );
+  return response.data.data;
+};
