@@ -64,19 +64,19 @@ export default function HomePage() {
         <main>
             {/* Warning banner khi API lỗi */}
             {error && (
-                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-                    <div className="flex items-center">
-                        <span className="text-yellow-600 mr-2">⚠️</span>
-                        <p className="text-yellow-700 text-sm">{error}</p>
+                <div className="home-warning">
+                    <div className="home-warning__inner">
+                        <span className="home-warning__icon">⚠️</span>
+                        <p className="home-warning__text">{error}</p>
                     </div>
                 </div>
             )}
 
             {/* Loading overlay nhỏ góc màn hình */}
             {loading && (
-                <div className="fixed bottom-4 right-4 bg-white shadow-lg rounded-lg p-3 flex items-center gap-2 z-50">
-                    <div className="w-5 h-5 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
-                    <span className="text-sm text-gray-600">Đang tải...</span>
+                <div className="home-loading-toast">
+                    <div className="home-loading-toast__spinner" />
+                    <span className="home-loading-toast__text">Đang tải...</span>
                 </div>
             )}
 

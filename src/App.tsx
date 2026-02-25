@@ -10,6 +10,8 @@ import ResetPassword from "./pages/ResetPassword";
 import { HomePage } from './pages';
 import Tours from "./pages/Tours";
 import TourDetail from "./components/tour/TourDetail";
+import TourBooking from "./components/tourBooking";
+import BookingConfirm from "./components/tourBooking/step2";
 import { About } from "./components/about";
 
 // Admin Pages
@@ -44,6 +46,8 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/tours" element={<Tours />} />
           <Route path="/tours/:id" element={<TourDetail />} />
+          <Route path="/tours/:id/booking" element={<TourBooking />} />
+          <Route path="/tours/:id/booking/confirm" element={<BookingConfirm />} />
           <Route path="/about" element={<About />} />
         </Route>
 

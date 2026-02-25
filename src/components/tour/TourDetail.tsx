@@ -4,7 +4,7 @@ import {
   Star, MapPin, Play, Calendar,
   Car, BookOpen, Utensils, Landmark, HandHeart
 } from 'lucide-react';
-import Breadcrumbs from '../Breadcrumbs';
+
 import {
   getTourById,
   getToursByProvince,
@@ -26,7 +26,7 @@ const TABS: TabItem[] = [
   { key: 'intro', label: 'Giới thiệu chung', icon: <BookOpen size={16} /> },
   { key: 'highlights', label: 'Địa điểm nổi bật', icon: <MapPin size={16} /> },
   { key: 'videos', label: 'Videos/Story', icon: <Play size={16} /> },
-  { key: 'festivals', label: 'Lễ hội - phong tục', icon: <Landmark size={16} /> },
+  { key: 'festivals', label: 'Lễ hội – phong tục', icon: <Landmark size={16} /> },
   { key: 'food', label: 'Ẩm thực địa phương', icon: <Utensils size={16} /> },
 ];
 
@@ -129,18 +129,8 @@ export default function TourDetail() {
   const highlights = cultureItems.filter((c) => c.category === 'CRAFT' || c.category === 'INSTRUMENT' || c.category === 'COSTUME');
   const videoItem = cultureItems.find((c) => c.videoUrl);
 
-  const breadcrumbItems = [
-    { label: 'Trang chủ', path: '/' },
-    { label: 'Bản đồ', path: '/tours' },
-    ...(province ? [{ label: province.name, path: `/tours?province=${province.id}` }] : []),
-    { label: tour.title },
-  ];
-
   return (
     <div className="tour-detail">
-      {/* Breadcrumbs */}
-      <Breadcrumbs items={breadcrumbItems} />
-
       {/* Hero */}
       <section className="td-hero">
         <img
@@ -203,7 +193,7 @@ export default function TourDetail() {
                     <p>Trang phục lịch sự, tôn trọng phong tục địa phương</p>
                   </div>
                 </div>
-                <Link to={`/tours/${tour.id}`} className="btn btn-primary td-quick-info__cta">
+                <Link to={`/tours/${tour.id}/booking`} className="btn btn-primary td-quick-info__cta">
                   Đặt ngay
                 </Link>
               </div>
@@ -380,7 +370,7 @@ export default function TourDetail() {
           <h3>Sẵn sàng khám phá {province?.name || tour.title}?</h3>
           <p>Đặt tour văn hoá để trải nghiệm rừng thông, thác nước và cồng chiêng</p>
           <div className="td-cta-banner__buttons">
-            <Link to={`/tours/${tour.id}`} className="btn btn-primary">Đặt tour {province?.name || ''}</Link>
+            <Link to={`/tours/${tour.id}/booking`} className="btn btn-primary">Đặt ngay</Link>
             <Link to="/tours" className="btn btn-outline">Xem tour tổng quan</Link>
           </div>
         </div>

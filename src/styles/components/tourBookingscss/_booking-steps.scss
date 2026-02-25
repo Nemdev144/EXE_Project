@@ -1,0 +1,109 @@
+// ============================================
+// Booking Steps - Progress Stepper
+// ============================================
+
+.booking-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 2rem;
+  padding: 1rem 0;
+  background: #f9fafb;
+  border-radius: 12px;
+  overflow-x: auto;
+
+  &__item-wrapper {
+    display: flex;
+    align-items: center;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 1rem;
+    white-space: nowrap;
+  }
+
+  &__circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    font-weight: 600;
+    flex-shrink: 0;
+    background: #e5e7eb;
+    color: #9ca3af;
+    transition: all 0.3s ease;
+
+    .booking-steps__item--active & {
+      background: #8B0000;
+      color: #fff;
+    }
+
+    .booking-steps__item--completed & {
+      background: #16a34a;
+      color: #fff;
+    }
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+
+    .booking-steps__item--active & {
+      color: #8B0000;
+    }
+
+    .booking-steps__item--completed & {
+      color: #16a34a;
+    }
+  }
+
+  &__subtitle {
+    font-size: 0.7rem;
+    color: #9ca3af;
+
+    .booking-steps__item--active & {
+      color: #8B0000;
+      opacity: 0.7;
+    }
+
+    .booking-steps__item--completed & {
+      color: #16a34a;
+      opacity: 0.7;
+    }
+  }
+
+  &__connector {
+    width: 40px;
+    height: 2px;
+    background: #e5e7eb;
+    flex-shrink: 0;
+    margin: 0 0.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .booking-steps {
+    padding: 0.75rem 0.5rem;
+
+    &__info {
+      display: none;
+    }
+
+    &__connector {
+      width: 20px;
+    }
+  }
+}

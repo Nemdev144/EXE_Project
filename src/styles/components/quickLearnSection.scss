@@ -193,4 +193,12 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
+
+  &__btn-all {
+    font-size: $font-size-lg;
+    padding: 0.75rem 2rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
 }

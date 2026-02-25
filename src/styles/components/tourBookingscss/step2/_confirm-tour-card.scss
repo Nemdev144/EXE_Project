@@ -1,0 +1,99 @@
+// ============================================
+// Confirm Tour Card - Tour summary with image
+// ============================================
+
+.confirm-tour-card {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid #e5e7eb;
+
+  &__label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 1rem;
+  }
+
+  &__label-icon {
+    font-size: 1rem;
+  }
+
+  &__body {
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-start;
+  }
+
+  &__image {
+    width: 160px;
+    height: 110px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 3px solid #8B0000;
+    box-shadow: 4px 4px 0 rgba(139, 0, 0, 0.12);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__details {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #8B0000;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__meta-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+
+    svg {
+      color: #8B0000;
+      flex-shrink: 0;
+    }
+  }
+
+  &__meta-label {
+    color: #6b7280;
+    min-width: 70px;
+  }
+
+  &__meta-value {
+    color: #111827;
+    font-weight: 500;
+  }
+}
+
+@media (max-width: 480px) {
+  .confirm-tour-card {
+    &__body {
+      flex-direction: column;
+    }
+
+    &__image {
+      width: 100%;
+      height: 160px;
+    }
+  }
+}

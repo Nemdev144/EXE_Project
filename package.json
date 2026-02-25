@@ -16,7 +16,6 @@
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tabs": "^1.1.13",
-    "@tailwindcss/postcss": "^4.1.18",
     "antd": "^6.1.4",
     "axios": "^1.13.2",
     "class-variance-authority": "^0.7.1",
@@ -28,8 +27,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.11.0",
-    "recharts": "^3.6.0",
-    "tailwind-merge": "^3.4.0"
+    "recharts": "^3.6.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -45,7 +43,6 @@
     "postcss": "^8.5.6",
     "sass": "^1.97.2",
     "sass-embedded": "^1.97.3",
-    "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
     "vite": "^6.0.0"
   }

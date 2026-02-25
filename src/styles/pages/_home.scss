@@ -1,0 +1,60 @@
+// ============================================
+// Home Page
+// ============================================
+
+@import '../variables';
+
+// Warning banner
+.home-warning {
+  background: #fefce8;
+  border-left: 4px solid #facc15;
+  padding: $spacing-md;
+
+  &__inner {
+    display: flex;
+    align-items: center;
+  }
+
+  &__icon {
+    color: #ca8a04;
+    margin-right: $spacing-sm;
+  }
+
+  &__text {
+    color: #a16207;
+    font-size: $font-size-sm;
+  }
+}
+
+// Loading toast (floating bottom-right)
+.home-loading-toast {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background: #fff;
+  box-shadow: $shadow-lg;
+  border-radius: $radius-lg;
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 50;
+
+  &__spinner {
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid var(--color-primary);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  &__text {
+    font-size: $font-size-sm;
+    color: $color-gray-600;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

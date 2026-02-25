@@ -53,7 +53,7 @@ export default function IntroSection({
                     <p>Trang phục lịch sự, tôn trọng phong tục địa phương</p>
                   </div>
                 </div>
-                <Link to={`/tours/${tour.id}`} className="btn btn-primary td-quick-info__cta">
+                <Link to={`/tours/${tour.id}/booking`} className="btn btn-primary td-quick-info__cta">
                   Đặt ngay
                 </Link>
               </div>

@@ -109,7 +109,7 @@ const About: React.FC = () => {
                         transition={{ duration: 0.6 }}
                     >
                         <div className="about-page__hero-badge">
-                            <Sparkles className="w-4 h-4" />
+                            <Sparkles size={16} />
                             <span>Nền tảng văn hóa số Việt Nam</span>
                         </div>
                         <Title level={1} className="about-page__title">
@@ -123,7 +123,7 @@ const About: React.FC = () => {
                         <div className="about-page__hero-actions">
                             <Button type="primary" size="large" className="about-page__hero-btn">
                                 Khám phá ngay
-                                <ArrowRight className="w-5 h-5" />
+                                <ArrowRight size={20} />
                             </Button>
                             <Button size="large" className="about-page__hero-btn about-page__hero-btn--outline">
                                 Xem tour
@@ -178,7 +178,7 @@ const About: React.FC = () => {
                             </div>
                             <div className="about-page__card-content">
                                 <div className="about-page__card-icon about-page__card-icon--amber">
-                                    <Heart className="w-7 h-7" />
+                                    <Heart size={28} />
                                 </div>
                                 <Title level={3} className="about-page__card-title">Sứ mệnh</Title>
                                 <Paragraph className="about-page__card-text">
@@ -201,7 +201,7 @@ const About: React.FC = () => {
                             </div>
                             <div className="about-page__card-content">
                                 <div className="about-page__card-icon about-page__card-icon--primary">
-                                    <BookOpen className="w-7 h-7" />
+                                    <BookOpen size={28} />
                                 </div>
                                 <Title level={3} className="about-page__card-title">Tầm nhìn</Title>
                                 <Paragraph className="about-page__card-text">
@@ -239,7 +239,7 @@ const About: React.FC = () => {
                                 transition={{ duration: 0.5, delay: index * 0.1 }}
                             >
                                 <div className={`about-page__feature-icon about-page__feature-icon--${feature.color}`}>
-                                    <feature.icon className="w-6 h-6" />
+                                    <feature.icon size={24} />
                                 </div>
                                 <Title level={4} className="about-page__feature-title">{feature.title}</Title>
                                 <Paragraph className="about-page__feature-text">{feature.description}</Paragraph>
@@ -298,7 +298,7 @@ const About: React.FC = () => {
                                     alt="Tây Nguyên văn hóa"
                                 />
                                 <div className="about-page__values-badge">
-                                    <Star className="w-5 h-5" />
+                                    <Star size={20} />
                                     <span>Trải nghiệm đáng giá</span>
                                 </div>
                             </div>
@@ -358,7 +358,7 @@ const About: React.FC = () => {
                             transition={{ duration: 0.5 }}
                         >
                             <div className="about-page__team-card-icon about-page__team-card-icon--primary">
-                                <Users className="w-6 h-6" />
+                                <Users size={24} />
                             </div>
                             <div className="about-page__team-card-content">
                                 <Title level={5} className="about-page__team-card-title">Đội ngũ sáng lập</Title>
@@ -377,7 +377,7 @@ const About: React.FC = () => {
                             transition={{ duration: 0.5, delay: 0.1 }}
                         >
                             <div className="about-page__team-card-icon about-page__team-card-icon--amber">
-                                <TrendingUp className="w-6 h-6" />
+                                <TrendingUp size={24} />
                             </div>
                             <div className="about-page__team-card-content">
                                 <Title level={5} className="about-page__team-card-title">Đối tác & Cộng đồng</Title>
@@ -396,7 +396,7 @@ const About: React.FC = () => {
                             transition={{ duration: 0.5, delay: 0.2 }}
                         >
                             <div className="about-page__team-card-icon about-page__team-card-icon--teal">
-                                <Mail className="w-6 h-6" />
+                                <Mail size={24} />
                             </div>
                             <div className="about-page__team-card-content">
                                 <Title level={5} className="about-page__team-card-title">Liên hệ hợp tác</Title>
@@ -430,7 +430,7 @@ const About: React.FC = () => {
                         <div className="about-page__cta-actions">
                             <Button type="primary" size="large" className="about-page__cta-btn">
                                 Đăng ký miễn phí
-                                <ArrowRight className="w-5 h-5" />
+                                <ArrowRight size={20} />
                             </Button>
                             <Button size="large" className="about-page__cta-btn about-page__cta-btn--ghost">
                                 Tìm hiểu thêm
