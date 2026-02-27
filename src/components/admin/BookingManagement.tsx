@@ -17,6 +17,8 @@ import {
   Spin,
   Typography,
 } from "antd";
+
+const { Title, Text } = Typography;
 import {
   EyeOutlined,
   MailOutlined,
@@ -25,7 +27,7 @@ import {
   SearchOutlined,
   ExportOutlined,
 } from "@ant-design/icons";
-import { Calendar, CheckCircle, XCircle, DollarSign } from "lucide-react";
+import BookingSummaryCards from "./BookingSummaryCards";
 import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
 import {
@@ -38,113 +40,6 @@ import {
 } from "../../services/adminApi";
 import { getPublicTours } from "../../services/api";
 import type { Tour } from "../../types";
-
-const { Title, Text } = Typography;
-
-// ---------------------------------------------------------------------------
-// StatsCard - Reusable SaaS-style stat card
-// ---------------------------------------------------------------------------
-interface StatsCardProps {
-  title: string;
-  value: string | number;
-  subtitle?: string;
-  icon: React.ReactNode;
-  accentColor: string;
-}
-
-function StatsCard({ title, value, subtitle = "Updated just now", icon, accentColor }: StatsCardProps) {
-  return (
-    <div
-      style={{
-        background: "#fff",
-        border: "1px solid #e5e7eb",
-        borderRadius: 16,
-        boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-        padding: 20,
-        transition: "all 0.2s ease",
-        position: "relative",
-        overflow: "hidden",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-2px)";
-        e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04)";
-      }}
-    >
-      {/* Accent bar - top border */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 3,
-          backgroundColor: accentColor,
-        }}
-      />
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginTop: 4 }}>
-        <div
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: `${accentColor}18`,
-            flexShrink: 0,
-          }}
-        >
-          {icon}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12, color: "#6b7280", fontWeight: 500, marginBottom: 4 }}>
-            {title}
-          </div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: "#111827", lineHeight: 1.2 }}>
-            {value}
-          </div>
-          <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 6 }}>
-            {subtitle}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Stats config for Booking Management
-// ---------------------------------------------------------------------------
-const STATS_CONFIG = [
-  {
-    key: "total",
-    title: "Tổng booking",
-    accentColor: "#8B0000",
-    icon: <Calendar size={20} style={{ color: "#8B0000" }} />,
-  },
-  {
-    key: "confirmed",
-    title: "Đã xác nhận",
-    accentColor: "#15803d",
-    icon: <CheckCircle size={20} style={{ color: "#15803d" }} />,
-  },
-  {
-    key: "cancelled",
-    title: "Đã hủy",
-    accentColor: "#dc2626",
-    icon: <XCircle size={20} style={{ color: "#dc2626" }} />,
-  },
-  {
-    key: "revenue",
-    title: "Doanh thu",
-    accentColor: "#1d4ed8",
-    icon: <DollarSign size={20} style={{ color: "#1d4ed8" }} />,
-  },
-] as const;
 
 function formatRevenue(value: number): string {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M ₫`;
@@ -166,10 +61,7 @@ const statusConfig: Record<
   REFUNDED: { label: "Đã hoàn tiền", color: "#8c8c8c", bgColor: "#fafafa" },
 };
 
-const paymentStatusConfig: Record<
-  string,
-  { label: string; color: string }
-> = {
+const paymentStatusConfig: Record<string, { label: string; color: string }> = {
   UNPAID: { label: "Chưa thanh toán", color: "#faad14" },
   PAID: { label: "Đã thanh toán", color: "#52c41a" },
   PARTIAL: { label: "Thanh toán một phần", color: "#1890ff" },
@@ -184,10 +76,7 @@ const paymentMethodLabels: Record<string, string> = {
 };
 
 // Fallback tính phí hủy khi API cancellation-fee không có
-const calculateCancelFee = (
-  tourDate: string,
-  totalAmount: number,
-) => {
+const calculateCancelFee = (tourDate: string, totalAmount: number) => {
   const tour = dayjs(tourDate);
   const daysUntil = tour.diff(dayjs(), "day");
   if (daysUntil > 10) return { fee: totalAmount * 0.15, percent: 15 };
@@ -211,7 +100,9 @@ export default function BookingManagement() {
     tour: "all",
   });
   const [searchText, setSearchText] = useState("");
-  const [selectedBooking, setSelectedBooking] = useState<BookingRow | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<BookingRow | null>(
+    null,
+  );
   const [detailLoading, setDetailLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
@@ -321,12 +212,20 @@ export default function BookingManagement() {
   const handleRefund = async (id: string) => {
     try {
       const booking = bookings.find((b) => String(b.id) === id);
-      if (booking && booking.cancellationFee != null && booking.cancellationFee > 0) {
-        const refundAmount = (booking.finalAmount || booking.totalAmount) - booking.cancellationFee;
+      if (
+        booking &&
+        booking.cancellationFee != null &&
+        booking.cancellationFee > 0
+      ) {
+        const refundAmount =
+          (booking.finalAmount || booking.totalAmount) -
+          booking.cancellationFee;
         await refundBooking(Number(id), refundAmount);
         setBookings(
           bookings.map((b) =>
-            String(b.id) === id ? { ...b, status: "REFUNDED" as const, refundAmount } : b,
+            String(b.id) === id
+              ? { ...b, status: "REFUNDED" as const, refundAmount }
+              : b,
           ),
         );
         message.success(
@@ -367,7 +266,7 @@ export default function BookingManagement() {
       title: "Tour",
       dataIndex: "tourTitle",
       key: "tourTitle",
-      width: 180,
+      width: 200,
       render: (text: string) => <strong>{text || "—"}</strong>,
     },
     {
@@ -375,63 +274,13 @@ export default function BookingManagement() {
       dataIndex: "tourDate",
       key: "tourDate",
       width: 110,
-      render: (v: string) =>
-        v ? dayjs(v).format("DD/MM/YYYY") : "—",
-    },
-    {
-      title: "Giờ khởi hành",
-      dataIndex: "tourStartTime",
-      key: "tourStartTime",
-      width: 100,
-      render: (v: string) =>
-        v ? dayjs(v).format("HH:mm") : "—",
-    },
-    {
-      title: "Số người",
-      dataIndex: "numParticipants",
-      key: "numParticipants",
-      width: 90,
-      align: "center",
+      render: (v: string) => (v ? dayjs(v).format("DD/MM/YYYY") : "—"),
     },
     {
       title: "Liên hệ",
       key: "contact",
-      width: 200,
-      render: (_, record) => (
-        <div>
-          <div>{record.contactName || "—"}</div>
-          <div style={{ fontSize: 12, color: "#8c8c8c" }}>
-            <MailOutlined /> {record.contactEmail || "—"}
-          </div>
-          <div style={{ fontSize: 12, color: "#8c8c8c" }}>
-            {record.contactPhone || "—"}
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: "Tổng tiền",
-      dataIndex: "totalAmount",
-      key: "totalAmount",
-      width: 110,
-      render: (v: number) =>
-        v != null ? (
-          <span style={{ color: "#666" }}>
-            {Number(v).toLocaleString("vi-VN")}đ
-          </span>
-        ) : "—",
-    },
-    {
-      title: "Giảm giá",
-      dataIndex: "discountAmount",
-      key: "discountAmount",
-      width: 100,
-      render: (v: number) =>
-        v != null && v > 0 ? (
-          <span style={{ color: "#52c41a" }}>
-            -{Number(v).toLocaleString("vi-VN")}đ
-          </span>
-        ) : "—",
+      width: 180,
+      render: (_, record) => record.contactName || "—",
     },
     {
       title: "Thành tiền",
@@ -444,28 +293,10 @@ export default function BookingManagement() {
           <strong style={{ color: "#8B0000" }}>
             {Number(amount).toLocaleString("vi-VN")}đ
           </strong>
-        ) : "—";
+        ) : (
+          "—"
+        );
       },
-    },
-    {
-      title: "TT thanh toán",
-      dataIndex: "paymentStatus",
-      key: "paymentStatus",
-      width: 120,
-      render: (v: string) => {
-        const config = paymentStatusConfig[v] || {
-          label: v || "—",
-          color: "#8c8c8c",
-        };
-        return <Tag color={config.color}>{config.label}</Tag>;
-      },
-    },
-    {
-      title: "PT thanh toán",
-      dataIndex: "paymentMethod",
-      key: "paymentMethod",
-      width: 110,
-      render: (v: string) => paymentMethodLabels[v] || v || "—",
     },
     {
       title: "Trạng thái",
@@ -491,38 +322,6 @@ export default function BookingManagement() {
       },
     },
     {
-      title: "Phí hủy",
-      dataIndex: "cancellationFee",
-      key: "cancellationFee",
-      width: 100,
-      render: (v: number) =>
-        v != null && v > 0 ? (
-          <span style={{ color: "#ff4d4f" }}>
-            {Number(v).toLocaleString("vi-VN")}đ
-          </span>
-        ) : "—",
-    },
-    {
-      title: "Hoàn tiền",
-      dataIndex: "refundAmount",
-      key: "refundAmount",
-      width: 100,
-      render: (v: number) =>
-        v != null && v > 0 ? (
-          <span style={{ color: "#52c41a" }}>
-            {Number(v).toLocaleString("vi-VN")}đ
-          </span>
-        ) : "—",
-    },
-    {
-      title: "Ngày tạo",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      width: 110,
-      render: (v: string) =>
-        v ? dayjs(v).format("DD/MM/YYYY HH:mm") : "—",
-    },
-    {
       title: "Thao tác",
       key: "action",
       width: 200,
@@ -540,7 +339,7 @@ export default function BookingManagement() {
               size="small"
               onClick={() => openDetailModal(record)}
             >
-              Chi tiết
+              Xem chi tiết
             </Button>
             {(record.status === "PAID" || record.paymentStatus === "PAID") && (
               <Popconfirm
@@ -551,7 +350,8 @@ export default function BookingManagement() {
                     <div>
                       Số tiền hoàn:{" "}
                       {(
-                        (record.finalAmount ?? record.totalAmount) - cancelFee.fee
+                        (record.finalAmount ?? record.totalAmount) -
+                        cancelFee.fee
                       ).toLocaleString("vi-VN")}
                       đ
                     </div>
@@ -606,28 +406,17 @@ export default function BookingManagement() {
             b.status === "CONFIRMED" ||
             b.paymentStatus === "PAID"),
       )
-      .reduce(
-        (sum, b) => sum + (b.finalAmount ?? b.totalAmount ?? 0),
-        0,
-      ),
+      .reduce((sum, b) => sum + (b.finalAmount ?? b.totalAmount ?? 0), 0),
   };
-
-  const statsItems = [
-    { ...STATS_CONFIG[0], value: stats.total, subtitle: "Updated just now" },
-    { ...STATS_CONFIG[1], value: stats.confirmed, subtitle: "Updated just now" },
-    { ...STATS_CONFIG[2], value: stats.cancelled, subtitle: "Updated just now" },
-    {
-      ...STATS_CONFIG[3],
-      value: formatRevenue(stats.totalRevenue),
-      subtitle: "Updated just now",
-    },
-  ];
 
   return (
     <div style={{ width: "100%" }}>
       {/* Header - đồng bộ với Dashboard */}
       <div style={{ marginBottom: 24 }}>
-        <Title level={2} style={{ margin: 0, fontWeight: 700, color: "#1a1a1a" }}>
+        <Title
+          level={2}
+          style={{ margin: 0, fontWeight: 700, color: "#1a1a1a" }}
+        >
           Quản lý Booking
         </Title>
         <Text type="secondary" style={{ fontSize: 16 }}>
@@ -635,20 +424,14 @@ export default function BookingManagement() {
         </Text>
       </div>
 
-      {/* Stats Cards - SaaS style */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        {statsItems.map((item) => (
-          <Col xs={24} sm={12} lg={6} key={item.key}>
-            <StatsCard
-              title={item.title}
-              value={item.value}
-              subtitle={item.subtitle}
-              icon={item.icon}
-              accentColor={item.accentColor}
-            />
-          </Col>
-        ))}
-      </Row>
+      <BookingSummaryCards
+        stats={{
+          total: stats.total,
+          confirmed: stats.confirmed,
+          cancelled: stats.cancelled,
+          totalRevenue: formatRevenue(stats.totalRevenue),
+        }}
+      />
 
       {/* Bảng Booking - đồng bộ với Dashboard/TourManagement */}
       <Card
@@ -658,7 +441,10 @@ export default function BookingManagement() {
           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
         }}
         title={
-          <Title level={5} style={{ margin: 0, fontWeight: 600, color: "#1a1a1a" }}>
+          <Title
+            level={5}
+            style={{ margin: 0, fontWeight: 600, color: "#1a1a1a" }}
+          >
             Danh sách Booking
           </Title>
         }
@@ -666,7 +452,7 @@ export default function BookingManagement() {
       >
         <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
           <Col xs={24} sm={12} md={6}>
-          <Select
+            <Select
               style={{ width: "100%" }}
               placeholder="Trạng thái"
               value={filter.status}
@@ -696,17 +482,13 @@ export default function BookingManagement() {
               {bookings
                 .filter(
                   (b) =>
-                    b.tourTitle &&
-                    !tours.some((t) => t.title === b.tourTitle),
+                    b.tourTitle && !tours.some((t) => t.title === b.tourTitle),
                 )
-                .reduce(
-                  (acc: { id: string; title: string }[], b) => {
-                    if (!acc.some((x) => x.title === b.tourTitle))
-                      acc.push({ id: String(b.tourId), title: b.tourTitle });
-                    return acc;
-                  },
-                  [],
-                )
+                .reduce((acc: { id: string; title: string }[], b) => {
+                  if (!acc.some((x) => x.title === b.tourTitle))
+                    acc.push({ id: String(b.tourId), title: b.tourTitle });
+                  return acc;
+                }, [])
                 .map((t) => (
                   <Select.Option key={t.id} value={t.title}>
                     {t.title}
@@ -747,7 +529,7 @@ export default function BookingManagement() {
           <Table
             columns={columns}
             dataSource={filteredBookings}
-            scroll={{ x: 1400 }}
+            scroll={{ x: 900 }}
             pagination={{
               pageSize: 10,
               showSizeChanger: true,
@@ -776,7 +558,9 @@ export default function BookingManagement() {
           </div>
         ) : selectedBooking ? (
           <Descriptions column={1} bordered>
-            <Descriptions.Item label="ID">{selectedBooking.id}</Descriptions.Item>
+            <Descriptions.Item label="ID">
+              {selectedBooking.id}
+            </Descriptions.Item>
             <Descriptions.Item label="Mã đặt chỗ">
               {selectedBooking.bookingCode || "—"}
             </Descriptions.Item>
@@ -819,14 +603,20 @@ export default function BookingManagement() {
             </Descriptions.Item>
             <Descriptions.Item label="Thành tiền">
               <strong style={{ color: "#8B0000" }}>
-                {(selectedBooking.finalAmount ?? selectedBooking.totalAmount ?? 0).toLocaleString(
-                  "vi-VN",
-                )}
+                {(
+                  selectedBooking.finalAmount ??
+                  selectedBooking.totalAmount ??
+                  0
+                ).toLocaleString("vi-VN")}
                 đ
               </strong>
             </Descriptions.Item>
             <Descriptions.Item label="Trạng thái thanh toán">
-              <Tag color={paymentStatusConfig[selectedBooking.paymentStatus]?.color}>
+              <Tag
+                color={
+                  paymentStatusConfig[selectedBooking.paymentStatus]?.color
+                }
+              >
                 {paymentStatusConfig[selectedBooking.paymentStatus]?.label ??
                   selectedBooking.paymentStatus}
               </Tag>
@@ -924,7 +714,9 @@ export default function BookingManagement() {
               </Descriptions.Item>
               <Descriptions.Item label="Thành tiền">
                 {(
-                  selectedBooking.finalAmount ?? selectedBooking.totalAmount ?? 0
+                  selectedBooking.finalAmount ??
+                  selectedBooking.totalAmount ??
+                  0
                 ).toLocaleString("vi-VN")}
                 đ
               </Descriptions.Item>
@@ -956,7 +748,8 @@ export default function BookingManagement() {
                           <strong style={{ color: "#52c41a" }}>
                             {(
                               (selectedBooking.finalAmount ??
-                                selectedBooking.totalAmount ?? 0) - cancelFee.fee
+                                selectedBooking.totalAmount ??
+                                0) - cancelFee.fee
                             ).toLocaleString("vi-VN")}
                             đ
                           </strong>

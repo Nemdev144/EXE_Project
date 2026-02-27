@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
+  App,
   Card,
   Table,
   Button,
@@ -12,10 +13,10 @@ import {
   Modal,
   Form,
   Input,
-  message,
-  Spin,
   Alert,
-  Typography,
+  DatePicker,
+  Popconfirm,
+  Empty,
 } from "antd";
 import {
   PlusOutlined,
@@ -23,24 +24,40 @@ import {
   UnlockOutlined,
   KeyOutlined,
   MailOutlined,
-  IdcardOutlined,
   EyeOutlined,
   PhoneOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import PersonDetailCard from "./PersonDetailCard";
 import type { ColumnsType } from "antd/es/table";
 import {
   getAdminUsers,
+  createUser,
   updateUser,
+  deleteUser,
   type AdminUser,
 } from "../../services/adminApi";
+import { getApiErrorMessage } from "../../services/api";
+import dayjs from "dayjs";
 
-const { Title, Text } = Typography;
+const staffRoleConfig: Record<string, { label: string; color: string }> = {
+  STAFF: { label: "Nhân viên", color: "orange" },
+  USER: { label: "Người dùng", color: "cyan" },
+  ADMIN: { label: "Quản trị viên", color: "red" },
+};
 
-const staffRoleConfig: Record<string, string> = {
-  STAFF: "Nhân viên",
-  USER: "Người dùng",
-  ADMIN: "Quản trị viên",
+const statusConfig: Record<string, { label: string; color: string }> = {
+  ACTIVE: { label: "Hoạt động", color: "green" },
+  LOCKED: { label: "Đã khóa", color: "red" },
+  INACTIVE: { label: "Không hoạt động", color: "default" },
+};
+
+const genderMap: Record<string, string> = {
+  MALE: "Nam",
+  FEMALE: "Nữ",
+  OTHER: "Khác",
 };
 
 interface StaffUser {
@@ -60,62 +77,72 @@ interface StaffUser {
 }
 
 export default function StaffManagement() {
+  const { message } = App.useApp();
   const [staff, setStaff] = useState<StaffUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [filter, setFilter] = useState<{ status: string }>({
+  const [filter, setFilter] = useState<{
+    role: string;
+    status: string;
+    search: string;
+  }>({
+    role: "all",
     status: "all",
+    search: "",
   });
+  const [searchInput, setSearchInput] = useState("");
+
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<StaffUser | null>(null);
   const [form] = Form.useForm();
+  const [editForm] = Form.useForm();
+  const [submitting, setSubmitting] = useState(false);
 
-  const fetchStaff = async () => {
+  const fetchStaff = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const params: { role?: string; status?: string } = {
-        role: "STAFF",
-      };
-      if (filter.status !== "all") {
-        params.status = filter.status;
-      }
+      const params: { role?: string; status?: string; search?: string } = {};
+      if (filter.role !== "all") params.role = filter.role;
+      if (filter.status !== "all") params.status = filter.status;
+      if (filter.search?.trim()) params.search = filter.search.trim();
 
       const response = await getAdminUsers(params);
-
       if (!response?.data || !Array.isArray(response.data)) {
         throw new Error("Invalid API response format");
       }
 
-      const mapped: StaffUser[] = response.data.map((u: AdminUser) => ({
-        key: String(u.id),
-        id: String(u.id),
-        username: u.username || "",
-        name: u.fullName || "",
-        email: u.email || "",
-        phone: u.phone,
-        avatarUrl: u.avatarUrl,
-        dateOfBirth: u.dateOfBirth,
-        gender: u.gender,
-        role: (u.role === "STAFF" || u.role === "ADMIN"
-          ? u.role
-          : "STAFF") as StaffUser["role"],
-        status:
-          u.status === "LOCKED"
-            ? "LOCKED"
-            : u.status === "INACTIVE"
-              ? "INACTIVE"
-              : "ACTIVE",
-        createdAt: u.createdAt
-          ? new Date(u.createdAt).toLocaleDateString("vi-VN")
-          : "-",
-        lastLogin: u.lastLogin
-          ? new Date(u.lastLogin).toLocaleDateString("vi-VN")
-          : undefined,
-      }));
-
+      const mapped: StaffUser[] = response.data
+        .filter((u: AdminUser) => u.role === "STAFF" || u.role === "ADMIN")
+        .map((u: AdminUser) => ({
+          key: String(u.id),
+          id: String(u.id),
+          username: u.username || "",
+          name: u.fullName || "",
+          email: u.email || "",
+          phone: u.phone,
+          avatarUrl: u.avatarUrl,
+          dateOfBirth: u.dateOfBirth,
+          gender: u.gender,
+          role: (u.role === "STAFF" || u.role === "ADMIN"
+            ? u.role
+            : "STAFF") as StaffUser["role"],
+          status:
+            u.status === "LOCKED"
+              ? "LOCKED"
+              : u.status === "INACTIVE"
+                ? "INACTIVE"
+                : "ACTIVE",
+          createdAt: u.createdAt
+            ? new Date(u.createdAt).toLocaleDateString("vi-VN")
+            : "-",
+          lastLogin: u.lastLogin
+            ? new Date(u.lastLogin).toLocaleDateString("vi-VN")
+            : undefined,
+        }));
       setStaff(mapped);
     } catch (err: unknown) {
       const msg =
@@ -132,45 +159,130 @@ export default function StaffManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter.role, filter.status, filter.search, message]);
 
   useEffect(() => {
     fetchStaff();
-  }, [filter.status]);
+  }, [fetchStaff]);
+
+  const hasActiveFilters =
+    filter.role !== "all" ||
+    filter.status !== "all" ||
+    (filter.search?.trim()?.length ?? 0) > 0;
+
+  const handleClearFilters = () => {
+    setFilter({ role: "all", status: "all", search: "" });
+    setSearchInput("");
+  };
+
+  const handleView = (record: StaffUser) => {
+    setSelectedStaff(record);
+    setDetailModalOpen(true);
+  };
+
+  const handleEdit = (record: StaffUser) => {
+    setSelectedStaff(record);
+    editForm.setFieldsValue({
+      username: record.username,
+      email: record.email,
+      fullName: record.name,
+      phone: record.phone,
+      dateOfBirth: record.dateOfBirth ? dayjs(record.dateOfBirth) : null,
+      role: record.role,
+    });
+    setEditModalOpen(true);
+  };
+
+  const handleToggleLock = async (record: StaffUser) => {
+    const newStatus = record.status === "ACTIVE" ? "LOCKED" : "ACTIVE";
+    try {
+      await updateUser(parseInt(record.id), { status: newStatus });
+      message.success(
+        newStatus === "LOCKED" ? "Đã khóa nhân viên" : "Đã mở khóa nhân viên",
+      );
+      fetchStaff();
+    } catch (err) {
+      message.error(getApiErrorMessage(err) || "Cập nhật trạng thái thất bại");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteUser(parseInt(id));
+      message.success("Đã xóa nhân viên");
+      fetchStaff();
+    } catch (err) {
+      message.error(getApiErrorMessage(err) || "Xóa nhân viên thất bại");
+    }
+  };
+
+  const handleCreate = async () => {
+    try {
+      const values = await form.validateFields();
+      setSubmitting(true);
+      await createUser({
+        username: values.username,
+        email: values.email,
+        phone: values.phone || "",
+        password: values.password,
+        fullName: values.fullName,
+        dateOfBirth: values.dateOfBirth
+          ? dayjs(values.dateOfBirth).format("YYYY-MM-DD")
+          : undefined,
+      });
+      message.success("Đã thêm nhân viên thành công");
+      setIsModalOpen(false);
+      form.resetFields();
+      fetchStaff();
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "errorFields" in err) return;
+      message.error(getApiErrorMessage(err) || "Thêm nhân viên thất bại");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedStaff) return;
+    try {
+      const values = await editForm.validateFields();
+      setSubmitting(true);
+      await updateUser(parseInt(selectedStaff.id), {
+        username: values.username,
+        email: values.email,
+        fullName: values.fullName,
+        phone: values.phone || undefined,
+        dateOfBirth: values.dateOfBirth
+          ? dayjs(values.dateOfBirth).format("YYYY-MM-DD")
+          : undefined,
+        role: values.role,
+      });
+      message.success("Cập nhật nhân viên thành công");
+      setEditModalOpen(false);
+      setSelectedStaff(null);
+      fetchStaff();
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "errorFields" in err) return;
+      message.error(getApiErrorMessage(err) || "Cập nhật thất bại");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const filteredStaff = staff.filter((s) => {
+    if (filter.role !== "all" && s.role !== filter.role) return false;
     if (filter.status !== "all" && s.status !== filter.status) return false;
+    if (filter.search?.trim()) {
+      const q = filter.search.toLowerCase();
+      return (
+        s.name?.toLowerCase().includes(q) ||
+        s.email?.toLowerCase().includes(q) ||
+        s.username?.toLowerCase().includes(q) ||
+        s.phone?.includes(filter.search)
+      );
+    }
     return true;
   });
-
-  const handleStatusChange = async (
-    id: string,
-    newStatus: "ACTIVE" | "LOCKED" | "INACTIVE",
-  ) => {
-    try {
-      await updateUser(parseInt(id), { status: newStatus });
-      setStaff(
-        staff.map((s) => (s.id === id ? { ...s, status: newStatus } : s)),
-      );
-      message.success("Cập nhật trạng thái thành công");
-    } catch {
-      message.error("Cập nhật trạng thái thất bại");
-    }
-  };
-
-  const handleRoleChange = async (id: string, newRole: StaffUser["role"]) => {
-    try {
-      await updateUser(parseInt(id), { role: newRole });
-      if (newRole === "STAFF") {
-        setStaff(staff.map((s) => (s.id === id ? { ...s, role: newRole } : s)));
-      } else {
-        setStaff(staff.filter((s) => s.id !== id));
-      }
-      message.success("Cập nhật vai trò thành công");
-    } catch {
-      message.error("Cập nhật vai trò thất bại");
-    }
-  };
 
   const columns: ColumnsType<StaffUser> = [
     {
@@ -195,7 +307,7 @@ export default function StaffManagement() {
             </div>
             {record.phone && (
               <div style={{ fontSize: 12, color: "#8c8c8c" }}>
-                📞 {record.phone}
+                <PhoneOutlined /> {record.phone}
               </div>
             )}
           </div>
@@ -206,71 +318,66 @@ export default function StaffManagement() {
       title: "Vai trò",
       dataIndex: "role",
       key: "role",
-      render: (role: string, record) => (
-        <Select
-          value={role}
-          onChange={(value) =>
-            handleRoleChange(record.id, value as StaffUser["role"])
-          }
-          style={{ width: 150 }}
-        >
-          <Select.Option value="STAFF">Nhân viên</Select.Option>
-          <Select.Option value="USER">Người dùng</Select.Option>
-          <Select.Option value="ADMIN">Quản trị viên</Select.Option>
-        </Select>
-      ),
+      width: 140,
+      render: (role: string) => {
+        const config = staffRoleConfig[role] || {
+          label: role,
+          color: "default",
+        };
+        return <Tag color={config.color}>{config.label}</Tag>;
+      },
     },
     {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
+      width: 130,
       render: (status: string) => {
-        const config: Record<string, { label: string; color: string }> = {
-          ACTIVE: { label: "Hoạt động", color: "green" },
-          LOCKED: { label: "Đã khóa", color: "red" },
-          INACTIVE: { label: "Không hoạt động", color: "default" },
+        const config = statusConfig[status] || {
+          label: status,
+          color: "default",
         };
-        const c = config[status] || { label: status, color: "default" };
-        return <Tag color={c.color}>{c.label}</Tag>;
+        return <Tag color={config.color}>{config.label}</Tag>;
       },
+    },
+    {
+      title: "Ngày sinh",
+      key: "dateOfBirth",
+      width: 120,
+      render: (_, record) =>
+        record.dateOfBirth
+          ? new Date(record.dateOfBirth).toLocaleDateString("vi-VN")
+          : "-",
+    },
+    {
+      title: "Giới tính",
+      key: "gender",
+      width: 100,
+      render: (_, record) =>
+        record.gender ? genderMap[record.gender] || record.gender : "-",
     },
     {
       title: "Thao tác",
       key: "action",
+      width: 140,
+      fixed: "right",
       render: (_, record) => (
-        <Space direction="vertical" size="small">
+        <Space size="small">
           <Button
             type="link"
             icon={<EyeOutlined />}
             size="small"
-            onClick={() => {
-              setSelectedStaff(record);
-              setDetailModalOpen(true);
-            }}
+            onClick={() => handleView(record)}
           >
             Xem
           </Button>
-          <Button type="link" icon={<KeyOutlined />} size="small">
-            Reset mật khẩu
-          </Button>
           <Button
             type="link"
-            icon={
-              record.status === "ACTIVE" ? <LockOutlined /> : <UnlockOutlined />
-            }
+            icon={<EditOutlined />}
             size="small"
-            danger={record.status === "ACTIVE"}
-            onClick={() => {
-              const newStatus =
-                record.status === "ACTIVE" ? "LOCKED" : "ACTIVE";
-              handleStatusChange(record.id, newStatus);
-            }}
+            onClick={() => handleEdit(record)}
           >
-            {record.status === "ACTIVE"
-              ? "Khóa"
-              : record.status === "LOCKED"
-                ? "Mở khóa"
-                : "Kích hoạt"}
+            Sửa
           </Button>
         </Space>
       ),
@@ -278,34 +385,16 @@ export default function StaffManagement() {
   ];
 
   return (
-    <div style={{ width: "100%" }}>
-      <div style={{ marginBottom: 24 }}>
-        <Title
-          level={2}
-          style={{ margin: 0, fontWeight: 700, color: "#1a1a1a" }}
-        >
-          Quản lý Staff
-        </Title>
-        <Text type="secondary" style={{ fontSize: 16 }}>
-          Quản lý nhân viên và phân quyền
-        </Text>
-      </div>
-
-      <Card
-        style={{
-          borderRadius: 16,
-          border: "1px solid #e5e7eb",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
-        }}
-      >
-        <Row gutter={[16, 16]} align="middle" style={{ marginBottom: 16 }}>
+    <Space orientation="vertical" size="large" style={{ width: "100%" }}>
+      <Card>
+        <Row gutter={[16, 16]} align="middle">
           <Col flex="auto">
-            <Title
-              level={5}
-              style={{ margin: 0, fontWeight: 600, color: "#1a1a1a" }}
-            >
-              Danh sách nhân viên
-            </Title>
+            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>
+              Quản lý Staff
+            </h2>
+            <p style={{ margin: "4px 0 0 0", color: "#8c8c8c", fontSize: 14 }}>
+              Quản lý nhân viên và phân quyền
+            </p>
           </Col>
           <Col>
             <Button
@@ -313,33 +402,73 @@ export default function StaffManagement() {
               icon={<PlusOutlined />}
               onClick={() => setIsModalOpen(true)}
             >
-              Thêm nhân viên
+              Tạo staff mới
             </Button>
           </Col>
         </Row>
+      </Card>
 
-        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+      <Card>
+        <Row gutter={[16, 16]} align="middle" style={{ marginBottom: 16 }}>
           <Col xs={24} sm={12} md={6}>
+            <div style={{ marginBottom: 4, fontSize: 13, color: "#595959" }}>
+              Vai trò
+            </div>
             <Select
               style={{ width: "100%" }}
-              placeholder="Trạng thái"
+              placeholder="Tất cả vai trò"
+              value={filter.role}
+              onChange={(value) => setFilter({ ...filter, role: value })}
+            >
+              <Select.Option value="all">Tất cả vai trò</Select.Option>
+              <Select.Option value="STAFF">Nhân viên</Select.Option>
+              <Select.Option value="ADMIN">Quản trị viên</Select.Option>
+            </Select>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <div style={{ marginBottom: 4, fontSize: 13, color: "#595959" }}>
+              Trạng thái
+            </div>
+            <Select
+              style={{ width: "100%" }}
+              placeholder="Tất cả trạng thái"
               value={filter.status}
               onChange={(value) => setFilter({ ...filter, status: value })}
             >
-              <Select.Option value="all">Tất cả</Select.Option>
+              <Select.Option value="all">Tất cả trạng thái</Select.Option>
               <Select.Option value="ACTIVE">Hoạt động</Select.Option>
               <Select.Option value="LOCKED">Đã khóa</Select.Option>
               <Select.Option value="INACTIVE">Không hoạt động</Select.Option>
             </Select>
           </Col>
+          <Col xs={24} sm={12} md={8}>
+            <div style={{ marginBottom: 4, fontSize: 13, color: "#595959" }}>
+              Tìm kiếm
+            </div>
+            <Input
+              placeholder="Tìm theo tên, email, username..."
+              prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onPressEnter={() => setFilter({ ...filter, search: searchInput })}
+              allowClear
+              onClear={() => {
+                setSearchInput("");
+                setFilter({ ...filter, search: "" });
+              }}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={4}>
+            <Button
+              style={{ marginTop: 22 }}
+              onClick={() => setFilter({ ...filter, search: searchInput })}
+            >
+              Tìm kiếm
+            </Button>
+          </Col>
         </Row>
 
-        {loading ? (
-          <div style={{ textAlign: "center", padding: 40 }}>
-            <Spin size="large" />
-            <p style={{ marginTop: 16 }}>Đang tải dữ liệu...</p>
-          </div>
-        ) : error ? (
+        {error && (
           <Alert
             message="Lỗi"
             description={error}
@@ -347,19 +476,41 @@ export default function StaffManagement() {
             showIcon
             style={{ marginBottom: 16 }}
           />
+        )}
+
+        {loading ? (
+          <Table
+            columns={columns}
+            dataSource={[]}
+            rowKey="id"
+            loading={loading}
+            scroll={{ x: 1100 }}
+            pagination={false}
+          />
         ) : filteredStaff.length === 0 ? (
-          <div style={{ textAlign: "center", padding: 40 }}>
-            <IdcardOutlined
-              style={{ fontSize: 48, color: "#d9d9d9", marginBottom: 16 }}
-            />
-            <p style={{ color: "#8c8c8c" }}>Chưa có nhân viên nào.</p>
-          </div>
+          <Empty
+            description={
+              <span>
+                {hasActiveFilters
+                  ? "Không tìm thấy nhân viên nào phù hợp với bộ lọc."
+                  : "Chưa có nhân viên nào."}
+              </span>
+            }
+            style={{ padding: "48px 0" }}
+          >
+            {hasActiveFilters && (
+              <Button type="primary" onClick={handleClearFilters}>
+                Xóa bộ lọc
+              </Button>
+            )}
+          </Empty>
         ) : (
           <Table
             columns={columns}
             dataSource={filteredStaff}
             rowKey="id"
-            scroll={{ x: 1200 }}
+            loading={loading}
+            scroll={{ x: 1100 }}
             pagination={{
               pageSize: 10,
               showSizeChanger: true,
@@ -377,6 +528,17 @@ export default function StaffManagement() {
           setSelectedStaff(null);
         }}
         footer={[
+          <Button
+            key="edit"
+            type="primary"
+            icon={<EditOutlined />}
+            onClick={() => {
+              setDetailModalOpen(false);
+              if (selectedStaff) handleEdit(selectedStaff);
+            }}
+          >
+            Chỉnh sửa
+          </Button>,
           <Button
             key="close"
             onClick={() => {
@@ -420,7 +582,8 @@ export default function StaffManagement() {
                   {
                     label: "Vai trò",
                     value:
-                      staffRoleConfig[selectedStaff.role] || selectedStaff.role,
+                      staffRoleConfig[selectedStaff.role]?.label ||
+                      selectedStaff.role,
                   },
                   {
                     label: "Ngày sinh",
@@ -453,18 +616,48 @@ export default function StaffManagement() {
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
         footer={null}
-        width={600}
+        width={560}
       >
-        <Form form={form} layout="vertical">
-          <Form.Item label="Tên" name="name" rules={[{ required: true }]}>
-            <Input />
+        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item
+            label="Tên đăng nhập"
+            name="username"
+            rules={[{ required: true, message: "Vui lòng nhập username" }]}
+          >
+            <Input placeholder="username" />
+          </Form.Item>
+          <Form.Item
+            label="Họ tên"
+            name="fullName"
+            rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
+          >
+            <Input placeholder="Nguyễn Văn A" />
           </Form.Item>
           <Form.Item
             label="Email"
             name="email"
-            rules={[{ required: true, type: "email" }]}
+            rules={[
+              { required: true, message: "Vui lòng nhập email" },
+              { type: "email", message: "Email không hợp lệ" },
+            ]}
           >
-            <Input />
+            <Input type="email" placeholder="email@example.com" />
+          </Form.Item>
+          <Form.Item label="Số điện thoại" name="phone">
+            <Input placeholder="0901234567" />
+          </Form.Item>
+          <Form.Item
+            label="Mật khẩu"
+            name="password"
+            rules={[
+              { required: true, message: "Vui lòng nhập mật khẩu" },
+              { min: 6, message: "Mật khẩu tối thiểu 6 ký tự" },
+            ]}
+          >
+            <Input.Password placeholder="••••••••" />
+          </Form.Item>
+          <Form.Item label="Ngày sinh" name="dateOfBirth">
+            <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
           </Form.Item>
           <Form.Item label="Vai trò" name="role" initialValue="STAFF">
             <Select>
@@ -476,9 +669,8 @@ export default function StaffManagement() {
             <Space>
               <Button
                 type="primary"
-                onClick={() =>
-                  message.info("Chức năng tạo user đang phát triển")
-                }
+                onClick={handleCreate}
+                loading={submitting}
               >
                 Tạo
               </Button>
@@ -487,6 +679,143 @@ export default function StaffManagement() {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+
+      <Modal
+        title="Chỉnh sửa nhân viên"
+        open={editModalOpen}
+        onCancel={() => {
+          setEditModalOpen(false);
+          setSelectedStaff(null);
+        }}
+        footer={
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <Space>
+              <Popconfirm
+                title="Reset mật khẩu"
+                description="Nhân viên sẽ phải đăng nhập lại bằng mật khẩu mới. Tiếp tục?"
+                onConfirm={() =>
+                  selectedStaff && handleResetPassword(selectedStaff)
+                }
+                okText="Đồng ý"
+                cancelText="Hủy"
+              >
+                <Button icon={<KeyOutlined />}>Reset mật khẩu</Button>
+              </Popconfirm>
+              {selectedStaff?.status === "ACTIVE" ? (
+                <Popconfirm
+                  title="Khóa nhân viên"
+                  description="Nhân viên sẽ không thể đăng nhập cho đến khi được mở khóa."
+                  onConfirm={() =>
+                    selectedStaff && handleToggleLock(selectedStaff)
+                  }
+                  okText="Đồng ý"
+                  cancelText="Hủy"
+                  okButtonProps={{ danger: true }}
+                >
+                  <Button danger icon={<LockOutlined />}>
+                    Khóa
+                  </Button>
+                </Popconfirm>
+              ) : selectedStaff?.status === "LOCKED" ? (
+                <Popconfirm
+                  title="Mở khóa nhân viên"
+                  description="Nhân viên sẽ có thể đăng nhập lại."
+                  onConfirm={() =>
+                    selectedStaff && handleToggleLock(selectedStaff)
+                  }
+                  okText="Đồng ý"
+                  cancelText="Hủy"
+                >
+                  <Button icon={<UnlockOutlined />}>Mở khóa</Button>
+                </Popconfirm>
+              ) : selectedStaff?.status === "INACTIVE" ? (
+                <Popconfirm
+                  title="Kích hoạt nhân viên"
+                  description="Nhân viên sẽ có thể đăng nhập lại."
+                  onConfirm={() =>
+                    selectedStaff && handleToggleLock(selectedStaff)
+                  }
+                  okText="Đồng ý"
+                  cancelText="Hủy"
+                >
+                  <Button icon={<UnlockOutlined />}>Kích hoạt</Button>
+                </Popconfirm>
+              ) : null}
+              <Popconfirm
+                title="Xóa nhân viên"
+                description="Bạn có chắc muốn xóa nhân viên này? Hành động này không thể hoàn tác."
+                onConfirm={() =>
+                  selectedStaff && handleDeleteUser(selectedStaff.id)
+                }
+                okText="Xóa"
+                cancelText="Hủy"
+                okButtonProps={{ danger: true }}
+              >
+                <Button danger icon={<DeleteOutlined />}>
+                  Xóa
+                </Button>
+              </Popconfirm>
+            </Space>
+            <Space>
+              <Button
+                onClick={() => {
+                  setEditModalOpen(false);
+                  setSelectedStaff(null);
+                }}
+              >
+                Hủy
+              </Button>
+              <Button
+                type="primary"
+                onClick={handleSaveEdit}
+                loading={submitting}
+              >
+                Lưu
+              </Button>
+            </Space>
+          </div>
+        }
+        width={560}
+      >
+        <Form form={editForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item
+            label="Tên đăng nhập"
+            name="username"
+            rules={[{ required: true, message: "Vui lòng nhập tên đăng nhập" }]}
+          >
+            <Input placeholder="username" />
+          </Form.Item>
+          <Form.Item
+            label="Email"
+            name="email"
+            rules={[
+              { required: true, message: "Vui lòng nhập email" },
+              { type: "email", message: "Email không hợp lệ" },
+            ]}
+          >
+            <Input type="email" placeholder="email@example.com" />
+          </Form.Item>
+          <Form.Item
+            label="Họ tên"
+            name="fullName"
+            rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item label="Số điện thoại" name="phone">
+            <Input />
+          </Form.Item>
+          <Form.Item label="Ngày sinh" name="dateOfBirth">
+            <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+          </Form.Item>
+          <Form.Item label="Vai trò" name="role" rules={[{ required: true }]}>
+            <Select>
+              <Select.Option value="STAFF">Nhân viên</Select.Option>
+              <Select.Option value="ADMIN">Quản trị viên</Select.Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
+    </Space>
   );
 }

@@ -18,9 +18,11 @@ import {
   Popconfirm,
   Tooltip,
   Alert,
-  Statistic,
   Spin,
+  Typography,
 } from "antd";
+
+const { Title, Text } = Typography;
 import {
   PlusOutlined,
   EditOutlined,
@@ -32,9 +34,11 @@ import {
   TeamOutlined,
   PercentageOutlined,
   ClockCircleOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import dayjs, { Dayjs } from "dayjs";
+import TourSummaryCards from "./TourSummaryCards";
 import { getPublicTours, getArtisans } from "../../services/api";
 import type { Artisan } from "../../types";
 import type { Tour as ApiTour } from "../../types";
@@ -90,10 +94,16 @@ export default function TourManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [filter, setFilter] = useState<{ status: string; location: string }>({
+  const [filter, setFilter] = useState<{
+    status: string;
+    location: string;
+    search: string;
+  }>({
     status: "all",
     location: "all",
+    search: "",
   });
+  const [searchInput, setSearchInput] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
   const [isArtisanModalOpen, setIsArtisanModalOpen] = useState(false);
@@ -222,6 +232,14 @@ export default function TourManagement() {
     if (filter.status !== "all" && tour.status !== filter.status) return false;
     if (filter.location !== "all" && tour.location !== filter.location)
       return false;
+    if (filter.search?.trim()) {
+      const q = filter.search.toLowerCase();
+      return (
+        tour.title?.toLowerCase().includes(q) ||
+        tour.location?.toLowerCase().includes(q) ||
+        tour.artisan?.toLowerCase().includes(q)
+      );
+    }
     return true;
   });
 
@@ -620,135 +638,72 @@ export default function TourManagement() {
   };
 
   return (
-    <Space direction="vertical" size="large" style={{ width: "100%" }}>
-      {/* Stats Cards */}
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card
-            style={{
-              background: "linear-gradient(135deg, #8B0000 0%, #a00000 100%)",
-              border: "none",
-            }}
-            bodyStyle={{ padding: 20 }}
-          >
-            <Statistic
-              title={
-                <span style={{ color: "#fff", opacity: 0.9 }}>Tổng Tour</span>
-              }
-              value={stats.total}
-              valueStyle={{ color: "#fff", fontSize: 28, fontWeight: 700 }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card
-            style={{
-              background: "linear-gradient(135deg, #52c41a 0%, #73d13d 100%)",
-              border: "none",
-            }}
-            bodyStyle={{ padding: 20 }}
-          >
-            <Statistic
-              title={
-                <span style={{ color: "#fff", opacity: 0.9 }}>Mở đăng ký</span>
-              }
-              value={stats.open}
-              valueStyle={{ color: "#fff", fontSize: 28, fontWeight: 700 }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card
-            style={{
-              background: "linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%)",
-              border: "none",
-            }}
-            bodyStyle={{ padding: 20 }}
-          >
-            <Statistic
-              title={
-                <span style={{ color: "#fff", opacity: 0.9 }}>
-                  Không đủ người
-                </span>
-              }
-              value={stats.notEnough}
-              valueStyle={{ color: "#fff", fontSize: 28, fontWeight: 700 }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card
-            style={{
-              background: "linear-gradient(135deg, #faad14 0%, #ffc53d 100%)",
-              border: "none",
-            }}
-            bodyStyle={{ padding: 20 }}
-          >
-            <Statistic
-              title={
-                <span style={{ color: "#fff", opacity: 0.9 }}>Gần hết hạn</span>
-              }
-              value={stats.nearDeadline}
-              valueStyle={{ color: "#fff", fontSize: 28, fontWeight: 700 }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      <Card
+    <div style={{ width: "100%" }}>
+      {/* Header */}
+      <div
         style={{
-          background: "#fff",
-          border: "1px solid #e8e8e8",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          marginBottom: 24,
         }}
       >
-        <Row gutter={[16, 16]} align="middle">
-          <Col flex="auto">
-            <h2
-              style={{
-                margin: 0,
-                fontSize: 24,
-                fontWeight: 700,
-                color: "#262626",
-              }}
-            >
-              Quản lý Tour
-            </h2>
-            <p style={{ margin: "8px 0 0 0", color: "#8c8c8c", fontSize: 14 }}>
-              Quản lý tour và trạng thái tour
-            </p>
-          </Col>
-          <Col>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setIsModalOpen(true)}
-              size="large"
-              style={{
-                height: 44,
-                fontSize: 15,
-                fontWeight: 500,
-                boxShadow: "0 2px 4px rgba(139, 0, 0, 0.2)",
-              }}
-            >
-              Tạo tour mới
-            </Button>
-          </Col>
-        </Row>
-      </Card>
+        <div>
+          <Title
+            level={2}
+            style={{ margin: 0, fontWeight: 700, color: "#1a1a1a" }}
+          >
+            Quản lý Tour
+          </Title>
+          <Text type="secondary" style={{ fontSize: 16 }}>
+            Quản lý tour và trạng thái tour
+          </Text>
+        </div>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => setIsModalOpen(true)}
+          size="large"
+          style={{
+            height: 44,
+            fontSize: 15,
+            fontWeight: 500,
+            boxShadow: "0 2px 4px rgba(139, 0, 0, 0.2)",
+          }}
+        >
+          Tạo tour mới
+        </Button>
+      </div>
 
+      <TourSummaryCards stats={stats} />
+
+      {/* Bảng Tour */}
       <Card
         style={{
-          background: "#fff",
-          border: "1px solid #e8e8e8",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+          borderRadius: 16,
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
         }}
+        title={
+          <Title
+            level={5}
+            style={{ margin: 0, fontWeight: 600, color: "#1a1a1a" }}
+          >
+            Danh sách Tour
+          </Title>
+        }
+        bodyStyle={{ padding: 24 }}
       >
         <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
           <Col xs={24} sm={12} md={6}>
+            <div style={{ marginBottom: 4, fontSize: 13, color: "#595959" }}>
+              Trạng thái
+            </div>
             <Select
               style={{ width: "100%" }}
-              placeholder="Trạng thái"
+              placeholder="Tất cả trạng thái"
               value={filter.status}
               onChange={(value) => setFilter({ ...filter, status: value })}
             >
@@ -761,9 +716,12 @@ export default function TourManagement() {
             </Select>
           </Col>
           <Col xs={24} sm={12} md={6}>
+            <div style={{ marginBottom: 4, fontSize: 13, color: "#595959" }}>
+              Tỉnh thành
+            </div>
             <Select
               style={{ width: "100%" }}
-              placeholder="Tỉnh thành"
+              placeholder="Tất cả tỉnh thành"
               value={filter.location}
               onChange={(value) => setFilter({ ...filter, location: value })}
             >
@@ -774,6 +732,31 @@ export default function TourManagement() {
               <Select.Option value="Đắk Nông">Đắk Nông</Select.Option>
               <Select.Option value="Lâm Đồng">Lâm Đồng</Select.Option>
             </Select>
+          </Col>
+          <Col xs={24} sm={12} md={8}>
+            <div style={{ marginBottom: 4, fontSize: 13, color: "#595959" }}>
+              Tìm kiếm
+            </div>
+            <Input
+              placeholder="Tìm theo tên tour, địa điểm, nghệ nhân..."
+              prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onPressEnter={() => setFilter({ ...filter, search: searchInput })}
+              allowClear
+              onClear={() => {
+                setSearchInput("");
+                setFilter({ ...filter, search: "" });
+              }}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={4}>
+            <Button
+              style={{ marginTop: 22 }}
+              onClick={() => setFilter({ ...filter, search: searchInput })}
+            >
+              Tìm kiếm
+            </Button>
           </Col>
         </Row>
 
@@ -1034,6 +1017,6 @@ export default function TourManagement() {
           </Form>
         )}
       </Modal>
-    </Space>
+    </div>
   );
 }
