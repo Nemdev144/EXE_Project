@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
+  App,
   Card,
   Row,
   Col,
@@ -10,22 +11,27 @@ import {
   Select,
   Input,
   Modal,
-  Form,
-  message,
-  Upload,
   Alert,
+  Tooltip,
+  Table,
+  Empty,
 } from "antd";
 import {
-  PlusOutlined,
-  EditOutlined,
-  UserOutlined,
+  EyeOutlined,
   EnvironmentOutlined,
   TrophyOutlined,
   TeamOutlined,
-  UploadOutlined,
+  UserOutlined,
+  StarOutlined,
+  CalendarOutlined,
+  HomeOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
-
-const { Search } = Input;
+import PersonDetailCard from "../admin/PersonDetailCard";
+import ArtisanSummaryCards from "../admin/ArtisanSummaryCards";
+import { getAdminArtisans } from "../../services/adminApi";
+import { getArtisans, getProvinces } from "../../services/api";
+import dayjs from "dayjs";
 
 interface Artisan {
   id: string;
@@ -33,349 +39,401 @@ interface Artisan {
   title: string;
   specialty: string;
   location: string;
+  provinceId?: number;
   experience: string;
   tours: string[];
   status: "ACTIVE" | "INACTIVE";
+  profileImageUrl?: string;
   bio?: string;
-  image?: string;
+  workshopAddress?: string;
+  totalTours?: number;
+  averageRating?: number;
+  images?: string[];
+  createdAt?: string;
 }
 
 export default function ArtisanManagement() {
-  const [artisans, setArtisans] = useState<Artisan[]>([
-    {
-      id: "1",
-      name: "Nghệ nhân Y Kông",
-      title: "Nghệ nhân Cồng chiêng",
-      specialty: "Biểu diễn và truyền dạy cồng chiêng",
-      location: "Đắk Lắk",
-      experience: "40 năm",
-      tours: ["Lễ hội Cồng chiêng", "Tour văn hóa Đắk Lắk"],
-      status: "ACTIVE",
-      bio: "Nghệ nhân với hơn 40 năm kinh nghiệm trong việc biểu diễn và truyền dạy cồng chiêng",
-    },
-    {
-      id: "2",
-      name: "Bà H'Bla",
-      title: "Nghệ nhân Dệt thổ cẩm",
-      specialty: "Dệt thổ cẩm truyền thống",
-      location: "Gia Lai",
-      experience: "35 năm",
-      tours: ["Làng nghề Gốm Gia Lai"],
-      status: "ACTIVE",
-      bio: "Nghệ nhân dệt thổ cẩm với nhiều năm kinh nghiệm",
-    },
-    {
-      id: "3",
-      name: "Ông A Pui",
-      title: "Nghệ nhân Làm gốm",
-      specialty: "Nghề làm gốm truyền thống",
-      location: "Gia Lai",
-      experience: "45 năm",
-      tours: ["Làng nghề Gốm Gia Lai"],
-      status: "ACTIVE",
-      bio: "Nghệ nhân làm gốm với kỹ thuật truyền thống",
-    },
-  ]);
+  const { message } = App.useApp();
+  const [artisans, setArtisans] = useState<Artisan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [filter, setFilter] = useState<{ location: string; status: string; search: string }>({
+  const [filter, setFilter] = useState<{
+    location: string;
+    status: string;
+    search: string;
+  }>({
     location: "all",
     status: "all",
     search: "",
   });
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedArtisan, setSelectedArtisan] = useState<Artisan | null>(null);
-  const [form] = Form.useForm();
+  const [provinces, setProvinces] = useState<{ id: number; name: string }[]>([]);
+
+  const mapApiToArtisan = (item: unknown): Artisan => {
+    const a = item as Record<string, unknown>;
+    const province = a.province as { id?: number; name?: string } | undefined;
+    const provinceName = province?.name ?? (a.provinceName as string);
+    const provinceId = province?.id ?? (a.provinceId as number);
+    const totalCount = (a.totalTours as number) ?? (a.totalReviews as number) ?? 0;
+    const isActive = a.isActive as boolean | undefined;
+    const status = isActive === false ? "INACTIVE" : "ACTIVE";
+    const fullName = (a.fullName as string) ?? (a.name as string);
+    const specialization = (a.specialization as string) ?? (a.specialty as string);
+    const createdAt = (a.createdAt as string) ?? "";
+    const yearsSince = dayjs().diff(dayjs(createdAt), "year");
+    const experience = yearsSince > 0 ? `${yearsSince} năm` : "Mới";
+    return {
+      id: String(a.id),
+      name: fullName,
+      title: `Nghệ nhân ${specialization}`,
+      specialty: specialization,
+      location: provinceName || "Tây Nguyên",
+      provinceId,
+      experience,
+      tours: totalCount > 0 ? [`${totalCount} tour`] : [],
+      status: status as "ACTIVE" | "INACTIVE",
+      profileImageUrl: (a.profileImageUrl as string) ?? (a.avatarUrl as string),
+      bio: a.bio as string,
+      workshopAddress: a.workshopAddress as string,
+      totalTours: totalCount,
+      averageRating: (a.averageRating as number) ?? 0,
+      images: (a.images as string[]) ?? [],
+      createdAt,
+    };
+  };
+
+  const fetchArtisans = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      try {
+        const { data } = await getAdminArtisans();
+        const rawList = (data || []) as unknown[];
+        setArtisans(rawList.map(mapApiToArtisan));
+      } catch {
+        const raw = await getArtisans();
+        const apiArtisans = Array.isArray(raw) ? raw : [];
+        setArtisans(apiArtisans.map(mapApiToArtisan));
+      }
+    } catch (err) {
+      console.error("Error fetching artisans:", err);
+      setError("Không thể tải dữ liệu nghệ nhân. Vui lòng thử lại sau.");
+      message.error("Không thể tải dữ liệu nghệ nhân");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchArtisans();
+  }, []);
+
+  useEffect(() => {
+    getProvinces().then((list) =>
+      setProvinces(list.map((p) => ({ id: p.id, name: p.name }))),
+    );
+  }, []);
+
+  const provinceOptions = [
+    ...provinces.map((p) => p.name),
+    ...Array.from(new Set(artisans.map((a) => a.location).filter(Boolean))),
+  ].filter(Boolean);
+  const uniqueProvinces = Array.from(new Set(provinceOptions)).sort();
 
   const filteredArtisans = artisans.filter((artisan) => {
-    if (filter.location !== "all" && artisan.location !== filter.location) return false;
-    if (filter.status !== "all" && artisan.status !== filter.status) return false;
-    if (filter.search && !artisan.name.toLowerCase().includes(filter.search.toLowerCase()))
+    if (filter.location !== "all" && artisan.location !== filter.location)
       return false;
+    if (filter.status !== "all" && artisan.status !== filter.status)
+      return false;
+    if (filter.search?.trim()) {
+      const q = filter.search.toLowerCase();
+      return artisan.name?.toLowerCase().includes(q);
+    }
     return true;
   });
 
-  const handleCreateOrUpdate = (values: any) => {
-    if (isEditMode && selectedArtisan) {
-      setArtisans(
-        artisans.map((artisan) =>
-          artisan.id === selectedArtisan.id
-            ? { ...artisan, ...values, id: selectedArtisan.id }
-            : artisan
-        )
-      );
-      message.success("Đã cập nhật nghệ nhân thành công");
-    } else {
-      const newArtisan: Artisan = {
-        id: String(artisans.length + 1),
-        ...values,
-        tours: [],
-        status: "ACTIVE",
-      };
-      setArtisans([...artisans, newArtisan]);
-      message.success("Đã tạo nghệ nhân thành công");
-    }
-    setIsModalOpen(false);
-    setIsEditMode(false);
-    setSelectedArtisan(null);
-    form.resetFields();
+  const handleViewDetail = (record: Artisan) => {
+    setSelectedArtisan(record);
+    setDetailModalOpen(true);
   };
 
-  const handleEdit = (artisan: Artisan) => {
-    setSelectedArtisan(artisan);
-    setIsEditMode(true);
-    form.setFieldsValue(artisan);
-    setIsModalOpen(true);
+  const stats = {
+    total: artisans.length,
+    active: artisans.filter((a) => a.status === "ACTIVE").length,
+    inactive: artisans.filter((a) => a.status === "INACTIVE").length,
+    avgRating:
+      artisans.length > 0
+        ? (
+            artisans.reduce((sum, a) => sum + (a.averageRating || 0), 0) /
+            artisans.length
+          ).toFixed(1)
+        : "0.0",
   };
 
-  const handleStatusChange = (id: string, newStatus: "ACTIVE" | "INACTIVE") => {
-    setArtisans(
-      artisans.map((artisan) =>
-        artisan.id === id ? { ...artisan, status: newStatus } : artisan
-      )
-    );
-    message.success("Đã cập nhật trạng thái thành công");
-  };
+  const columns = [
+    {
+      title: "Nghệ nhân",
+      key: "artisan",
+      width: 250,
+      fixed: "left" as const,
+      render: (_: unknown, record: Artisan) => (
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <Avatar
+            size={50}
+            src={record.profileImageUrl}
+            style={{ backgroundColor: "#8B0000", flexShrink: 0 }}
+            icon={!record.profileImageUrl ? <UserOutlined /> : undefined}
+          />
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "#262626", marginBottom: 4 }}>
+              {record.name}
+            </div>
+            <div style={{ fontSize: 12, color: "#8B0000", fontWeight: 500 }}>
+              {record.title}
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Chuyên môn",
+      key: "specialty",
+      width: 200,
+      render: (_: unknown, record: Artisan) => (
+        <div>
+          <TrophyOutlined style={{ color: "#faad14", marginRight: 6 }} />
+          <span style={{ fontWeight: 500 }}>{record.specialty}</span>
+        </div>
+      ),
+    },
+    {
+      title: "Địa điểm",
+      key: "location",
+      width: 150,
+      render: (_: unknown, record: Artisan) => (
+        <div>
+          <EnvironmentOutlined style={{ color: "#52c41a", marginRight: 6 }} />
+          {record.location}
+        </div>
+      ),
+    },
+    {
+      title: "Trạng thái",
+      key: "status",
+      width: 130,
+      render: (_: unknown, record: Artisan) => (
+        <Tag color={record.status === "ACTIVE" ? "success" : "default"}>
+          {record.status === "ACTIVE" ? "Hoạt động" : "Không hoạt động"}
+        </Tag>
+      ),
+    },
+    {
+      title: "Thao tác",
+      key: "action",
+      width: 100,
+      fixed: "right" as const,
+      render: (_: unknown, record: Artisan) => (
+        <Button
+          type="link"
+          icon={<EyeOutlined />}
+          size="small"
+          onClick={() => handleViewDetail(record)}
+        >
+          Xem
+        </Button>
+      ),
+    },
+  ];
 
   return (
     <Space direction="vertical" size="large" style={{ width: "100%" }}>
       <Card>
         <Row gutter={[16, 16]} align="middle">
           <Col flex="auto">
-            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>Quản lý Nghệ nhân</h2>
+            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>
+              Quản lý Nghệ nhân
+            </h2>
             <p style={{ margin: "4px 0 0 0", color: "#8c8c8c", fontSize: 14 }}>
-              Tạo và chỉnh sửa thông tin nghệ nhân
+              Xem thông tin nghệ nhân (chỉ xem, không có quyền chỉnh sửa)
             </p>
-          </Col>
-          <Col>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => {
-                setIsEditMode(false);
-                setSelectedArtisan(null);
-                form.resetFields();
-                setIsModalOpen(true);
-              }}
-            >
-              Thêm nghệ nhân mới
-            </Button>
           </Col>
         </Row>
         <Alert
           message="Lưu ý"
-          description="Staff không có quyền xóa nghệ nhân khỏi hệ thống. Chỉ có thể tạo mới và chỉnh sửa thông tin."
+          description="Staff chỉ có quyền xem thông tin nghệ nhân. Không có quyền thêm, sửa hoặc xóa."
           type="info"
           showIcon
           style={{ marginTop: 16 }}
         />
       </Card>
 
-      <Card>
-        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-          <Col xs={24} sm={12} md={8}>
+      <ArtisanSummaryCards stats={stats} />
+
+      <Card
+        style={{
+          background: "#fff",
+          border: "1px solid #e8e8e8",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+        }}
+      >
+        <Row gutter={[16, 16]} align="middle" style={{ marginBottom: 16 }}>
+          <Col xs={24} sm={12} md={6}>
+            <div style={{ marginBottom: 4, fontSize: 13, color: "#595959" }}>Địa điểm</div>
             <Select
               style={{ width: "100%" }}
-              placeholder="Tỉnh thành"
+              placeholder="Tất cả địa điểm"
               value={filter.location}
               onChange={(value) => setFilter({ ...filter, location: value })}
             >
-              <Select.Option value="all">Tất cả</Select.Option>
-              <Select.Option value="Đắk Lắk">Đắk Lắk</Select.Option>
-              <Select.Option value="Gia Lai">Gia Lai</Select.Option>
-              <Select.Option value="Kon Tum">Kon Tum</Select.Option>
-              <Select.Option value="Đắk Nông">Đắk Nông</Select.Option>
-              <Select.Option value="Lâm Đồng">Lâm Đồng</Select.Option>
+              <Select.Option value="all">Tất cả địa điểm</Select.Option>
+              {uniqueProvinces.map((province) => (
+                <Select.Option key={province} value={province}>
+                  {province}
+                </Select.Option>
+              ))}
             </Select>
           </Col>
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} md={6}>
+            <div style={{ marginBottom: 4, fontSize: 13, color: "#595959" }}>Trạng thái</div>
             <Select
               style={{ width: "100%" }}
-              placeholder="Trạng thái"
+              placeholder="Tất cả trạng thái"
               value={filter.status}
               onChange={(value) => setFilter({ ...filter, status: value })}
             >
-              <Select.Option value="all">Tất cả</Select.Option>
+              <Select.Option value="all">Tất cả trạng thái</Select.Option>
               <Select.Option value="ACTIVE">Hoạt động</Select.Option>
               <Select.Option value="INACTIVE">Không hoạt động</Select.Option>
             </Select>
           </Col>
           <Col xs={24} sm={12} md={8}>
-            <Search
-              placeholder="Tìm kiếm nghệ nhân..."
+            <div style={{ marginBottom: 4, fontSize: 13, color: "#595959" }}>Tìm kiếm</div>
+            <Input
+              placeholder="Tìm theo tên nghệ nhân..."
+              prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onPressEnter={() => setFilter({ ...filter, search: searchInput })}
               allowClear
-              onSearch={(value) => setFilter({ ...filter, search: value })}
+              onClear={() => setFilter({ ...filter, search: "" })}
             />
+          </Col>
+          <Col xs={24} sm={12} md={4}>
+            <Button
+              style={{ marginTop: 22 }}
+              onClick={() => setFilter({ ...filter, search: searchInput })}
+            >
+              Tìm kiếm
+            </Button>
           </Col>
         </Row>
 
-        <Row gutter={[16, 16]}>
-          {filteredArtisans.map((artisan) => (
-            <Col xs={24} sm={12} lg={8} key={artisan.id}>
-              <Card
-                hoverable
-                style={{ height: "100%" }}
-                actions={[
-                  <Button
-                    type="link"
-                    icon={<EditOutlined />}
-                    onClick={() => handleEdit(artisan)}
-                  >
-                    Sửa
-                  </Button>,
-                  <Button
-                    type="link"
-                    danger={artisan.status === "ACTIVE"}
-                    onClick={() =>
-                      handleStatusChange(
-                        artisan.id,
-                        artisan.status === "ACTIVE" ? "INACTIVE" : "ACTIVE"
-                      )
-                    }
-                  >
-                    {artisan.status === "ACTIVE" ? "Ẩn" : "Hiện"}
-                  </Button>,
-                ]}
-              >
-                <div style={{ textAlign: "center", marginBottom: 16 }}>
-                  <Avatar
-                    size={80}
-                    style={{
-                      backgroundColor: "#8B0000",
-                      marginBottom: 12,
-                    }}
-                    icon={<UserOutlined />}
-                  />
-                  <div>
-                    <h3 style={{ margin: "8px 0 4px 0", fontSize: 18, fontWeight: 600 }}>
-                      {artisan.name}
-                    </h3>
-                    <p style={{ margin: 0, color: "#8B0000", fontWeight: 500 }}>
-                      {artisan.title}
-                    </p>
-                    <Tag
-                      color={artisan.status === "ACTIVE" ? "green" : "default"}
-                      style={{ marginTop: 8 }}
-                    >
-                      {artisan.status === "ACTIVE" ? "Hoạt động" : "Không hoạt động"}
-                    </Tag>
-                  </div>
-                </div>
-                <Space direction="vertical" size="small" style={{ width: "100%" }}>
-                  <div>
-                    <TrophyOutlined style={{ marginRight: 8, color: "#8c8c8c" }} />
-                    <strong>Chuyên môn:</strong> {artisan.specialty}
-                  </div>
-                  <div>
-                    <EnvironmentOutlined style={{ marginRight: 8, color: "#8c8c8c" }} />
-                    {artisan.location}
-                  </div>
-                  <div>
-                    <TeamOutlined style={{ marginRight: 8, color: "#8c8c8c" }} />
-                    Kinh nghiệm: {artisan.experience}
-                  </div>
-                  {artisan.bio && (
-                    <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #f0f0f0" }}>
-                      <div style={{ fontSize: 12, color: "#8c8c8c" }}>{artisan.bio}</div>
-                    </div>
-                  )}
-                  <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #f0f0f0" }}>
-                    <div style={{ fontSize: 12, color: "#8c8c8c", marginBottom: 8 }}>
-                      Tour tham gia:
-                    </div>
-                    <Space wrap>
-                      {artisan.tours.length > 0 ? (
-                        artisan.tours.map((tour, idx) => (
-                          <Tag key={idx} color="blue">
-                            {tour}
-                          </Tag>
-                        ))
-                      ) : (
-                        <span style={{ fontSize: 12, color: "#8c8c8c" }}>Chưa có tour</span>
-                      )}
-                    </Space>
-                  </div>
-                </Space>
-              </Card>
-            </Col>
-          ))}
-        </Row>
+        {error && (
+          <Alert
+            message="Lỗi"
+            description={error}
+            type="error"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+        )}
+
+        {loading ? (
+          <Table
+            columns={columns}
+            dataSource={[]}
+            rowKey="id"
+            loading={loading}
+            scroll={{ x: 1200 }}
+            pagination={false}
+          />
+        ) : filteredArtisans.length === 0 ? (
+          <Empty
+            description="Chưa có nghệ nhân nào."
+            style={{ padding: "48px 0" }}
+          />
+        ) : (
+          <Table
+            columns={columns}
+            dataSource={filteredArtisans}
+            rowKey="id"
+            scroll={{ x: 1200 }}
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: (total) => `Tổng ${total} nghệ nhân`,
+            }}
+          />
+        )}
       </Card>
 
+      {/* Modal Chi tiết */}
       <Modal
-        title={isEditMode ? "Chỉnh sửa nghệ nhân" : "Thêm nghệ nhân mới"}
-        open={isModalOpen}
+        title="Chi tiết nghệ nhân"
+        open={detailModalOpen}
         onCancel={() => {
-          setIsModalOpen(false);
-          setIsEditMode(false);
+          setDetailModalOpen(false);
           setSelectedArtisan(null);
-          form.resetFields();
         }}
-        footer={null}
-        width={600}
+        footer={[
+          <Button
+            key="close"
+            onClick={() => {
+              setDetailModalOpen(false);
+              setSelectedArtisan(null);
+            }}
+          >
+            Đóng
+          </Button>,
+        ]}
+        width={800}
       >
-        <Form form={form} layout="vertical" onFinish={handleCreateOrUpdate}>
-          <Form.Item label="Tên nghệ nhân" name="name" rules={[{ required: true }]}>
-            <Input placeholder="Nhập tên nghệ nhân" />
-          </Form.Item>
-          <Form.Item label="Chức danh" name="title" rules={[{ required: true }]}>
-            <Input placeholder="VD: Nghệ nhân Cồng chiêng" />
-          </Form.Item>
-          <Form.Item label="Chuyên môn" name="specialty" rules={[{ required: true }]}>
-            <Input.TextArea rows={3} placeholder="Mô tả chuyên môn..." />
-          </Form.Item>
-          <Form.Item label="Tiểu sử" name="bio">
-            <Input.TextArea rows={3} placeholder="Nhập tiểu sử nghệ nhân..." />
-          </Form.Item>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="Địa điểm" name="location" rules={[{ required: true }]}>
-                <Select placeholder="Chọn địa điểm">
-                  <Select.Option value="Đắk Lắk">Đắk Lắk</Select.Option>
-                  <Select.Option value="Gia Lai">Gia Lai</Select.Option>
-                  <Select.Option value="Kon Tum">Kon Tum</Select.Option>
-                  <Select.Option value="Đắk Nông">Đắk Nông</Select.Option>
-                  <Select.Option value="Lâm Đồng">Lâm Đồng</Select.Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Kinh nghiệm" name="experience" rules={[{ required: true }]}>
-                <Input placeholder="VD: 40 năm" />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Form.Item label="Ảnh đại diện" name="image">
-            <Upload
-              listType="picture-card"
-              maxCount={1}
-              beforeUpload={() => false}
-              accept="image/*"
-            >
-              <div>
-                <UploadOutlined />
-                <div style={{ marginTop: 8 }}>Upload</div>
-              </div>
-            </Upload>
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit">
-                {isEditMode ? "Cập nhật" : "Tạo"}
-              </Button>
-              <Button
-                onClick={() => {
-                  setIsModalOpen(false);
-                  setIsEditMode(false);
-                  setSelectedArtisan(null);
-                  form.resetFields();
-                }}
-              >
-                Hủy
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
+        {selectedArtisan && (
+          <PersonDetailCard
+            avatarUrl={selectedArtisan.profileImageUrl}
+            name={selectedArtisan.name}
+            subtitle={selectedArtisan.title}
+            status={selectedArtisan.status}
+            infoSections={[
+              {
+                rows: [
+                  { label: "Chuyên môn", value: selectedArtisan.specialty, icon: <TrophyOutlined /> },
+                  { label: "Địa điểm", value: selectedArtisan.location, icon: <EnvironmentOutlined /> },
+                  { label: "Địa chỉ xưởng", value: selectedArtisan.workshopAddress || "Chưa có", icon: <HomeOutlined /> },
+                  {
+                    label: "Kinh nghiệm / Đánh giá",
+                    value: (
+                      <>
+                        {selectedArtisan.experience} · {(selectedArtisan.averageRating || 0).toFixed(1)}/5 (
+                        {selectedArtisan.totalTours || 0} tour)
+                      </>
+                    ),
+                    icon: <CalendarOutlined />,
+                  },
+                ],
+              },
+              {
+                title: "Giới thiệu",
+                rows: [{ label: "", value: selectedArtisan.bio || "Chưa có" }],
+              },
+            ]}
+            extraContent={
+              selectedArtisan.images && selectedArtisan.images.length > 0 ? (
+                <Card size="small" title="Hình ảnh" style={{ marginTop: 20, borderRadius: 12, border: "1px solid #e8e8e8" }} styles={{ body: { padding: 16 } }}>
+                  <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                    {selectedArtisan.images.map((img, i) => (
+                      <img key={i} src={img} alt="" style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 8 }} />
+                    ))}
+                  </div>
+                </Card>
+              ) : undefined
+            }
+          />
+        )}
       </Modal>
     </Space>
   );

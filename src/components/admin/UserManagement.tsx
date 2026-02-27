@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
+  App,
   Card,
   Table,
   Button,
@@ -12,9 +13,10 @@ import {
   Modal,
   Form,
   Input,
-  message,
-  Spin,
   Alert,
+  DatePicker,
+  Popconfirm,
+  Empty,
 } from "antd";
 import {
   PlusOutlined,
@@ -24,14 +26,21 @@ import {
   MailOutlined,
   EyeOutlined,
   PhoneOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import PersonDetailCard from "./PersonDetailCard";
 import type { ColumnsType } from "antd/es/table";
 import {
   getAdminUsers,
+  createUser,
   updateUser,
+  deleteUser,
   type AdminUser,
 } from "../../services/adminApi";
+import { getApiErrorMessage } from "../../services/api";
+import dayjs from "dayjs";
 
 interface User {
   key: string;
@@ -57,234 +66,231 @@ const roleConfig: Record<string, { label: string; color: string }> = {
   ARTISAN: { label: "Nghệ nhân", color: "purple" },
 };
 
+const statusConfig: Record<string, { label: string; color: string }> = {
+  ACTIVE: { label: "Hoạt động", color: "green" },
+  LOCKED: { label: "Đã khóa", color: "red" },
+  INACTIVE: { label: "Không hoạt động", color: "default" },
+};
+
+const genderMap: Record<string, string> = {
+  MALE: "Nam",
+  FEMALE: "Nữ",
+  OTHER: "Khác",
+};
+
 export default function UserManagement() {
+  const { message } = App.useApp();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [filter, setFilter] = useState<{ role: string; status: string }>({
+  const [filter, setFilter] = useState<{
+    role: string;
+    status: string;
+    search: string;
+  }>({
     role: "all",
     status: "all",
+    search: "",
   });
+  const [searchInput, setSearchInput] = useState("");
+
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [form] = Form.useForm();
+  const [editForm] = Form.useForm();
+  const [submitting, setSubmitting] = useState(false);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const params: {
-        role?: string;
-        status?: string;
-      } = {};
-
-      if (filter.role !== "all") {
-        params.role = filter.role;
-      }
-      if (filter.status !== "all") {
-        params.status = filter.status;
-      }
-
-      console.log(
-        "[UserManagement] 🚀 Starting fetchUsers with params:",
-        params,
-      );
+      const params: { role?: string; status?: string; search?: string } = {};
+      if (filter.role !== "all") params.role = filter.role;
+      if (filter.status !== "all") params.status = filter.status;
+      if (filter.search?.trim()) params.search = filter.search.trim();
 
       const response = await getAdminUsers(params);
-      console.log("[UserManagement] ✅ API response received:", response);
-      console.log(
-        "[UserManagement] ✅ API response.data:",
-        JSON.stringify(response.data, null, 2),
-      );
-
-      if (!response || !response.data || !Array.isArray(response.data)) {
-        console.error(
-          "[UserManagement] ❌ Invalid API response format:",
-          response,
-        );
+      if (!response?.data || !Array.isArray(response.data)) {
         throw new Error("Invalid API response format");
       }
 
-      console.log(
-        "[UserManagement] ✅ Processing",
-        response.data.length,
-        "users",
-      );
-
       const mappedUsers: User[] = response.data
         .filter(
-          (user: AdminUser) =>
-            user.role === "CUSTOMER" || user.role === "USER",
+          (user: AdminUser) => user.role === "CUSTOMER" || user.role === "USER",
         )
-        .map((user: AdminUser, index: number) => {
-          console.log(
-            `[UserManagement] 📝 Mapping user ${index + 1}:`,
-            JSON.stringify(user, null, 2),
-          );
-
-          // Ensure all required fields are present
-          if (!user.id || !user.fullName || !user.email) {
-            console.warn("[UserManagement] ⚠️ Invalid user data:", user);
-          }
-
-          const mappedUser = {
-            key: user.id.toString(),
-            id: user.id.toString(),
-            username: user.username || "",
-            name: user.fullName || "",
-            email: user.email || "",
-            phone: user.phone,
-            avatarUrl: user.avatarUrl,
-            dateOfBirth: user.dateOfBirth,
-            gender: user.gender,
-            role: user.role || "CUSTOMER",
-            status:
-              user.status === "LOCKED"
-                ? "LOCKED"
-                : user.status === "INACTIVE"
-                  ? "INACTIVE"
-                  : "ACTIVE",
-            createdAt: user.createdAt
-              ? new Date(user.createdAt).toLocaleDateString("vi-VN")
-              : "-",
-            lastLogin: user.lastLogin
-              ? new Date(user.lastLogin).toLocaleDateString("vi-VN")
-              : undefined,
-          };
-
-          console.log(
-            `[UserManagement] ✅ Mapped user ${index + 1}:`,
-            JSON.stringify(mappedUser, null, 2),
-          );
-          return mappedUser;
-        },
-      );
-
-      console.log(
-        "[UserManagement] ✅ All mapped users:",
-        JSON.stringify(mappedUsers, null, 2),
-      );
+        .map((user: AdminUser) => ({
+          key: user.id.toString(),
+          id: user.id.toString(),
+          username: user.username || "",
+          name: user.fullName || "",
+          email: user.email || "",
+          phone: user.phone,
+          avatarUrl: user.avatarUrl,
+          dateOfBirth: user.dateOfBirth,
+          gender: user.gender,
+          role: (user.role || "CUSTOMER") as User["role"],
+          status:
+            user.status === "LOCKED"
+              ? "LOCKED"
+              : user.status === "INACTIVE"
+                ? "INACTIVE"
+                : "ACTIVE",
+          createdAt: user.createdAt
+            ? new Date(user.createdAt).toLocaleDateString("vi-VN")
+            : "-",
+          lastLogin: user.lastLogin
+            ? new Date(user.lastLogin).toLocaleDateString("vi-VN")
+            : undefined,
+        }));
       setUsers(mappedUsers);
-    } catch (err: any) {
-      console.error("=".repeat(80));
-      console.error(
-        "[UserManagement] ❌ ========== API ERROR START ==========",
-      );
-      console.error("[UserManagement] ❌ Error type:", typeof err);
-      console.error("[UserManagement] ❌ Error name:", err?.name);
-      console.error("[UserManagement] ❌ Error message:", err?.message);
-      console.error("[UserManagement] ❌ Error code:", err?.code);
-
-      // Check for CORS error
-      if (
-        err?.code === "ERR_NETWORK" ||
-        err?.message?.includes("CORS") ||
-        err?.message?.includes("Network Error")
-      ) {
-        console.error("[UserManagement] ❌ ⚠️ CORS ERROR DETECTED!");
-        console.error(
-          "[UserManagement] ❌ This is likely a CORS policy issue from the backend",
-        );
-        console.error(
-          "[UserManagement] ❌ Backend needs to allow requests from:",
-          window.location.origin,
-        );
-      }
-
-      console.error("[UserManagement] ❌ Error response:", err?.response);
-      console.error(
-        "[UserManagement] ❌ Error response data:",
-        err?.response?.data,
-      );
-      console.error(
-        "[UserManagement] ❌ Error response status:",
-        err?.response?.status,
-      );
-      console.error(
-        "[UserManagement] ❌ Error response headers:",
-        err?.response?.headers,
-      );
-      console.error("[UserManagement] ❌ Error config:", err?.config);
-      console.error("[UserManagement] ❌ Error config URL:", err?.config?.url);
-      console.error(
-        "[UserManagement] ❌ Error config baseURL:",
-        err?.config?.baseURL,
-      );
-      console.error(
-        "[UserManagement] ❌ Error config headers:",
-        err?.config?.headers,
-      );
-      console.error(
-        "[UserManagement] ❌ Full error object:",
-        JSON.stringify(err, Object.getOwnPropertyNames(err), 2),
-      );
-      console.error("[UserManagement] ❌ ========== API ERROR END ==========");
-      console.error("=".repeat(80));
-
-      let errorMessage =
-        err?.response?.data?.message ||
-        err?.message ||
+    } catch (err: unknown) {
+      const errMsg =
+        (err as any)?.response?.data?.message ||
+        (err as Error)?.message ||
         "Không thể tải dữ liệu member. Vui lòng thử lại sau.";
-
-      // Add CORS-specific message
-      if (
-        err?.code === "ERR_NETWORK" ||
-        err?.message?.includes("CORS") ||
-        err?.message?.includes("Network Error")
-      ) {
-        errorMessage =
-          "Lỗi CORS: Backend không cho phép request từ origin này. Vui lòng kiểm tra cấu hình CORS trên server.";
-      }
-
-      setError(errorMessage);
-      message.error(errorMessage);
+      setError(errMsg);
+      message.error(errMsg);
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter.role, filter.status, filter.search, message]);
 
   useEffect(() => {
     fetchUsers();
-  }, [filter.role, filter.status]);
+  }, [fetchUsers]);
 
-  const filteredUsers = users.filter((user) => {
-    if (filter.role !== "all" && user.role !== filter.role) return false;
-    if (filter.status !== "all" && user.status !== filter.status) return false;
-    return true;
-  });
+  const hasActiveFilters =
+    filter.role !== "all" ||
+    filter.status !== "all" ||
+    (filter.search?.trim()?.length ?? 0) > 0;
 
-  const handleStatusChange = async (
-    id: string,
-    newStatus: "ACTIVE" | "LOCKED" | "INACTIVE",
-  ) => {
+  const handleClearFilters = () => {
+    setFilter({ role: "all", status: "all", search: "" });
+    setSearchInput("");
+  };
+
+  const handleView = (record: User) => {
+    setSelectedUser(record);
+    setDetailModalOpen(true);
+  };
+
+  const handleEdit = (record: User) => {
+    setSelectedUser(record);
+    editForm.setFieldsValue({
+      username: record.username,
+      email: record.email,
+      fullName: record.name,
+      phone: record.phone,
+      dateOfBirth: record.dateOfBirth ? dayjs(record.dateOfBirth) : null,
+      role: record.role,
+    });
+    setEditModalOpen(true);
+  };
+
+  const handleToggleLock = async (record: User) => {
+    const newStatus = record.status === "ACTIVE" ? "LOCKED" : "ACTIVE";
     try {
-      await updateUser(parseInt(id), { status: newStatus });
-      setUsers(
-        users.map((user) =>
-          user.id === id ? { ...user, status: newStatus } : user,
-        ),
+      await updateUser(parseInt(record.id), { status: newStatus });
+      message.success(
+        newStatus === "LOCKED" ? "Đã khóa member" : "Đã mở khóa member",
       );
-      message.success("Cập nhật trạng thái thành công");
+      fetchUsers();
     } catch (err) {
-      console.error("[UserManagement] ❌ Update status error:", err);
-      message.error("Cập nhật trạng thái thất bại");
+      message.error(getApiErrorMessage(err) || "Cập nhật trạng thái thất bại");
     }
   };
 
-  const handleRoleChange = async (id: string, newRole: User["role"]) => {
+  const handleDeleteUser = async (id: string) => {
     try {
-      await updateUser(parseInt(id), { role: newRole });
-      setUsers(
-        users.map((user) =>
-          user.id === id ? { ...user, role: newRole } : user,
-        ),
-      );
-      message.success("Cập nhật vai trò thành công");
+      await deleteUser(parseInt(id));
+      message.success("Đã xóa member");
+      setEditModalOpen(false);
+      setSelectedUser(null);
+      fetchUsers();
     } catch (err) {
-      console.error("[UserManagement] ❌ Update role error:", err);
-      message.error("Cập nhật vai trò thất bại");
+      message.error(getApiErrorMessage(err) || "Xóa member thất bại");
+      throw err;
+    }
+  };
+
+  const handleResetPassword = (_record: User) => {
+    Modal.info({
+      title: "Reset mật khẩu",
+      content: (
+        <div>
+          <p>
+            Backend hiện chưa hỗ trợ admin reset mật khẩu cho user khác. Endpoint{" "}
+            <code>POST /api/users/change-password</code> chỉ dùng để user đổi mật
+            khẩu của chính mình (cần oldPassword).
+          </p>
+          <p style={{ marginTop: 8 }}>
+            <strong>Giải pháp tạm thời:</strong> Member có thể đổi mật khẩu tại
+            trang Profile (Đổi mật khẩu) với mật khẩu hiện tại.
+          </p>
+          <p style={{ marginTop: 8, color: "#8c8c8c" }}>
+            Yêu cầu backend thêm endpoint:{" "}
+            <code>POST /api/admin/users/{"{id}"}/reset-password</code> với body{" "}
+            <code>{"{ newPassword }"}</code>
+          </p>
+        </div>
+      ),
+      okText: "Đã hiểu",
+    });
+  };
+
+  const handleCreate = async () => {
+    try {
+      const values = await form.validateFields();
+      setSubmitting(true);
+      await createUser({
+        username: values.username,
+        email: values.email,
+        phone: values.phone || "",
+        password: values.password,
+        fullName: values.fullName,
+        dateOfBirth: values.dateOfBirth
+          ? dayjs(values.dateOfBirth).format("YYYY-MM-DD")
+          : undefined,
+      });
+      message.success("Đã tạo member thành công");
+      setIsModalOpen(false);
+      form.resetFields();
+      fetchUsers();
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "errorFields" in err) return;
+      message.error(getApiErrorMessage(err) || "Tạo member thất bại");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedUser) return;
+    try {
+      const values = await editForm.validateFields();
+      setSubmitting(true);
+      await updateUser(parseInt(selectedUser.id), {
+        username: values.username,
+        email: values.email,
+        fullName: values.fullName,
+        phone: values.phone || undefined,
+        dateOfBirth: values.dateOfBirth
+          ? dayjs(values.dateOfBirth).format("YYYY-MM-DD")
+          : undefined,
+        role: values.role,
+      });
+      message.success("Cập nhật member thành công");
+      setEditModalOpen(false);
+      setSelectedUser(null);
+      fetchUsers();
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "errorFields" in err) return;
+      message.error(getApiErrorMessage(err) || "Cập nhật thất bại");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -311,7 +317,7 @@ export default function UserManagement() {
             </div>
             {record.phone && (
               <div style={{ fontSize: 12, color: "#8c8c8c" }}>
-                📞 {record.phone}
+                <PhoneOutlined /> {record.phone}
               </div>
             )}
           </div>
@@ -322,27 +328,21 @@ export default function UserManagement() {
       title: "Vai trò",
       dataIndex: "role",
       key: "role",
-      render: (role: string, record) => (
-        <Select
-          value={role}
-          onChange={(value) => handleRoleChange(record.id, value)}
-          style={{ width: 150 }}
-        >
-          <Select.Option value="CUSTOMER">Khách hàng</Select.Option>
-          <Select.Option value="USER">Người dùng</Select.Option>
-        </Select>
-      ),
+      width: 140,
+      render: (role: string) => {
+        const config = roleConfig[role] || {
+          label: role,
+          color: "default",
+        };
+        return <Tag color={config.color}>{config.label}</Tag>;
+      },
     },
     {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
+      width: 130,
       render: (status: string) => {
-        const statusConfig: Record<string, { label: string; color: string }> = {
-          ACTIVE: { label: "Hoạt động", color: "green" },
-          LOCKED: { label: "Đã khóa", color: "red" },
-          INACTIVE: { label: "Không hoạt động", color: "default" },
-        };
         const config = statusConfig[status] || {
           label: status,
           color: "default",
@@ -363,52 +363,31 @@ export default function UserManagement() {
       title: "Giới tính",
       key: "gender",
       width: 100,
-      render: (_, record) => {
-        const genderMap: Record<string, string> = {
-          MALE: "Nam",
-          FEMALE: "Nữ",
-          OTHER: "Khác",
-        };
-        return record.gender ? genderMap[record.gender] || record.gender : "-";
-      },
+      render: (_, record) =>
+        record.gender ? genderMap[record.gender] || record.gender : "-",
     },
     {
       title: "Thao tác",
       key: "action",
+      width: 140,
+      fixed: "right",
       render: (_, record) => (
-        <Space direction="vertical" size="small">
+        <Space size="small">
           <Button
             type="link"
             icon={<EyeOutlined />}
             size="small"
-            onClick={() => {
-              setSelectedUser(record);
-              setDetailModalOpen(true);
-            }}
+            onClick={() => handleView(record)}
           >
             Xem
           </Button>
-          <Button type="link" icon={<KeyOutlined />} size="small">
-            Reset mật khẩu
-          </Button>
           <Button
             type="link"
-            icon={
-              record.status === "ACTIVE" ? <LockOutlined /> : <UnlockOutlined />
-            }
+            icon={<EditOutlined />}
             size="small"
-            danger={record.status === "ACTIVE"}
-            onClick={() => {
-              const newStatus =
-                record.status === "ACTIVE" ? "LOCKED" : "ACTIVE";
-              handleStatusChange(record.id, newStatus);
-            }}
+            onClick={() => handleEdit(record)}
           >
-            {record.status === "ACTIVE"
-              ? "Khóa"
-              : record.status === "LOCKED"
-                ? "Mở khóa"
-                : "Kích hoạt"}
+            Sửa
           </Button>
         </Space>
       ),
@@ -416,7 +395,7 @@ export default function UserManagement() {
   ];
 
   return (
-    <Space direction="vertical" size="large" style={{ width: "100%" }}>
+    <Space orientation="vertical" size="large" style={{ width: "100%" }}>
       <Card>
         <Row gutter={[16, 16]} align="middle">
           <Col flex="auto">
@@ -440,40 +419,66 @@ export default function UserManagement() {
       </Card>
 
       <Card>
-        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+        <Row gutter={[16, 16]} align="middle" style={{ marginBottom: 16 }}>
           <Col xs={24} sm={12} md={6}>
+            <div style={{ marginBottom: 4, fontSize: 13, color: "#595959" }}>
+              Vai trò
+            </div>
             <Select
               style={{ width: "100%" }}
-              placeholder="Vai trò"
+              placeholder="Tất cả vai trò"
               value={filter.role}
               onChange={(value) => setFilter({ ...filter, role: value })}
             >
-              <Select.Option value="all">Tất cả</Select.Option>
+              <Select.Option value="all">Tất cả vai trò</Select.Option>
               <Select.Option value="CUSTOMER">Khách hàng</Select.Option>
               <Select.Option value="USER">Người dùng</Select.Option>
             </Select>
           </Col>
           <Col xs={24} sm={12} md={6}>
+            <div style={{ marginBottom: 4, fontSize: 13, color: "#595959" }}>
+              Trạng thái
+            </div>
             <Select
               style={{ width: "100%" }}
-              placeholder="Trạng thái"
+              placeholder="Tất cả trạng thái"
               value={filter.status}
               onChange={(value) => setFilter({ ...filter, status: value })}
             >
-              <Select.Option value="all">Tất cả</Select.Option>
+              <Select.Option value="all">Tất cả trạng thái</Select.Option>
               <Select.Option value="ACTIVE">Hoạt động</Select.Option>
               <Select.Option value="LOCKED">Đã khóa</Select.Option>
               <Select.Option value="INACTIVE">Không hoạt động</Select.Option>
             </Select>
           </Col>
+          <Col xs={24} sm={12} md={8}>
+            <div style={{ marginBottom: 4, fontSize: 13, color: "#595959" }}>
+              Tìm kiếm
+            </div>
+            <Input
+              placeholder="Tìm theo tên, email, username..."
+              prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onPressEnter={() => setFilter({ ...filter, search: searchInput })}
+              allowClear
+              onClear={() => {
+                setSearchInput("");
+                setFilter({ ...filter, search: "" });
+              }}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={4}>
+            <Button
+              style={{ marginTop: 22 }}
+              onClick={() => setFilter({ ...filter, search: searchInput })}
+            >
+              Tìm kiếm
+            </Button>
+          </Col>
         </Row>
 
-        {loading ? (
-          <div style={{ textAlign: "center", padding: "40px" }}>
-            <Spin size="large" />
-            <p style={{ marginTop: 16 }}>Đang tải dữ liệu...</p>
-          </div>
-        ) : error ? (
+        {error && (
           <Alert
             message="Lỗi"
             description={error}
@@ -481,16 +486,41 @@ export default function UserManagement() {
             showIcon
             style={{ marginBottom: 16 }}
           />
-        ) : filteredUsers.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "40px" }}>
-            <p style={{ color: "#8c8c8c" }}>Không tìm thấy member nào.</p>
-          </div>
+        )}
+
+        {loading ? (
+          <Table
+            columns={columns}
+            dataSource={[]}
+            rowKey="id"
+            loading={loading}
+            scroll={{ x: 1100 }}
+            pagination={false}
+          />
+        ) : users.length === 0 ? (
+          <Empty
+            description={
+              <span>
+                {hasActiveFilters
+                  ? "Không tìm thấy member nào phù hợp với bộ lọc."
+                  : "Chưa có member nào."}
+              </span>
+            }
+            style={{ padding: "48px 0" }}
+          >
+            {hasActiveFilters && (
+              <Button type="primary" onClick={handleClearFilters}>
+                Xóa bộ lọc
+              </Button>
+            )}
+          </Empty>
         ) : (
           <Table
             columns={columns}
-            dataSource={filteredUsers}
+            dataSource={users}
             rowKey="id"
-            scroll={{ x: 1200 }}
+            loading={loading}
+            scroll={{ x: 1100 }}
             pagination={{
               pageSize: 10,
               showSizeChanger: true,
@@ -509,6 +539,17 @@ export default function UserManagement() {
         }}
         footer={[
           <Button
+            key="edit"
+            type="primary"
+            icon={<EditOutlined />}
+            onClick={() => {
+              setDetailModalOpen(false);
+              if (selectedUser) handleEdit(selectedUser);
+            }}
+          >
+            Chỉnh sửa
+          </Button>,
+          <Button
             key="close"
             onClick={() => {
               setDetailModalOpen(false);
@@ -524,7 +565,9 @@ export default function UserManagement() {
           <PersonDetailCard
             avatarUrl={selectedUser.avatarUrl}
             name={selectedUser.name}
-            subtitle={selectedUser.username ? `@${selectedUser.username}` : undefined}
+            subtitle={
+              selectedUser.username ? `@${selectedUser.username}` : undefined
+            }
             status={selectedUser.status}
             statusLabel={
               selectedUser.status === "ACTIVE"
@@ -548,12 +591,15 @@ export default function UserManagement() {
                   },
                   {
                     label: "Vai trò",
-                    value: roleConfig[selectedUser.role]?.label || selectedUser.role,
+                    value:
+                      roleConfig[selectedUser.role]?.label || selectedUser.role,
                   },
                   {
                     label: "Ngày sinh",
                     value: selectedUser.dateOfBirth
-                      ? new Date(selectedUser.dateOfBirth).toLocaleDateString("vi-VN")
+                      ? new Date(selectedUser.dateOfBirth).toLocaleDateString(
+                          "vi-VN",
+                        )
                       : "Chưa có",
                   },
                   {
@@ -579,20 +625,50 @@ export default function UserManagement() {
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
         footer={null}
-        width={600}
+        width={560}
       >
-        <Form form={form} layout="vertical">
-          <Form.Item label="Tên" name="name" rules={[{ required: true }]}>
-            <Input />
+        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item
+            label="Tên đăng nhập"
+            name="username"
+            rules={[{ required: true, message: "Vui lòng nhập username" }]}
+          >
+            <Input placeholder="username" />
+          </Form.Item>
+          <Form.Item
+            label="Họ tên"
+            name="fullName"
+            rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
+          >
+            <Input placeholder="Nguyễn Văn A" />
           </Form.Item>
           <Form.Item
             label="Email"
             name="email"
-            rules={[{ required: true, type: "email" }]}
+            rules={[
+              { required: true, message: "Vui lòng nhập email" },
+              { type: "email", message: "Email không hợp lệ" },
+            ]}
           >
-            <Input />
+            <Input type="email" placeholder="email@example.com" />
           </Form.Item>
-          <Form.Item label="Vai trò" name="role" rules={[{ required: true }]}>
+          <Form.Item label="Số điện thoại" name="phone">
+            <Input placeholder="0901234567" />
+          </Form.Item>
+          <Form.Item
+            label="Mật khẩu"
+            name="password"
+            rules={[
+              { required: true, message: "Vui lòng nhập mật khẩu" },
+              { min: 6, message: "Mật khẩu tối thiểu 6 ký tự" },
+            ]}
+          >
+            <Input.Password placeholder="••••••••" />
+          </Form.Item>
+          <Form.Item label="Ngày sinh" name="dateOfBirth">
+            <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+          </Form.Item>
+          <Form.Item label="Vai trò" name="role" initialValue="USER">
             <Select>
               <Select.Option value="CUSTOMER">Khách hàng</Select.Option>
               <Select.Option value="USER">Người dùng</Select.Option>
@@ -602,12 +678,150 @@ export default function UserManagement() {
             <Space>
               <Button
                 type="primary"
-                onClick={() => message.success("Đã tạo member thành công")}
+                onClick={handleCreate}
+                loading={submitting}
               >
                 Tạo
               </Button>
               <Button onClick={() => setIsModalOpen(false)}>Hủy</Button>
             </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Chỉnh sửa member"
+        open={editModalOpen}
+        onCancel={() => {
+          setEditModalOpen(false);
+          setSelectedUser(null);
+        }}
+        footer={
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <Space>
+              <Popconfirm
+                title="Reset mật khẩu"
+                description="Member sẽ phải đăng nhập lại bằng mật khẩu mới. Tiếp tục?"
+                onConfirm={() =>
+                  selectedUser && handleResetPassword(selectedUser)
+                }
+                okText="Đồng ý"
+                cancelText="Hủy"
+              >
+                <Button icon={<KeyOutlined />}>Reset mật khẩu</Button>
+              </Popconfirm>
+              {selectedUser?.status === "ACTIVE" ? (
+                <Popconfirm
+                  title="Khóa member"
+                  description="Member sẽ không thể đăng nhập cho đến khi được mở khóa."
+                  onConfirm={() =>
+                    selectedUser && handleToggleLock(selectedUser)
+                  }
+                  okText="Đồng ý"
+                  cancelText="Hủy"
+                  okButtonProps={{ danger: true }}
+                >
+                  <Button danger icon={<LockOutlined />}>
+                    Khóa
+                  </Button>
+                </Popconfirm>
+              ) : selectedUser?.status === "LOCKED" ? (
+                <Popconfirm
+                  title="Mở khóa member"
+                  description="Member sẽ có thể đăng nhập lại."
+                  onConfirm={() =>
+                    selectedUser && handleToggleLock(selectedUser)
+                  }
+                  okText="Đồng ý"
+                  cancelText="Hủy"
+                >
+                  <Button icon={<UnlockOutlined />}>Mở khóa</Button>
+                </Popconfirm>
+              ) : selectedUser?.status === "INACTIVE" ? (
+                <Popconfirm
+                  title="Kích hoạt member"
+                  description="Member sẽ có thể đăng nhập lại."
+                  onConfirm={() =>
+                    selectedUser && handleToggleLock(selectedUser)
+                  }
+                  okText="Đồng ý"
+                  cancelText="Hủy"
+                >
+                  <Button icon={<UnlockOutlined />}>Kích hoạt</Button>
+                </Popconfirm>
+              ) : null}
+              <Popconfirm
+                title="Xóa member"
+                description="Bạn có chắc muốn xóa member này? Hành động này không thể hoàn tác."
+                onConfirm={() =>
+                  selectedUser && handleDeleteUser(selectedUser.id)
+                }
+                okText="Xóa"
+                cancelText="Hủy"
+                okButtonProps={{ danger: true }}
+              >
+                <Button danger icon={<DeleteOutlined />}>
+                  Xóa
+                </Button>
+              </Popconfirm>
+            </Space>
+            <Space>
+              <Button
+                onClick={() => {
+                  setEditModalOpen(false);
+                  setSelectedUser(null);
+                }}
+              >
+                Hủy
+              </Button>
+              <Button
+                type="primary"
+                onClick={handleSaveEdit}
+                loading={submitting}
+              >
+                Lưu
+              </Button>
+            </Space>
+          </div>
+        }
+        width={560}
+      >
+        <Form form={editForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item
+            label="Tên đăng nhập"
+            name="username"
+            rules={[{ required: true, message: "Vui lòng nhập tên đăng nhập" }]}
+          >
+            <Input placeholder="username" />
+          </Form.Item>
+          <Form.Item
+            label="Email"
+            name="email"
+            rules={[
+              { required: true, message: "Vui lòng nhập email" },
+              { type: "email", message: "Email không hợp lệ" },
+            ]}
+          >
+            <Input type="email" placeholder="email@example.com" />
+          </Form.Item>
+          <Form.Item
+            label="Họ tên"
+            name="fullName"
+            rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item label="Số điện thoại" name="phone">
+            <Input />
+          </Form.Item>
+          <Form.Item label="Ngày sinh" name="dateOfBirth">
+            <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+          </Form.Item>
+          <Form.Item label="Vai trò" name="role" rules={[{ required: true }]}>
+            <Select>
+              <Select.Option value="CUSTOMER">Khách hàng</Select.Option>
+              <Select.Option value="USER">Người dùng</Select.Option>
+            </Select>
           </Form.Item>
         </Form>
       </Modal>

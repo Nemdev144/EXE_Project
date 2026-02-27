@@ -1,6 +1,7 @@
 import React, { ReactNode, useState } from "react";
 import { Link, useLocation, Outlet } from "react-router-dom";
 import {
+  App,
   ConfigProvider,
   Layout,
   Menu,
@@ -13,7 +14,6 @@ import {
   Button,
   Divider,
   Typography,
-  message,
 } from "antd";
 import type { MenuProps } from "antd";
 import {
@@ -33,6 +33,7 @@ import {
   QuestionCircleOutlined,
   GlobalOutlined,
   IdcardOutlined,
+  BookOutlined,
 } from "@ant-design/icons";
 import { antdTheme } from "../../config/antd-theme";
 
@@ -84,6 +85,11 @@ const menuItems: MenuProps["items"] = [
     icon: <MailOutlined />,
     label: <Link to="/admin/emails">Email Templates</Link>,
   },
+  {
+    key: "/admin/learn",
+    icon: <BookOutlined />,
+    label: <Link to="/admin/learn">Quản lý Học nhanh</Link>,
+  },
 ];
 
 const pageTitles: Record<string, string> = {
@@ -95,6 +101,7 @@ const pageTitles: Record<string, string> = {
   "/admin/users": "Quản lý Member",
   "/admin/staff": "Quản lý Staff",
   "/admin/emails": "Email Templates",
+  "/admin/learn": "Quản lý Học nhanh",
 };
 
 const breadcrumbMap: Record<string, { title: string; path?: string }[]> = {
@@ -106,13 +113,14 @@ const breadcrumbMap: Record<string, { title: string; path?: string }[]> = {
   "/admin/users": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Member" }],
   "/admin/staff": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Staff" }],
   "/admin/emails": [{ title: "Dashboard", path: "/admin" }, { title: "Email Templates" }],
+  "/admin/learn": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Học nhanh" }],
 };
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
-  // Support both children (legacy) and Outlet (React Router v6)
+function AdminLayoutContent({ children }: AdminLayoutProps) {
   const content = children || <Outlet />;
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { message } = App.useApp();
 
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
@@ -202,7 +210,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const breadcrumbItems = breadcrumbMap[currentPath] || [{ title: "Dashboard" }];
 
   return (
-    <ConfigProvider theme={antdTheme}>
       <Layout style={{ minHeight: "100vh", background: "#f5f5f5" }}>
         <Sider
           trigger={null}
@@ -345,7 +352,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 }}
               />
 
-              <Divider type="vertical" style={{ height: 32, margin: 0 }} />
+              <Divider orientation="vertical" style={{ height: 32, margin: 0 }} />
 
               <Breadcrumb
                 items={breadcrumbItems.map((item) => ({
@@ -419,7 +426,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <Dropdown
                 menu={{ items: notificationItems }}
                 placement="bottomRight"
-                overlayStyle={{ width: 320 }}
+                styles={{ root: { width: 320 } }}
                 trigger={["click"]}
               >
                 <Badge count={5} size="small" offset={[-5, 5]}>
@@ -505,6 +512,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </Content>
         </Layout>
       </Layout>
+  );
+}
+
+export default function AdminLayout(props: AdminLayoutProps) {
+  return (
+    <ConfigProvider theme={antdTheme}>
+      <App>
+        <AdminLayoutContent {...props} />
+      </App>
     </ConfigProvider>
   );
 }

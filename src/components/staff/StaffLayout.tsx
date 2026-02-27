@@ -1,6 +1,7 @@
 import React, { ReactNode, useState } from "react";
 import { Link, useLocation, Outlet } from "react-router-dom";
 import {
+  App,
   ConfigProvider,
   Layout,
   Menu,
@@ -13,7 +14,6 @@ import {
   Button,
   Divider,
   Typography,
-  message,
 } from "antd";
 import type { MenuProps } from "antd";
 import {
@@ -84,11 +84,12 @@ const breadcrumbMap: Record<string, { title: string; path?: string }[]> = {
   "/staff/content": [{ title: "Dashboard", path: "/staff" }, { title: "Quản lý Nội dung" }],
 };
 
-export default function StaffLayout({ children }: StaffLayoutProps) {
+function StaffLayoutContent({ children }: StaffLayoutProps) {
   // Support both children (legacy) and Outlet (React Router v6)
   const content = children || <Outlet />;
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { message } = App.useApp();
 
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
@@ -162,8 +163,7 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
   const breadcrumbItems = breadcrumbMap[currentPath] || [{ title: "Dashboard" }];
 
   return (
-    <ConfigProvider theme={antdTheme}>
-      <Layout style={{ minHeight: "100vh", background: "#f5f5f5" }}>
+    <Layout style={{ minHeight: "100vh", background: "#f5f5f5" }}>
         <Sider
           trigger={null}
           collapsible
@@ -305,7 +305,7 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
                 }}
               />
 
-              <Divider type="vertical" style={{ height: 32, margin: 0 }} />
+              <Divider orientation="vertical" style={{ height: 32, margin: 0 }} />
 
               <Breadcrumb
                 items={breadcrumbItems.map((item) => ({
@@ -379,7 +379,7 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
               <Dropdown
                 menu={{ items: notificationItems }}
                 placement="bottomRight"
-                overlayStyle={{ width: 320 }}
+                styles={{ root: { width: 320 } }}
                 trigger={["click"]}
               >
                 <Badge count={3} size="small" offset={[-5, 5]}>
@@ -469,6 +469,15 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
           </Content>
         </Layout>
       </Layout>
+  );
+}
+
+export default function StaffLayout(props: StaffLayoutProps) {
+  return (
+    <ConfigProvider theme={antdTheme}>
+      <App>
+        <StaffLayoutContent {...props} />
+      </App>
     </ConfigProvider>
   );
 }
