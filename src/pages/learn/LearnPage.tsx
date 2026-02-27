@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getLearnModules, getLearnCategories } from '../../services/api';
+import { getLearnModules } from '../../services/api';
 import { LearnPageContent, type LessonGroup } from '../../components/learn';
 import type { LearnModule, LearnCategory } from '../../types';
 
@@ -7,9 +7,8 @@ function slugify(name: string): string {
   return (name ?? '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'all';
 }
 
-function mapModuleToLessonGroup(m: LearnModule, categories: LearnCategory[]): LessonGroup {
-  const categorySlug =
-    categories.find((c) => c.id === m.categoryId)?.slug ?? slugify(m.categoryName ?? '');
+function mapModuleToLessonGroup(m: LearnModule): LessonGroup {
+  const categorySlug = m.categoryName ? slugify(m.categoryName) : 'all';
   return {
     id: m.id,
     title: m.title,
@@ -22,18 +21,39 @@ function mapModuleToLessonGroup(m: LearnModule, categories: LearnCategory[]): Le
   };
 }
 
+function extractCategoriesFromModules(modules: LearnModule[]): LearnCategory[] {
+  const categoryMap = new Map<number, LearnCategory>();
+  
+  modules.forEach((m, index) => {
+    if (m.categoryId && m.categoryName && !categoryMap.has(m.categoryId)) {
+      categoryMap.set(m.categoryId, {
+        id: m.categoryId,
+        name: m.categoryName,
+        slug: slugify(m.categoryName),
+        orderIndex: index,
+      });
+    }
+  });
+  
+  return Array.from(categoryMap.values()).sort((a, b) => a.orderIndex - b.orderIndex);
+}
+
 export default function LearnPage() {
   const [lessonGroups, setLessonGroups] = useState<LessonGroup[]>([]);
+  const [modules, setModules] = useState<LearnModule[]>([]);
   const [categories, setCategories] = useState<LearnCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([getLearnCategories(), getLearnModules()])
-      .then(([cats, modules]) => {
+    getLearnModules()
+      .then((mods) => {
         if (!cancelled) {
-          setCategories(cats ?? []);
-          setLessonGroups((modules ?? []).map((m) => mapModuleToLessonGroup(m, cats ?? [])));
+          const safeModules = mods ?? [];
+          setModules(safeModules);
+          const extractedCategories = extractCategoriesFromModules(safeModules);
+          setCategories(extractedCategories);
+          setLessonGroups(safeModules.map(mapModuleToLessonGroup));
         }
       })
       .catch((err) => {
@@ -49,5 +69,5 @@ export default function LearnPage() {
     return () => { cancelled = true; };
   }, []);
 
-  return <LearnPageContent lessonGroups={lessonGroups} categories={categories} loading={loading} />;
+  return <LearnPageContent lessonGroups={lessonGroups} categories={categories} modules={modules} loading={loading} />;
 }

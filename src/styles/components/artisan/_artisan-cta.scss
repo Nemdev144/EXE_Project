@@ -1,0 +1,49 @@
+@use '../../variables' as *;
+
+// ============================================
+// Artisan CTA — call-to-action banner
+// ============================================
+.artisan-cta {
+  width: 100%;
+  background: url('/paper-bg.png') center / cover repeat;
+  padding: $spacing-xl $spacing-lg $spacing-3xl;
+
+  &__box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-lg;
+    padding: $spacing-2xl $spacing-xl;
+    border: 2px solid $color-primary;
+    border-radius: $radius-2xl;
+    text-align: center;
+    background: $color-white;
+  }
+
+  &__text {
+    font-family: 'Afacad Italic', 'Afacad', sans-serif;
+    font-style: italic;
+    font-size: clamp($font-size-lg, 2.5vw, $font-size-2xl);
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.65rem 1.75rem;
+    background: $color-primary;
+    color: $color-white;
+    border: none;
+    border-radius: $radius-md;
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: background $transition-base, transform $transition-base;
+
+    &:hover {
+      background: $color-primary-hover;
+      transform: translateY(-2px);
+    }
+  }
+}

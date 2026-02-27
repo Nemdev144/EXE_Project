@@ -15,6 +15,7 @@ import BookingConfirm from "./components/tourBooking/step2";
 import PaymentPage from "./components/paymentMethods";
 import { ProfilePage } from "./components/profile";
 import { About } from "./components/about";
+import { ArtisanPage, ArtisanDetailPage } from "./components/artisan";
 import { LearnPage, LessonDetailPage, QuizPage, QuizResultsPage } from "./pages/learn";
 
 // Admin Pages
@@ -55,6 +56,8 @@ function App() {
           <Route path="/tours/:id/booking/confirm" element={<BookingConfirm />} />
           <Route path="/tours/:id/booking/payment" element={<PaymentPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/artisans" element={<ArtisanPage />} />
+          <Route path="/artisans/:id" element={<ArtisanDetailPage />} />
           <Route path="/about" element={<About />} />
           <Route path="/learn" element={<LearnPage />} />
           <Route path="/learn/:category/:slug" element={<LessonDetailPage />} />

@@ -218,16 +218,20 @@ function ModuleView({ module }: { module: LearnModule }) {
 export default function LessonDetailPage() {
   const { category } = useParams<{ category: string; slug: string }>();
   const location = useLocation();
-  const state = location.state as { moduleId?: number; lessonId?: number } | undefined;
+  const state = location.state as { moduleData?: LearnModule; moduleId?: number; lessonId?: number } | undefined;
+  const moduleData = state?.moduleData ?? null;
   const moduleId = state?.moduleId;
   const lessonId = state?.lessonId;
 
   const [lesson, setLesson] = useState<LearnLesson | null>(null);
-  const [module, setModule] = useState<LearnModule | null>(null);
-  const [loading, setLoading] = useState(!!(moduleId || lessonId));
+  const [module, setModule] = useState<LearnModule | null>(moduleData);
+  const [loading, setLoading] = useState(!moduleData && !!(moduleId || lessonId));
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // If we already have module data from route state, no need to fetch
+    if (moduleData) return;
+
     if (lessonId) {
       let cancelled = false;
       getLessonById(lessonId)
@@ -260,7 +264,7 @@ export default function LessonDetailPage() {
 
     setLoading(false);
     return undefined;
-  }, [lessonId, moduleId]);
+  }, [lessonId, moduleId, moduleData]);
 
   useEffect(() => {
     if (!lesson?.moduleId || module != null) return;

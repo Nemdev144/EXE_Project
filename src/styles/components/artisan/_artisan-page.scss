@@ -1,0 +1,10 @@
+@use '../../variables' as *;
+
+// ============================================
+// Artisan Page — wrapper
+// ============================================
+.artisan-page {
+  min-height: 100vh;
+  background: $color-gray-50;
+  overflow-x: hidden;
+}
