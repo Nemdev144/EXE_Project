@@ -15,7 +15,6 @@ import {
   message,
   Tooltip,
   Alert,
-  Statistic,
   Input,
 } from "antd";
 import {
@@ -31,6 +30,8 @@ import {
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
+import Breadcrumbs from "../Breadcrumbs";
+import TourSummaryCards from "../admin/TourSummaryCards";
 
 interface Tour {
   key: string;
@@ -445,69 +446,13 @@ export default function TourCoordination() {
 
   return (
     <Space direction="vertical" size="large" style={{ width: "100%" }}>
-      {/* Stats Cards */}
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card
-            style={{
-              background: "linear-gradient(135deg, #8B0000 0%, #a00000 100%)",
-              border: "none",
-            }}
-            bodyStyle={{ padding: 20 }}
-          >
-            <Statistic
-              title={<span style={{ color: "#fff", opacity: 0.9 }}>Tổng Tour</span>}
-              value={stats.total}
-              valueStyle={{ color: "#fff", fontSize: 28, fontWeight: 700 }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card
-            style={{
-              background: "linear-gradient(135deg, #52c41a 0%, #73d13d 100%)",
-              border: "none",
-            }}
-            bodyStyle={{ padding: 20 }}
-          >
-            <Statistic
-              title={<span style={{ color: "#fff", opacity: 0.9 }}>Mở đăng ký</span>}
-              value={stats.open}
-              valueStyle={{ color: "#fff", fontSize: 28, fontWeight: 700 }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card
-            style={{
-              background: "linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%)",
-              border: "none",
-            }}
-            bodyStyle={{ padding: 20 }}
-          >
-            <Statistic
-              title={<span style={{ color: "#fff", opacity: 0.9 }}>Không đủ người</span>}
-              value={stats.notEnough}
-              valueStyle={{ color: "#fff", fontSize: 28, fontWeight: 700 }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card
-            style={{
-              background: "linear-gradient(135deg, #faad14 0%, #ffc53d 100%)",
-              border: "none",
-            }}
-            bodyStyle={{ padding: 20 }}
-          >
-            <Statistic
-              title={<span style={{ color: "#fff", opacity: 0.9 }}>Gần hết hạn</span>}
-              value={stats.nearDeadline}
-              valueStyle={{ color: "#fff", fontSize: 28, fontWeight: 700 }}
-            />
-          </Card>
-        </Col>
-      </Row>
+      <Breadcrumbs
+        items={[
+          { label: "Dashboard", path: "/staff" },
+          { label: "Điều phối Tour" },
+        ]}
+      />
+      <TourSummaryCards stats={stats} />
 
       <Card
         style={{
