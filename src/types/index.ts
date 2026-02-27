@@ -88,6 +88,37 @@ export interface Artisan {
   updatedAt: string;
 }
 
+// Public Artisan (from /api/artisans/public)
+export interface PublicArtisanProvince {
+  id: number;
+  name: string;
+  slug: string;
+  region: string;
+  latitude: number;
+  longitude: number;
+  thumbnailUrl: string;
+  description: string;
+  isActive: boolean;
+  bestSeason: string;
+  transportation: string;
+  culturalTips: string;
+}
+
+export interface PublicArtisan {
+  id: number;
+  user: User;
+  fullName: string;
+  specialization: string;
+  bio: string;
+  province: PublicArtisanProvince;
+  workshopAddress: string;
+  profileImageUrl: string;
+  totalTours: number;
+  averageRating: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
 // Blog Post
 export interface BlogPost {
   id: number;

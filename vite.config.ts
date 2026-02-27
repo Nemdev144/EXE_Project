@@ -10,7 +10,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://exe-1-k8ma.onrender.com',
+        target: 'https://legally-actual-mollusk.ngrok-free.app',
         changeOrigin: true,
         secure: true,
       },

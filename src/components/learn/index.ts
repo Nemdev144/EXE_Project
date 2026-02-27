@@ -16,7 +16,7 @@ export {
   LessonQuickNotes,
   LessonRelated,
   LessonQuizCTA,
-} from './LessonDetail';
+} from './learnDetail';
 
 // Quiz
 export { QuizHeader, QuizQuestionCard, QuizSidebar } from './Quiz';

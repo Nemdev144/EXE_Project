@@ -39,6 +39,8 @@
 @use 'components/testimonials';
 @use 'components/layout-alt';
 @use 'components/learn' as learn-components;
+@use 'components/learnDetail' as lesson-detail-components;
+@use 'components/artisan' as artisan-components;
 
 // Pages
 @use 'pages/home';

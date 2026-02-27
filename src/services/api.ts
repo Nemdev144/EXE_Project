@@ -18,7 +18,7 @@ import type {
 // API Base Configuration
 // In dev mode Vite proxy forwards /api → backend (avoids CORS).
 // Set VITE_API_URL in .env.production for prod builds.
-const API_BASE_URL = "";
+const API_BASE_URL = "https://exe-1-k8ma.onrender.com";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -399,7 +399,7 @@ export const getModuleById = async (id: number): Promise<LearnModule> => {
   const cached = getCached<LearnModule>(key);
   if (cached !== undefined) return cached;
   const response = await api.get<ApiResponse<LearnModule>>(
-    `/api/learn/public/modules/${id}`
+    `/api/learn/public/lessons/${id}`
   );
   const data = response.data.data;
   setCached(key, data);

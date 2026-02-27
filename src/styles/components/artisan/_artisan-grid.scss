@@ -1,0 +1,89 @@
+@use '../../variables' as *;
+
+// ============================================
+// Artisan Grid — paper texture bg, full-width
+// ============================================
+.artisan-grid {
+  width: 100%;
+  background: url('/paper-bg.png') center / cover repeat;
+  padding: $spacing-3xl 0;
+
+  &__inner {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 $spacing-lg;
+  }
+
+  &__title {
+    font-family: 'iCiel Lodestone', 'Georgia', serif;
+    font-size: clamp($font-size-2xl, 3.5vw, 2.5rem);
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: center;
+    margin-bottom: $spacing-2xl;
+  }
+
+  &__list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: $spacing-2xl $spacing-xl;
+
+    @media (max-width: $breakpoint-lg) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    @media (max-width: $breakpoint-sm) {
+      grid-template-columns: 1fr;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+  }
+
+  &__empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: $color-gray-500;
+    font-size: $font-size-lg;
+    padding: $spacing-3xl 0;
+  }
+}
+
+// Skeleton helpers
+.skeleton-pulse {
+  background: linear-gradient(
+    90deg,
+    $color-gray-200 25%,
+    $color-gray-100 50%,
+    $color-gray-200 75%
+  );
+  background-size: 200% 100%;
+  animation: pulse-move 1.4s ease infinite;
+  border-radius: $radius-sm;
+}
+
+.skeleton-line {
+  height: 14px;
+  border-radius: 4px;
+  background: $color-gray-200;
+  animation: pulse-move 1.4s ease infinite;
+
+  &--name {
+    width: 60%;
+    height: 18px;
+    margin: 0 auto $spacing-xs;
+  }
+  &--spec {
+    width: 80%;
+    margin: 0 auto $spacing-xs;
+  }
+  &--link {
+    width: 40%;
+    margin: 0 auto;
+  }
+}
+
+@keyframes pulse-move {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

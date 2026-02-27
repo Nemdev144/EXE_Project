@@ -1,0 +1,134 @@
+@use 'sass:math';
+@use '../../variables' as *;
+
+// ============================================
+// Artisan Card — stamp-framed card (mockup style)
+// ============================================
+
+$stamp-color: $color-primary;
+$stamp-hole: 8px;
+$stamp-gap: 3px;
+$stamp-border: 12px;
+
+// Pre-computed helpers
+$half-hole: math.div($stamp-hole, 2);
+$step: $stamp-hole + $stamp-gap;
+$half-step: math.div($step, 2);
+$neg-half-hole: -$half-hole;
+
+.artisan-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  // ── stamp wrapper ──
+  &__stamp {
+    position: relative;
+    background: $stamp-color;
+    padding: $stamp-border;
+    border-radius: 4px;
+    width: 100%;
+
+    // Perforated stamp edges
+    &::before {
+      content: '';
+      position: absolute;
+      inset: $neg-half-hole;
+      border-radius: 4px;
+      background-image:
+        radial-gradient(circle, #eee $half-hole, transparent 0),
+        radial-gradient(circle, #eee $half-hole, transparent 0),
+        radial-gradient(circle, #eee $half-hole, transparent 0),
+        radial-gradient(circle, #eee $half-hole, transparent 0);
+      background-position:
+        $half-step $neg-half-hole,
+        $half-step calc(100% + #{$half-hole}),
+        $neg-half-hole $half-step,
+        calc(100% + #{$half-hole}) $half-step;
+      background-size: $step $step;
+      background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+      z-index: 1;
+      pointer-events: none;
+    }
+  }
+
+  &__img-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: $color-gray-200;
+    border-radius: 2px;
+  }
+
+  &__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform $transition-slow;
+  }
+
+  &:hover &__img {
+    transform: scale(1.05);
+  }
+
+  // ── info ──
+  &__info {
+    padding-top: $spacing-md;
+  }
+
+  &__name {
+    font-family: 'Afacad Italic', 'Afacad', sans-serif;
+    font-style: italic;
+    font-size: clamp($font-size-lg, 1.6vw, $font-size-xl);
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+    margin-bottom: 2px;
+  }
+
+  &__spec {
+    font-family: 'Afacad Italic', 'Afacad', sans-serif;
+    font-style: italic;
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+    margin-bottom: $spacing-xs;
+  }
+
+  &__rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: $font-size-sm;
+    color: #f59e0b;
+    margin-bottom: $spacing-xs;
+
+    svg {
+      fill: currentColor;
+    }
+  }
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    color: $color-text-secondary;
+    font-family: 'Afacad', sans-serif;
+    font-size: $font-size-sm;
+    cursor: pointer;
+    padding: 0;
+    transition: color $transition-base;
+
+    &:hover {
+      color: $color-primary;
+    }
+  }
+
+  // ── skeleton variant ──
+  &--skeleton &__img-wrap {
+    aspect-ratio: 1;
+  }
+}

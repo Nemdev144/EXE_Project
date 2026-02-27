@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
-import type { LearnCategory } from '../../types';
+import type { LearnCategory, LearnModule } from '../../types';
 import '../../styles/pages/_learn.scss';
 import '../../styles/components/_category-filter.scss';
 import '../../styles/components/_lesson-card.scss';
@@ -64,18 +64,30 @@ function CategoryFilter({ categories, activeCategorySlug, onCategoryChange }: Ca
 // ---------------------------------------------------------------------------
 interface LessonCardProps {
   lesson: LessonGroup;
+  module?: LearnModule;
 }
 
-function LessonCard({ lesson }: LessonCardProps) {
+function LessonCard({ lesson, module }: LessonCardProps) {
   const lessonUrl = `/learn/${lesson.categorySlug || 'all'}/${lesson.slug}`;
 
   return (
-    <Link to={lessonUrl} state={{ moduleId: lesson.id }} className="lesson-card">
+    <Link to={lessonUrl} state={{ moduleData: module }} className="lesson-card">
       {lesson.thumbnailUrl ? (
         <div className="lesson-card__image">
-          <img src={lesson.thumbnailUrl} alt={lesson.title} />
+          <img 
+            src={lesson.thumbnailUrl} 
+            alt={lesson.title}
+            onError={(e) => {
+              console.error('[LessonCard] Failed to load image:', lesson.thumbnailUrl);
+              (e.target as HTMLImageElement).src = '/nen.png';
+            }}
+          />
         </div>
-      ) : null}
+      ) : (
+        <div className="lesson-card__image">
+          <img src="/nen.png" alt={lesson.title} />
+        </div>
+      )}
       <div className="lesson-card__content">
         <h3 className="lesson-card__title">{lesson.title}</h3>
         <div className="lesson-card__meta">
@@ -138,10 +150,11 @@ function PromoBanner() {
 interface LearnPageContentProps {
   lessonGroups: LessonGroup[];
   categories: LearnCategory[];
+  modules?: LearnModule[];
   loading: boolean;
 }
 
-export default function LearnPageContent({ lessonGroups, categories, loading }: LearnPageContentProps) {
+export default function LearnPageContent({ lessonGroups, categories, modules = [], loading }: LearnPageContentProps) {
   const [activeCategorySlug, setActiveCategorySlug] = useState<string>('all');
 
   const filteredLessons =
@@ -182,7 +195,7 @@ export default function LearnPageContent({ lessonGroups, categories, loading }: 
         ) : (
           <div className="learn-page__grid">
             {filteredLessons.map((group) => (
-              <LessonCard key={group.id} lesson={group} />
+              <LessonCard key={group.id} lesson={group} module={modules.find((m) => m.id === group.id)} />
             ))}
           </div>
         )}
