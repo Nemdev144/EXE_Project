@@ -409,11 +409,7 @@ export const getModuleById = async (id: number): Promise<LearnModule> => {
   const cached = getCached<LearnModule>(key);
   if (cached !== undefined) return cached;
   const response = await api.get<ApiResponse<LearnModule>>(
-<<<<<<< HEAD
-    `/api/learn/public/lessons/${id}`
-=======
     `/api/learn/public/modules/${id}`,
->>>>>>> main
   );
   const data = response.data.data;
   setCached(key, data);

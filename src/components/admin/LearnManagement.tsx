@@ -18,6 +18,8 @@ import {
   Select,
   Popconfirm,
   Divider,
+  Row,
+  Col,
 } from "antd";
 import {
   BookOutlined,
@@ -28,7 +30,9 @@ import {
   EditOutlined,
   DeleteOutlined,
   PlusOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
+import LearnSummaryCards from "./LearnSummaryCards";
 import type { ColumnsType } from "antd/es/table";
 import {
   getAdminLearnCategories,
@@ -121,6 +125,11 @@ export default function LearnManagement() {
   const [quizEditModalOpen, setQuizEditModalOpen] = useState(false);
   const [quizEditData, setQuizEditData] = useState<AdminLearnQuiz | null>(null);
   const [quizEditSaving, setQuizEditSaving] = useState(false);
+
+  const [searchCategory, setSearchCategory] = useState("");
+  const [searchModule, setSearchModule] = useState("");
+  const [searchLesson, setSearchLesson] = useState("");
+  const [filterModuleCategory, setFilterModuleCategory] = useState<string>("all");
 
   const fetchCategories = async () => {
     try {
@@ -479,6 +488,40 @@ export default function LearnManagement() {
     totalQuizzes: modules.filter((m) => m.quizPrompt).length,
   };
 
+  const filteredCategories = categories.filter(
+    (c) =>
+      !searchCategory ||
+      c.name?.toLowerCase().includes(searchCategory.toLowerCase()) ||
+      c.slug?.toLowerCase().includes(searchCategory.toLowerCase()),
+  );
+
+  const filteredModules = modules.filter((m) => {
+    if (filterModuleCategory !== "all" && m.categoryId !== Number(filterModuleCategory)) return false;
+    if (
+      searchModule &&
+      !m.title?.toLowerCase().includes(searchModule.toLowerCase()) &&
+      !m.categoryName?.toLowerCase().includes(searchModule.toLowerCase())
+    )
+      return false;
+    return true;
+  });
+
+  const allLessonsRaw = modules.flatMap((m) =>
+    (m.lessons ?? []).map((l) => ({
+      ...l,
+      moduleTitle: m.title,
+      categoryName: m.categoryName,
+      moduleId: m.id,
+    })),
+  );
+
+  const filteredLessons = allLessonsRaw.filter(
+    (l) =>
+      !searchLesson ||
+      l.title?.toLowerCase().includes(searchLesson.toLowerCase()) ||
+      l.moduleTitle?.toLowerCase().includes(searchLesson.toLowerCase()),
+  );
+
   const categoryColumns: ColumnsType<AdminLearnCategory> = [
     { title: "ID", dataIndex: "id", key: "id", width: 80 },
     { title: "Tên", dataIndex: "name", key: "name", render: (t) => <strong>{t}</strong> },
@@ -570,16 +613,8 @@ export default function LearnManagement() {
     },
   ];
 
-  const allLessons = modules.flatMap((m) =>
-    (m.lessons ?? []).map((l) => ({
-      ...l,
-      moduleTitle: m.title,
-      categoryName: m.categoryName,
-      moduleId: m.id,
-    })),
-  );
-
-  const lessonColumns: ColumnsType<typeof allLessons[0]> = [
+  type LessonRow = (typeof allLessonsRaw)[number];
+  const lessonColumns: ColumnsType<LessonRow> = [
     { title: "ID", dataIndex: "id", key: "id", width: 80 },
     {
       title: "Bài học",
@@ -644,14 +679,25 @@ export default function LearnManagement() {
       ),
       children: (
         <>
-          <div style={{ marginBottom: 16 }}>
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => handleOpenCategoryForm()}>
-              Tạo danh mục
-            </Button>
-          </div>
+          <Row gutter={[16, 16]} style={{ marginBottom: 16 }} align="middle">
+            <Col xs={24} sm={12} md={10}>
+              <Input
+                placeholder="Tìm theo tên, slug..."
+                prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
+                value={searchCategory}
+                onChange={(e) => setSearchCategory(e.target.value)}
+                allowClear
+              />
+            </Col>
+            <Col xs={24} sm={12} md={14} style={{ textAlign: "right" }}>
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => handleOpenCategoryForm()}>
+                Tạo danh mục
+              </Button>
+            </Col>
+          </Row>
           <Table
             columns={categoryColumns}
-            dataSource={categories}
+            dataSource={filteredCategories}
             rowKey="id"
             loading={loading}
             pagination={{ pageSize: 10, showTotal: (t) => `Tổng ${t} danh mục` }}
@@ -669,14 +715,43 @@ export default function LearnManagement() {
       ),
       children: (
         <>
-          <div style={{ marginBottom: 16 }}>
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => handleOpenModuleForm()}>
-              Tạo module
-            </Button>
-          </div>
+          <Row gutter={[16, 16]} style={{ marginBottom: 16 }} align="middle">
+            <Col xs={24} sm={12} md={6}>
+              <div style={{ marginBottom: 4, fontSize: 13, color: "#595959" }}>Danh mục</div>
+              <Select
+                style={{ width: "100%" }}
+                placeholder="Tất cả"
+                value={filterModuleCategory}
+                onChange={setFilterModuleCategory}
+              >
+                <Select.Option value="all">Tất cả danh mục</Select.Option>
+                {categories.map((c) => (
+                  <Select.Option key={c.id} value={String(c.id)}>
+                    {c.name}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <div style={{ marginBottom: 4, fontSize: 13, color: "#595959" }}>Tìm kiếm</div>
+              <Input
+                placeholder="Tìm theo tiêu đề, danh mục..."
+                prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
+                value={searchModule}
+                onChange={(e) => setSearchModule(e.target.value)}
+                allowClear
+              />
+            </Col>
+            <Col xs={24} sm={12} md={10} style={{ textAlign: "right" }}>
+              <div style={{ marginBottom: 4, fontSize: 13, color: "transparent" }}>.</div>
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => handleOpenModuleForm()}>
+                Tạo module
+              </Button>
+            </Col>
+          </Row>
           <Table
             columns={moduleColumns}
-            dataSource={modules}
+            dataSource={filteredModules}
             rowKey="id"
             loading={loading}
             pagination={{ pageSize: 10, showTotal: (t) => `Tổng ${t} module` }}
@@ -694,14 +769,25 @@ export default function LearnManagement() {
       ),
       children: (
         <>
-          <div style={{ marginBottom: 16 }}>
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => handleOpenLessonForm()}>
-              Tạo bài học
-            </Button>
-          </div>
+          <Row gutter={[16, 16]} style={{ marginBottom: 16 }} align="middle">
+            <Col xs={24} sm={12} md={10}>
+              <Input
+                placeholder="Tìm theo tiêu đề bài học, module..."
+                prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
+                value={searchLesson}
+                onChange={(e) => setSearchLesson(e.target.value)}
+                allowClear
+              />
+            </Col>
+            <Col xs={24} sm={12} md={14} style={{ textAlign: "right" }}>
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => handleOpenLessonForm()}>
+                Tạo bài học
+              </Button>
+            </Col>
+          </Row>
           <Table
             columns={lessonColumns}
-            dataSource={allLessons}
+            dataSource={filteredLessons}
             rowKey="id"
             loading={loading}
             pagination={{ pageSize: 10, showTotal: (t) => `Tổng ${t} bài học` }}
@@ -718,64 +804,80 @@ export default function LearnManagement() {
         </span>
       ),
       children: (
-        <div style={{ padding: 24 }}>
-          <div style={{ marginBottom: 16 }}>
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenQuizCreate}>
-              Tạo quiz mới
-            </Button>
-          </div>
-          <Text type="secondary" style={{ display: "block", marginBottom: 16 }}>
-            Quiz được gắn với module. Nhấn "Tạo quiz mới" hoặc "Sửa đáp án" trên từng quiz để quản lý.
-          </Text>
-          {modules
-            .filter((m) => m.quizPrompt)
-            .map((m) => (
-              <Card
-                key={m.id}
-                size="small"
-                style={{ marginBottom: 8 }}
-                title={`${m.title} - Quiz`}
-                extra={
-                  <Space>
-                    {m.quizPrompt?.id && (
-                      <>
-                        <Button type="link" size="small" onClick={() => openQuizDetail(m.quizPrompt!.id)}>
-                          Xem
-                        </Button>
-                        <Button
-                          type="link"
-                          size="small"
-                          icon={<EditOutlined />}
-                          onClick={() => handleOpenQuizEdit(m.quizPrompt!.id)}
-                        >
-                          Sửa đáp án
-                        </Button>
-                        <Popconfirm
-                          title="Xóa quiz?"
-                          onConfirm={() => handleDeleteQuiz(m.quizPrompt!.id)}
-                          okText="Xóa"
-                          cancelText="Hủy"
-                        >
-                          <Button type="link" size="small" danger>
-                            Xóa
+        <div>
+          <Row gutter={[16, 16]} style={{ marginBottom: 20 }} align="middle">
+            <Col flex="auto">
+              <Text type="secondary">
+                Quiz được gắn với module. Tạo quiz mới hoặc sửa đáp án trên từng quiz.
+              </Text>
+            </Col>
+            <Col>
+              <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenQuizCreate}>
+                Tạo quiz mới
+              </Button>
+            </Col>
+          </Row>
+          <Row gutter={[16, 16]}>
+            {modules
+              .filter((m) => m.quizPrompt)
+              .map((m) => (
+                <Col xs={24} md={12} lg={8} key={m.id}>
+                  <Card
+                    hoverable
+                    style={{
+                      borderRadius: 12,
+                      border: "1px solid #e5e7eb",
+                      height: "100%",
+                    }}
+                    styles={{ body: { padding: 20 } }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                      <div>
+                        <div style={{ fontSize: 15, fontWeight: 600, color: "#1f2937" }}>{m.title}</div>
+                        <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
+                          {m.quizPrompt?.totalQuestions} câu · {m.quizPrompt?.timeLimitMinutes} phút
+                        </div>
+                      </div>
+                      <Tag color="green">Quiz</Tag>
+                    </div>
+                    <Space>
+                      {m.quizPrompt?.id && (
+                        <>
+                          <Button type="link" size="small" onClick={() => openQuizDetail(m.quizPrompt!.id)}>
+                            Xem
                           </Button>
-                        </Popconfirm>
-                      </>
-                    )}
-                  </Space>
-                }
-              >
-                <div>
-                  {m.quizPrompt?.totalQuestions} câu · {m.quizPrompt?.timeLimitMinutes} phút
-                </div>
-              </Card>
-            ))}
+                          <Button
+                            type="link"
+                            size="small"
+                            icon={<EditOutlined />}
+                            onClick={() => handleOpenQuizEdit(m.quizPrompt!.id)}
+                          >
+                            Sửa đáp án
+                          </Button>
+                          <Popconfirm
+                            title="Xóa quiz?"
+                            onConfirm={() => handleDeleteQuiz(m.quizPrompt!.id)}
+                            okText="Xóa"
+                            cancelText="Hủy"
+                          >
+                            <Button type="link" size="small" danger>
+                              Xóa
+                            </Button>
+                          </Popconfirm>
+                        </>
+                      )}
+                    </Space>
+                  </Card>
+                </Col>
+              ))}
+          </Row>
           {stats.totalQuizzes === 0 && (
             <Alert
               message="Chưa có quiz nào"
               description="Nhấn 'Tạo quiz mới' để thêm quiz cho module."
               type="info"
               showIcon
+              style={{ marginTop: 16 }}
             />
           )}
         </div>
@@ -910,14 +1012,20 @@ export default function LearnManagement() {
 
   return (
     <Space direction="vertical" size="large" style={{ width: "100%" }}>
-      <div>
+      <LearnSummaryCards stats={stats} />
+
+      <div style={{ marginBottom: 8 }}>
         <Title level={2} style={{ margin: 0, fontWeight: 700, color: "#1a1a1a" }}>
-          Quản lý Học nhanh (Learn)
+          Quản lý Học nhanh
         </Title>
         <Text type="secondary" style={{ fontSize: 16 }}>
-          Tạo mới, chỉnh sửa danh mục, module, bài học và quiz (đáp án)
+          Quản lý danh mục, module, bài học và quiz. Tạo mới, chỉnh sửa và xóa nội dung học tập.
         </Text>
       </div>
+
+      {error && (
+        <Alert message="Lỗi" description={error} type="error" showIcon style={{ marginBottom: 16 }} />
+      )}
 
       <Card
         style={{
@@ -925,31 +1033,15 @@ export default function LearnManagement() {
           border: "1px solid #e5e7eb",
           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
         }}
+        bodyStyle={{ padding: 24 }}
       >
-        <div style={{ display: "flex", gap: 24, marginBottom: 24, flexWrap: "wrap" }}>
-          <div style={{ minWidth: 120, padding: 16, background: "#f9fafb", borderRadius: 12 }}>
-            <div style={{ fontSize: 24, fontWeight: 700, color: "#1f2937" }}>{stats.totalCategories}</div>
-            <div style={{ fontSize: 13, color: "#6b7280" }}>Danh mục</div>
-          </div>
-          <div style={{ minWidth: 120, padding: 16, background: "#f9fafb", borderRadius: 12 }}>
-            <div style={{ fontSize: 24, fontWeight: 700, color: "#1f2937" }}>{stats.totalModules}</div>
-            <div style={{ fontSize: 13, color: "#6b7280" }}>Module</div>
-          </div>
-          <div style={{ minWidth: 120, padding: 16, background: "#f9fafb", borderRadius: 12 }}>
-            <div style={{ fontSize: 24, fontWeight: 700, color: "#1f2937" }}>{stats.totalLessons}</div>
-            <div style={{ fontSize: 13, color: "#6b7280" }}>Bài học</div>
-          </div>
-          <div style={{ minWidth: 120, padding: 16, background: "#f9fafb", borderRadius: 12 }}>
-            <div style={{ fontSize: 24, fontWeight: 700, color: "#1f2937" }}>{stats.totalQuizzes}</div>
-            <div style={{ fontSize: 13, color: "#6b7280" }}>Quiz</div>
-          </div>
-        </div>
-
-        {error && (
-          <Alert message="Lỗi" description={error} type="error" showIcon style={{ marginBottom: 16 }} />
-        )}
-
-        <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          items={tabItems}
+          size="large"
+          style={{ marginTop: 8 }}
+        />
       </Card>
 
       {/* Modal Chi tiết */}
