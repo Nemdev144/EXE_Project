@@ -90,11 +90,11 @@ export default function TourDetail() {
 
   /* ---------- Derived data ---------- */
   const festivals = cultureItems.filter(
-    (c) => c.category === 'FESTIVAL' || c.category === 'DANCE' || c.category === 'LEGEND',
+    (c) => c.category === 'FESTIVAL',
   );
   const foodItems = cultureItems.filter((c) => c.category === 'FOOD');
   const highlights = cultureItems.filter(
-    (c) => c.category === 'CRAFT' || c.category === 'INSTRUMENT' || c.category === 'COSTUME',
+    (c) => c.category === 'CRAFT',
   );
   const videoItem = cultureItems.find((c) => c.videoUrl);
 

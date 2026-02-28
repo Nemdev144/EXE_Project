@@ -17,10 +17,7 @@ function formatDuration(hours: number): string {
 }
 
 export default function PaymentSidebar({ tour, bookingDetails }: PaymentSidebarProps) {
-  const adultTotal = bookingDetails.adults * tour.price;
-  const childPrice = Math.round(tour.price * 0.3);
-  const childTotal = bookingDetails.children * childPrice;
-  const totalPrice = adultTotal + childTotal;
+  const totalPrice = bookingDetails.participants * tour.price;
 
   return (
     <div className="payment-sidebar">
@@ -45,15 +42,9 @@ export default function PaymentSidebar({ tour, bookingDetails }: PaymentSidebarP
         {/* Price breakdown */}
         <div className="payment-sidebar__pricing">
           <div className="payment-sidebar__price-row">
-            <span>Giá Người lớn × {bookingDetails.adults}</span>
-            <strong>{formatPrice(adultTotal)} VND</strong>
+            <span>{formatPrice(tour.price)} × {bookingDetails.participants} người</span>
+            <strong>{formatPrice(totalPrice)} VND</strong>
           </div>
-          {bookingDetails.children > 0 && (
-            <div className="payment-sidebar__price-row">
-              <span>Giá Trẻ em × {bookingDetails.children}</span>
-              <strong>{formatPrice(childTotal)} VND</strong>
-            </div>
-          )}
         </div>
 
         <div className="payment-sidebar__total">

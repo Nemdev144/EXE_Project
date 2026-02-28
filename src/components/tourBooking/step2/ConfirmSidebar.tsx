@@ -18,10 +18,7 @@ export default function ConfirmSidebar({
   onConfirm,
   onBack,
 }: ConfirmSidebarProps) {
-  const adultTotal = bookingDetails.adults * tour.price;
-  const childPrice = Math.round(tour.price * 0.3);
-  const childTotal = bookingDetails.children * childPrice;
-  const totalPrice = adultTotal + childTotal;
+  const totalPrice = bookingDetails.participants * tour.price;
 
   const [infoChecked, setInfoChecked] = useState(false);
   const [termsChecked, setTermsChecked] = useState(false);
@@ -35,15 +32,9 @@ export default function ConfirmSidebar({
 
         <div className="confirm-sidebar__price-rows">
           <div className="confirm-sidebar__price-row">
-            <span>Giá Người lớn × {bookingDetails.adults}</span>
-            <strong>{formatPrice(adultTotal)} VND</strong>
+            <span>{formatPrice(tour.price)} × {bookingDetails.participants} người</span>
+            <strong>{formatPrice(totalPrice)} VND</strong>
           </div>
-          {bookingDetails.children > 0 && (
-            <div className="confirm-sidebar__price-row">
-              <span>Giá Trẻ em × {bookingDetails.children}</span>
-              <strong>{formatPrice(childTotal)} VND</strong>
-            </div>
-          )}
         </div>
 
         <div className="confirm-sidebar__total">

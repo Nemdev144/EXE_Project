@@ -6,8 +6,7 @@ export type TourType = 'individual' | 'group' | 'family';
 
 export interface BookingDetailsData {
   departureDate: Date | null;
-  adults: number;
-  children: number;
+  participants: number;
   specialRequirements: string;
   tourType: TourType;
   notes: string;
@@ -89,9 +88,9 @@ export default function BookingDetails({ value, onChange }: BookingDetailsProps)
     );
   };
 
-  const updateCount = (field: 'adults' | 'children', delta: number) => {
-    const newVal = Math.max(field === 'adults' ? 1 : 0, value[field] + delta);
-    onChange({ ...value, [field]: newVal });
+  const updateParticipants = (delta: number) => {
+    const newVal = Math.max(1, value.participants + delta);
+    onChange({ ...value, participants: newVal });
   };
 
   const tourTypes: { key: TourType; label: string }[] = [
@@ -165,25 +164,13 @@ export default function BookingDetails({ value, onChange }: BookingDetailsProps)
         </label>
         <div className="booking-details__participants">
           <div className="booking-details__participant-row">
-            <span>Người lớn</span>
+            <span>Số người</span>
             <div className="booking-details__counter">
-              <button type="button" onClick={() => updateCount('adults', -1)} className="booking-details__counter-btn">
+              <button type="button" onClick={() => updateParticipants(-1)} className="booking-details__counter-btn">
                 <Minus size={14} />
               </button>
-              <span className="booking-details__counter-value">{value.adults}</span>
-              <button type="button" onClick={() => updateCount('adults', 1)} className="booking-details__counter-btn">
-                <Plus size={14} />
-              </button>
-            </div>
-          </div>
-          <div className="booking-details__participant-row">
-            <span>Trẻ em</span>
-            <div className="booking-details__counter">
-              <button type="button" onClick={() => updateCount('children', -1)} className="booking-details__counter-btn">
-                <Minus size={14} />
-              </button>
-              <span className="booking-details__counter-value">{value.children}</span>
-              <button type="button" onClick={() => updateCount('children', 1)} className="booking-details__counter-btn">
+              <span className="booking-details__counter-value">{value.participants}</span>
+              <button type="button" onClick={() => updateParticipants(1)} className="booking-details__counter-btn">
                 <Plus size={14} />
               </button>
             </div>

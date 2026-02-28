@@ -19,7 +19,7 @@ interface QuizResultsState {
 }
 
 export default function QuizResultsPage() {
-  const { category, slug } = useParams<{ category: string; slug: string }>();
+  const { moduleId } = useParams<{ moduleId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -30,9 +30,9 @@ export default function QuizResultsPage() {
 
   useEffect(() => {
     if (!questions.length) {
-      navigate(`/learn/${category ?? ''}/${slug ?? ''}`, { replace: true });
+      navigate(`/learn/${moduleId ?? ''}`, { replace: true });
     }
-  }, [questions.length, category, slug, navigate]);
+  }, [questions.length, moduleId, navigate]);
 
   const totalCount = questions.length;
   const hasCorrectFromApi = questions.some(
@@ -75,7 +75,7 @@ export default function QuizResultsPage() {
 
   const breadcrumbItems = [
     { label: 'Học nhanh', path: '/learn' },
-    { label: category ?? 'Bài học', path: `/learn/${category ?? ''}` },
+    { label: 'Bài học', path: `/learn/${moduleId ?? ''}` },
     { label: 'Kết quả Quiz' },
   ];
 
@@ -126,8 +126,8 @@ export default function QuizResultsPage() {
               timeSpent={timeSpent}
               correctCount={correctCount}
               totalCount={totalCount}
-              retakeUrl={`/learn/${category}/${slug}/quiz${state?.quizId ? `?quizId=${state.quizId}` : ''}`}
-              backUrl={`/learn/${category}/${slug}`}
+              retakeUrl={`/learn/${moduleId}/quiz${state?.quizId ? `?quizId=${state.quizId}` : ''}`}
+              backUrl={`/learn/${moduleId}`}
             />
           </div>
         </div>

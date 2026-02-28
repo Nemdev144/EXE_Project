@@ -25,10 +25,7 @@ function formatDate(date: Date | null): string {
 }
 
 export default function BookingSidebar({ tour, bookingDetails }: BookingSidebarProps) {
-  const adultTotal = bookingDetails.adults * tour.price;
-  const childPrice = Math.round(tour.price * 0.3);
-  const childTotal = bookingDetails.children * childPrice;
-  const totalPrice = adultTotal + childTotal;
+  const totalPrice = bookingDetails.participants * tour.price;
 
   return (
     <div className="booking-sidebar">
@@ -63,15 +60,9 @@ export default function BookingSidebar({ tour, bookingDetails }: BookingSidebarP
         <div className="booking-sidebar__pricing">
           <h4 className="booking-sidebar__pricing-title">Giá tham chiếu</h4>
           <div className="booking-sidebar__price-row">
-            <span>Người lớn x {bookingDetails.adults}</span>
-            <strong>{formatPrice(adultTotal)} VND</strong>
+            <span>{formatPrice(tour.price)} × {bookingDetails.participants} người</span>
+            <strong>{formatPrice(totalPrice)} VND</strong>
           </div>
-          {bookingDetails.children > 0 && (
-            <div className="booking-sidebar__price-row">
-              <span>Trẻ em x {bookingDetails.children}</span>
-              <strong>{formatPrice(childTotal)} VND</strong>
-            </div>
-          )}
           <div className="booking-sidebar__price-total">
             <span>Tổng tạm tính</span>
             <strong>{formatPrice(totalPrice)} VND</strong>

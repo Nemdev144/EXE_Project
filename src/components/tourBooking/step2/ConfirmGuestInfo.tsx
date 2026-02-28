@@ -18,11 +18,8 @@ function formatDateFull(date: Date | null): string {
   return `${dayName}, ${dd}/${mm}/${yyyy}`;
 }
 
-function buildParticipantSummary(adults: number, children: number): string {
-  const parts: string[] = [];
-  if (adults > 0) parts.push(`Người lớn ${adults < 10 ? '0' : ''}${adults}`);
-  if (children > 0) parts.push(`Trẻ em ${children < 10 ? '0' : ''}${children}`);
-  return parts.join(' • ');
+function buildParticipantSummary(participants: number): string {
+  return `${participants} người`;
 }
 
 export default function ConfirmGuestInfo({
@@ -51,7 +48,7 @@ export default function ConfirmGuestInfo({
         <div className="confirm-guest-info__row">
           <span className="confirm-guest-info__key">Số lượng</span>
           <span className="confirm-guest-info__value">
-            {buildParticipantSummary(bookingDetails.adults, bookingDetails.children)}
+            {buildParticipantSummary(bookingDetails.participants)}
           </span>
         </div>
       </div>

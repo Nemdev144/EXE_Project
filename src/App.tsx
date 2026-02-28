@@ -61,9 +61,9 @@ function App() {
           <Route path="/artisans/:id" element={<ArtisanDetailPage />} />
           <Route path="/about" element={<About />} />
           <Route path="/learn" element={<LearnPage />} />
-          <Route path="/learn/:category/:slug" element={<LessonDetailPage />} />
-          <Route path="/learn/:category/:slug/quiz" element={<QuizPage />} />
-          <Route path="/learn/:category/:slug/quiz/results" element={<QuizResultsPage />} />
+          <Route path="/learn/:moduleId" element={<LessonDetailPage />} />
+          <Route path="/learn/:moduleId/quiz" element={<QuizPage />} />
+          <Route path="/learn/:moduleId/quiz/results" element={<QuizResultsPage />} />
         </Route>
 
         {/* Admin Routes */}
