@@ -34,6 +34,7 @@ import {
   GlobalOutlined,
   IdcardOutlined,
   BookOutlined,
+  GiftOutlined,
 } from "@ant-design/icons";
 import { antdTheme } from "../../config/antd-theme";
 
@@ -90,6 +91,11 @@ const menuItems: MenuProps["items"] = [
     icon: <BookOutlined />,
     label: <Link to="/admin/learn">Quản lý Học nhanh</Link>,
   },
+  {
+    key: "/admin/vouchers",
+    icon: <GiftOutlined />,
+    label: <Link to="/admin/vouchers">Quản lý Voucher</Link>,
+  },
 ];
 
 const pageTitles: Record<string, string> = {
@@ -102,18 +108,47 @@ const pageTitles: Record<string, string> = {
   "/admin/staff": "Quản lý Staff",
   "/admin/emails": "Email Templates",
   "/admin/learn": "Quản lý Học nhanh",
+  "/admin/vouchers": "Quản lý Voucher",
 };
 
 const breadcrumbMap: Record<string, { title: string; path?: string }[]> = {
   "/admin": [{ title: "Dashboard" }],
-  "/admin/content": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Nội dung" }],
-  "/admin/tours": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Tour" }],
-  "/admin/bookings": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Booking" }],
-  "/admin/artisans": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Nghệ nhân" }],
-  "/admin/users": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Member" }],
-  "/admin/staff": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Staff" }],
-  "/admin/emails": [{ title: "Dashboard", path: "/admin" }, { title: "Email Templates" }],
-  "/admin/learn": [{ title: "Dashboard", path: "/admin" }, { title: "Quản lý Học nhanh" }],
+  "/admin/content": [
+    { title: "Dashboard", path: "/admin" },
+    { title: "Quản lý Nội dung" },
+  ],
+  "/admin/tours": [
+    { title: "Dashboard", path: "/admin" },
+    { title: "Quản lý Tour" },
+  ],
+  "/admin/bookings": [
+    { title: "Dashboard", path: "/admin" },
+    { title: "Quản lý Booking" },
+  ],
+  "/admin/artisans": [
+    { title: "Dashboard", path: "/admin" },
+    { title: "Quản lý Nghệ nhân" },
+  ],
+  "/admin/users": [
+    { title: "Dashboard", path: "/admin" },
+    { title: "Quản lý Member" },
+  ],
+  "/admin/staff": [
+    { title: "Dashboard", path: "/admin" },
+    { title: "Quản lý Staff" },
+  ],
+  "/admin/emails": [
+    { title: "Dashboard", path: "/admin" },
+    { title: "Email Templates" },
+  ],
+  "/admin/learn": [
+    { title: "Dashboard", path: "/admin" },
+    { title: "Quản lý Học nhanh" },
+  ],
+  "/admin/vouchers": [
+    { title: "Dashboard", path: "/admin" },
+    { title: "Quản lý Voucher" },
+  ],
 };
 
 function AdminLayoutContent({ children }: AdminLayoutProps) {
@@ -163,7 +198,9 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
           <Text type="secondary" style={{ fontSize: 12 }}>
             Nguyễn Văn A đã đặt tour Lễ hội Cồng chiêng
           </Text>
-          <div style={{ fontSize: 11, color: "#8c8c8c", marginTop: 4 }}>5 phút trước</div>
+          <div style={{ fontSize: 11, color: "#8c8c8c", marginTop: 4 }}>
+            5 phút trước
+          </div>
         </div>
       ),
     },
@@ -171,11 +208,15 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
       key: "2",
       label: (
         <div style={{ padding: "8px 0" }}>
-          <div style={{ fontWeight: 500, marginBottom: 4 }}>Tour sắp hết hạn</div>
+          <div style={{ fontWeight: 500, marginBottom: 4 }}>
+            Tour sắp hết hạn
+          </div>
           <Text type="secondary" style={{ fontSize: 12 }}>
             Tour Ẩm thực Tây Nguyên còn 2 ngày
           </Text>
-          <div style={{ fontSize: 11, color: "#8c8c8c", marginTop: 4 }}>1 giờ trước</div>
+          <div style={{ fontSize: 11, color: "#8c8c8c", marginTop: 4 }}>
+            1 giờ trước
+          </div>
         </div>
       ),
     },
@@ -183,11 +224,15 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
       key: "3",
       label: (
         <div style={{ padding: "8px 0" }}>
-          <div style={{ fontWeight: 500, marginBottom: 4 }}>Nội dung chờ duyệt</div>
+          <div style={{ fontWeight: 500, marginBottom: 4 }}>
+            Nội dung chờ duyệt
+          </div>
           <Text type="secondary" style={{ fontSize: 12 }}>
             Có 3 nội dung mới chờ duyệt
           </Text>
-          <div style={{ fontSize: 11, color: "#8c8c8c", marginTop: 4 }}>2 giờ trước</div>
+          <div style={{ fontSize: 11, color: "#8c8c8c", marginTop: 4 }}>
+            2 giờ trước
+          </div>
         </div>
       ),
     },
@@ -207,311 +252,334 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
   ];
 
   const currentPath = location.pathname;
-  const breadcrumbItems = breadcrumbMap[currentPath] || [{ title: "Dashboard" }];
+  const breadcrumbItems = breadcrumbMap[currentPath] || [
+    { title: "Dashboard" },
+  ];
 
   return (
-      <Layout style={{ minHeight: "100vh", background: "#f5f5f5" }}>
-        <Sider
-          trigger={null}
-          collapsible
-          collapsed={collapsed}
-          width={260}
-          collapsedWidth={80}
+    <Layout style={{ minHeight: "100vh", background: "#f5f5f5" }}>
+      <Sider
+        trigger={null}
+        collapsible
+        collapsed={collapsed}
+        width={260}
+        collapsedWidth={80}
+        style={{
+          overflow: "auto",
+          height: "100vh",
+          position: "fixed",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          background: "#fff",
+          boxShadow: "2px 0 8px rgba(0,0,0,0.1)",
+          transition: "all 0.3s cubic-bezier(0.2, 0, 0, 1)",
+          zIndex: 1000,
+        }}
+      >
+        <div
           style={{
-            overflow: "auto",
-            height: "100vh",
-            position: "fixed",
-            left: 0,
-            top: 0,
-            bottom: 0,
-            background: "#fff",
-            boxShadow: "2px 0 8px rgba(0,0,0,0.1)",
+            height: 64,
+            padding: "16px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: collapsed ? "center" : "flex-start",
+            gap: 12,
+            borderBottom: "1px solid #f0f0f0",
             transition: "all 0.3s cubic-bezier(0.2, 0, 0, 1)",
-            zIndex: 1000,
+          }}
+        >
+          <img
+            src="/logo.png"
+            alt="Cội Việt Logo"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 8,
+              objectFit: "contain",
+              flexShrink: 0,
+            }}
+          />
+          {!collapsed && (
+            <div
+              style={{
+                opacity: collapsed ? 0 : 1,
+                transition: "opacity 0.2s ease-in-out",
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+              }}
+            >
+              <div
+                style={{ fontWeight: "bold", fontSize: 16, color: "#262626" }}
+              >
+                Cội Việt
+              </div>
+              <div style={{ fontSize: 12, color: "#8c8c8c" }}>Admin Panel</div>
+            </div>
+          )}
+        </div>
+        <Menu
+          mode="inline"
+          selectedKeys={[currentPath]}
+          items={menuItems}
+          style={{
+            borderRight: 0,
+            padding: "12px 8px",
+            transition: "all 0.3s cubic-bezier(0.2, 0, 0, 1)",
+          }}
+        />
+        <div
+          style={{
+            padding: "8px",
+            borderTop: "1px solid #f0f0f0",
+            transition: "all 0.3s cubic-bezier(0.2, 0, 0, 1)",
+          }}
+        >
+          <Menu
+            mode="inline"
+            items={[
+              {
+                key: "logout",
+                icon: <LogoutOutlined />,
+                label: collapsed ? null : "Đăng xuất",
+                danger: true,
+              },
+            ]}
+            style={{ borderRight: 0 }}
+            onClick={(info) => {
+              if (info.key === "logout") {
+                handleLogout();
+              }
+            }}
+          />
+        </div>
+      </Sider>
+
+      <Layout
+        style={{
+          marginLeft: collapsed ? 80 : 260,
+          transition: "all 0.3s cubic-bezier(0.2, 0, 0, 1)",
+          minHeight: "100vh",
+        }}
+      >
+        <Header
+          style={{
+            padding: "0 24px",
+            background: "#fff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+            position: "sticky",
+            top: 0,
+            zIndex: 999,
+            height: 64,
+            borderBottom: "1px solid #f0f0f0",
           }}
         >
           <div
-            style={{
-              height: 64,
-              padding: "16px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: collapsed ? "center" : "flex-start",
-              gap: 12,
-              borderBottom: "1px solid #f0f0f0",
-              transition: "all 0.3s cubic-bezier(0.2, 0, 0, 1)",
-            }}
+            style={{ display: "flex", alignItems: "center", gap: 16, flex: 1 }}
           >
-            <img
-              src="/logo.png"
-              alt="Cội Việt Logo"
+            <Button
+              type="text"
+              icon={React.createElement(
+                collapsed ? MenuUnfoldOutlined : MenuFoldOutlined,
+                {
+                  style: { fontSize: 18 },
+                },
+              )}
+              onClick={() => setCollapsed(!collapsed)}
               style={{
                 width: 40,
                 height: 40,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 borderRadius: 8,
-                objectFit: "contain",
-                flexShrink: 0,
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#f5f5f5";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
               }}
             />
-            {!collapsed && (
-              <div
-                style={{
-                  opacity: collapsed ? 0 : 1,
-                  transition: "opacity 0.2s ease-in-out",
-                  overflow: "hidden",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                <div style={{ fontWeight: "bold", fontSize: 16, color: "#262626" }}>
-                  Cội Việt
-                </div>
-                <div style={{ fontSize: 12, color: "#8c8c8c" }}>Admin Panel</div>
-              </div>
-            )}
-          </div>
-          <Menu
-            mode="inline"
-            selectedKeys={[currentPath]}
-            items={menuItems}
-            style={{
-              borderRight: 0,
-              padding: "12px 8px",
-              transition: "all 0.3s cubic-bezier(0.2, 0, 0, 1)",
-            }}
-          />
-          <div
-            style={{
-              padding: "8px",
-              borderTop: "1px solid #f0f0f0",
-              transition: "all 0.3s cubic-bezier(0.2, 0, 0, 1)",
-            }}
-          >
-            <Menu
-              mode="inline"
-              items={[
-                {
-                  key: "logout",
-                  icon: <LogoutOutlined />,
-                  label: collapsed ? null : "Đăng xuất",
-                  danger: true,
-                },
-              ]}
-              style={{ borderRight: 0 }}
-              onClick={(info) => {
-                if (info.key === "logout") {
-                  handleLogout();
-                }
-              }}
+
+            <Divider orientation="vertical" style={{ height: 32, margin: 0 }} />
+
+            <Breadcrumb
+              items={breadcrumbItems.map((item) => ({
+                title: item.path ? (
+                  <Link to={item.path}>{item.title}</Link>
+                ) : (
+                  item.title
+                ),
+              }))}
+              style={{ fontSize: 14 }}
             />
-          </div>
-        </Sider>
 
-        <Layout
-          style={{
-            marginLeft: collapsed ? 80 : 260,
-            transition: "all 0.3s cubic-bezier(0.2, 0, 0, 1)",
-            minHeight: "100vh",
-          }}
-        >
-          <Header
-            style={{
-              padding: "0 24px",
-              background: "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-              position: "sticky",
-              top: 0,
-              zIndex: 999,
-              height: 64,
-              borderBottom: "1px solid #f0f0f0",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 16, flex: 1 }}>
-              <Button
-                type="text"
-                icon={React.createElement(collapsed ? MenuUnfoldOutlined : MenuFoldOutlined, {
-                  style: { fontSize: 18 },
-                })}
-                onClick={() => setCollapsed(!collapsed)}
+            <div style={{ flex: 1, maxWidth: 400, marginLeft: "auto" }}>
+              <Input
+                placeholder="Tìm kiếm..."
+                prefix={<SearchOutlined style={{ color: "#8c8c8c" }} />}
                 style={{
-                  width: 40,
-                  height: 40,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: 8,
-                  transition: "all 0.2s ease",
+                  borderRadius: 20,
+                  border: "1px solid #e8e8e8",
+                  transition: "all 0.2s",
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#f5f5f5";
+                onFocus={(e) => {
+                  e.target.style.borderColor = "#8B0000";
+                  e.target.style.boxShadow = "0 0 0 2px rgba(139, 0, 0, 0.1)";
                 }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "transparent";
+                onBlur={(e) => {
+                  e.target.style.borderColor = "#e8e8e8";
+                  e.target.style.boxShadow = "none";
                 }}
               />
-
-              <Divider orientation="vertical" style={{ height: 32, margin: 0 }} />
-
-              <Breadcrumb
-                items={breadcrumbItems.map((item) => ({
-                  title: item.path ? <Link to={item.path}>{item.title}</Link> : item.title,
-                }))}
-                style={{ fontSize: 14 }}
-              />
-
-              <div style={{ flex: 1, maxWidth: 400, marginLeft: "auto" }}>
-                <Input
-                  placeholder="Tìm kiếm..."
-                  prefix={<SearchOutlined style={{ color: "#8c8c8c" }} />}
-                  style={{
-                    borderRadius: 20,
-                    border: "1px solid #e8e8e8",
-                    transition: "all 0.2s",
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = "#8B0000";
-                    e.target.style.boxShadow = "0 0 0 2px rgba(139, 0, 0, 0.1)";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = "#e8e8e8";
-                    e.target.style.boxShadow = "none";
-                  }}
-                />
-              </div>
             </div>
+          </div>
 
-            <Space size="middle" style={{ marginLeft: 24 }}>
-              <Button
-                type="text"
-                icon={<QuestionCircleOutlined />}
-                style={{
-                  width: 40,
-                  height: 40,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: 8,
-                }}
-                title="Trợ giúp"
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#f5f5f5";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                }}
-              />
+          <Space size="middle" style={{ marginLeft: 24 }}>
+            <Button
+              type="text"
+              icon={<QuestionCircleOutlined />}
+              style={{
+                width: 40,
+                height: 40,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 8,
+              }}
+              title="Trợ giúp"
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#f5f5f5";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
+            />
 
-              <Button
-                type="text"
-                icon={<GlobalOutlined />}
-                style={{
-                  width: 40,
-                  height: 40,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: 8,
-                }}
-                title="Ngôn ngữ"
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#f5f5f5";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                }}
-              />
+            <Button
+              type="text"
+              icon={<GlobalOutlined />}
+              style={{
+                width: 40,
+                height: 40,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 8,
+              }}
+              title="Ngôn ngữ"
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#f5f5f5";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
+            />
 
-              <Dropdown
-                menu={{ items: notificationItems }}
-                placement="bottomRight"
-                styles={{ root: { width: 320 } }}
-                trigger={["click"]}
-              >
-                <Badge count={5} size="small" offset={[-5, 5]}>
-                  <Button
-                    type="text"
-                    icon={<BellOutlined style={{ fontSize: 18 }} />}
-                    style={{
-                      width: 40,
-                      height: 40,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderRadius: 8,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#f5f5f5";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                    }}
-                  />
-                </Badge>
-              </Dropdown>
-
-              <Dropdown 
-                menu={{ 
-                  items: userMenuItems,
-                  onClick: (info) => {
-                    if (info.key === "logout") {
-                      handleLogout();
-                    }
-                  }
-                }} 
-                placement="bottomRight" 
-                trigger={["click"]}
-              >
-                <Space
+            <Dropdown
+              menu={{ items: notificationItems }}
+              placement="bottomRight"
+              styles={{ root: { width: 320 } }}
+              trigger={["click"]}
+            >
+              <Badge count={5} size="small" offset={[-5, 5]}>
+                <Button
+                  type="text"
+                  icon={<BellOutlined style={{ fontSize: 18 }} />}
                   style={{
-                    cursor: "pointer",
-                    padding: "8px 12px",
+                    width: 40,
+                    height: 40,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     borderRadius: 8,
-                    transition: "all 0.2s ease",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#fafafa";
+                    e.currentTarget.style.backgroundColor = "#f5f5f5";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = "transparent";
                   }}
-                >
-                  <Avatar
-                    size={40}
-                    style={{
-                      backgroundColor: "#8B0000",
-                      flexShrink: 0,
-                    }}
-                  >
-                    A
-                  </Avatar>
-                  <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.5 }}>
-                    <span style={{ fontSize: 14, fontWeight: 500, color: "#262626" }}>
-                      Admin User
-                    </span>
-                    <span style={{ fontSize: 12, color: "#8c8c8c" }}>admin@coiviet.com</span>
-                  </div>
-                </Space>
-              </Dropdown>
-            </Space>
-          </Header>
+                />
+              </Badge>
+            </Dropdown>
 
-          <Content
-            style={{
-              margin: "24px",
-              padding: 24,
-              background: "#fff",
-              borderRadius: 12,
-              minHeight: "calc(100vh - 112px)",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-              transition: "all 0.3s cubic-bezier(0.2, 0, 0, 1)",
-            }}
-          >
-            {content}
-          </Content>
-        </Layout>
+            <Dropdown
+              menu={{
+                items: userMenuItems,
+                onClick: (info) => {
+                  if (info.key === "logout") {
+                    handleLogout();
+                  }
+                },
+              }}
+              placement="bottomRight"
+              trigger={["click"]}
+            >
+              <Space
+                style={{
+                  cursor: "pointer",
+                  padding: "8px 12px",
+                  borderRadius: 8,
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#fafafa";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }}
+              >
+                <Avatar
+                  size={40}
+                  style={{
+                    backgroundColor: "#8B0000",
+                    flexShrink: 0,
+                  }}
+                >
+                  A
+                </Avatar>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  <span
+                    style={{ fontSize: 14, fontWeight: 500, color: "#262626" }}
+                  >
+                    Admin User
+                  </span>
+                  <span style={{ fontSize: 12, color: "#8c8c8c" }}>
+                    admin@coiviet.com
+                  </span>
+                </div>
+              </Space>
+            </Dropdown>
+          </Space>
+        </Header>
+
+        <Content
+          style={{
+            margin: "24px",
+            padding: 24,
+            background: "#fff",
+            borderRadius: 12,
+            minHeight: "calc(100vh - 112px)",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+            transition: "all 0.3s cubic-bezier(0.2, 0, 0, 1)",
+          }}
+        >
+          {content}
+        </Content>
       </Layout>
+    </Layout>
   );
 }
 

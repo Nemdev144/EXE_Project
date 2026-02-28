@@ -56,24 +56,29 @@ export interface AdminTour {
   updatedAt: string;
 }
 
+/** Payload cho POST /api/tours và PUT /api/tours/{id} - khớp backend response */
 export interface CreateTourRequest {
   title: string;
   description: string;
   provinceId: number;
   price: number;
-  originalPrice?: number;
-  minParticipants: number;
-  maxParticipants: number;
   durationHours: number;
-  thumbnailUrl: string;
-  images: string[];
-  artisanId?: number;
-  startDate: string;
-  endDate: string;
+  maxParticipants: number;
+  thumbnailUrl?: string;
+  images?: string | string[]; // Backend trả images: string
+  artisanId?: number | null;
 }
 
 export interface UpdateTourRequest extends Partial<CreateTourRequest> {
-  id: number;
+  id?: number;
+  status?:
+    | "OPEN"
+    | "NEAR_DEADLINE"
+    | "FULL"
+    | "NOT_ENOUGH"
+    | "CANCELLED"
+    | "ACTIVE"
+    | "INACTIVE";
 }
 
 export const getAdminTours = async (params?: {
@@ -83,17 +88,28 @@ export const getAdminTours = async (params?: {
   provinceId?: number;
 }): Promise<{ data: AdminTour[]; total: number }> => {
   const response = await api.get<
-    ApiResponse<{ tours: AdminTour[]; total: number }>
-  >("/api/admin/tours", { params });
-  return {
-    data: response.data.data.tours || response.data.data,
-    total: response.data.data.total || 0,
-  };
+    ApiResponse<
+      | AdminTour[]
+      | { tours?: AdminTour[]; content?: AdminTour[]; total?: number }
+    >
+  >("/api/tours/public", { params });
+  const raw = response.data.data;
+  let data: AdminTour[] = [];
+  let total = 0;
+  if (Array.isArray(raw)) {
+    data = raw as AdminTour[];
+    total = data.length;
+  } else if (raw && typeof raw === "object") {
+    const obj = raw as Record<string, unknown>;
+    data = (obj.tours as AdminTour[]) ?? (obj.content as AdminTour[]) ?? [];
+    total = (obj.total as number) ?? data.length;
+  }
+  return { data, total };
 };
 
 export const getAdminTourById = async (id: number): Promise<AdminTour> => {
   const response = await api.get<ApiResponse<AdminTour>>(
-    `/api/admin/tours/${id}`,
+    `/api/tours/public/${id}`,
   );
   return response.data.data;
 };
@@ -101,10 +117,7 @@ export const getAdminTourById = async (id: number): Promise<AdminTour> => {
 export const createTour = async (
   data: CreateTourRequest,
 ): Promise<AdminTour> => {
-  const response = await api.post<ApiResponse<AdminTour>>(
-    "/api/admin/tours",
-    data,
-  );
+  const response = await api.post<ApiResponse<AdminTour>>("/api/tours", data);
   return response.data.data;
 };
 
@@ -113,14 +126,14 @@ export const updateTour = async (
   data: Partial<CreateTourRequest>,
 ): Promise<AdminTour> => {
   const response = await api.put<ApiResponse<AdminTour>>(
-    `/api/admin/tours/${id}`,
+    `/api/tours/${id}`,
     data,
   );
   return response.data.data;
 };
 
 export const deleteTour = async (id: number): Promise<void> => {
-  await api.delete(`/api/admin/tours/${id}`);
+  await api.delete(`/api/tours/${id}`);
 };
 
 // ========== Admin Bookings API ==========
@@ -132,7 +145,12 @@ export type BookingPaymentMethod =
   | "CASH"
   | "EWALLET"
   | string;
-export type BookingStatus = "PENDING" | "CONFIRMED" | "PAID" | "CANCELLED" | "REFUNDED";
+export type BookingStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "PAID"
+  | "CANCELLED"
+  | "REFUNDED";
 
 export interface AdminBooking {
   id: number;
@@ -199,8 +217,13 @@ export const getAdminBookings = async (params?: {
     total = raw.length;
   } else if (raw && typeof raw === "object") {
     const obj = raw as Record<string, unknown>;
-    data = (obj.content as AdminBooking[]) ?? (obj.bookings as AdminBooking[]) ?? (obj.items as AdminBooking[]) ?? [];
-    total = (obj.totalElements as number) ?? (obj.total as number) ?? data.length;
+    data =
+      (obj.content as AdminBooking[]) ??
+      (obj.bookings as AdminBooking[]) ??
+      (obj.items as AdminBooking[]) ??
+      [];
+    total =
+      (obj.totalElements as number) ?? (obj.total as number) ?? data.length;
   }
   return { data, total };
 };
@@ -550,18 +573,28 @@ export interface AdminArtisan {
   updatedAt?: string;
 }
 
+/** POST /api/artisans - Tạo nghệ nhân mới - khớp backend response */
 export interface CreateArtisanRequest {
   userId: number;
+  fullName: string;
   specialization: string;
-  bio: string;
-  profileImageUrl: string;
-  images: string[];
+  bio?: string;
+  profileImageUrl?: string;
   provinceId?: number;
+  province?: { id: number };
   workshopAddress?: string;
 }
 
-export interface UpdateArtisanRequest extends Partial<CreateArtisanRequest> {
-  id: number;
+/** PUT /api/artisans/{id} - Cập nhật nghệ nhân - khớp backend response */
+export interface UpdateArtisanRequest {
+  fullName?: string;
+  specialization?: string;
+  bio?: string;
+  profileImageUrl?: string;
+  provinceId?: number;
+  province?: { id: number };
+  workshopAddress?: string;
+  isActive?: boolean;
 }
 
 /** Danh sách nghệ nhân. Backend chỉ có GET /api/artisans/public cho danh sách */
@@ -608,7 +641,7 @@ export const createArtisan = async (
 /** Cập nhật nghệ nhân. Backend: PUT /api/artisans/{id} */
 export const updateArtisan = async (
   id: number,
-  data: Partial<CreateArtisanRequest> & { status?: "ACTIVE" | "INACTIVE" },
+  data: UpdateArtisanRequest,
 ): Promise<AdminArtisan> => {
   const response = await api.put<ApiResponse<AdminArtisan>>(
     `/api/artisans/${id}`,
@@ -712,7 +745,9 @@ export interface AdminLearnLesson {
   categoryName: string;
 }
 
-export const getAdminLearnCategories = async (): Promise<AdminLearnCategory[]> => {
+export const getAdminLearnCategories = async (): Promise<
+  AdminLearnCategory[]
+> => {
   const response = await api.get<ApiResponse<AdminLearnCategory[]>>(
     "/api/learn/public/categories",
   );
@@ -931,6 +966,106 @@ export const addQuizQuestion = async (
     data,
   );
   return response.data.data;
+};
+
+// ========== Admin Vouchers API ==========
+// Response structure: { success, code, message, data, errors, timestamp }
+export type VoucherDiscountType = "PERCENTAGE" | "FIXED_AMOUNT" | string;
+
+export interface AdminVoucher {
+  id: number;
+  code: string;
+  discountType: string;
+  discountValue: number;
+  minPurchase: number;
+  maxUsage: number;
+  currentUsage: number;
+  validFrom: string;
+  validUntil: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface CreateVoucherRequest {
+  code: string;
+  discountType: string;
+  discountValue: number;
+  minPurchase: number;
+  maxUsage: number;
+  validFrom: string;
+  validUntil: string;
+  isActive: boolean;
+}
+
+export interface UpdateVoucherRequest extends Partial<CreateVoucherRequest> {
+  isActive?: boolean;
+}
+
+export const getAdminVouchers = async (params?: {
+  page?: number;
+  limit?: number;
+  isActive?: boolean;
+  search?: string;
+}): Promise<{ data: AdminVoucher[]; total: number }> => {
+  const response = await api.get<
+    ApiResponse<
+      | AdminVoucher[]
+      | { content?: AdminVoucher[]; totalElements?: number }
+      | { vouchers?: AdminVoucher[]; total?: number }
+      | { items?: AdminVoucher[] }
+    >
+  >("/api/vouchers", { params });
+  const raw = response.data.data;
+  let data: AdminVoucher[] = [];
+  let total = 0;
+  if (Array.isArray(raw)) {
+    data = raw;
+    total = raw.length;
+  } else if (raw && typeof raw === "object") {
+    const obj = raw as Record<string, unknown>;
+    data =
+      (obj.content as AdminVoucher[]) ??
+      (obj.vouchers as AdminVoucher[]) ??
+      (obj.items as AdminVoucher[]) ??
+      [];
+    total =
+      (obj.totalElements as number) ?? (obj.total as number) ?? data.length;
+  }
+  return { data, total };
+};
+
+export const getAdminVoucherById = async (
+  id: number,
+): Promise<AdminVoucher> => {
+  const response = await api.get<ApiResponse<AdminVoucher>>(
+    `/api/vouchers/${id}`,
+  );
+  return response.data.data;
+};
+
+export const createVoucher = async (
+  data: CreateVoucherRequest,
+): Promise<AdminVoucher> => {
+  const response = await api.post<ApiResponse<AdminVoucher>>(
+    "/api/vouchers",
+    data,
+  );
+  return response.data.data;
+};
+
+export const updateVoucher = async (
+  id: number,
+  data: UpdateVoucherRequest,
+): Promise<AdminVoucher> => {
+  const response = await api.put<ApiResponse<AdminVoucher>>(
+    `/api/vouchers/${id}`,
+    data,
+  );
+  return response.data.data;
+};
+
+export const deleteVoucher = async (id: number): Promise<void> => {
+  await api.delete(`/api/vouchers/${id}`);
 };
 
 // ========== Admin Dashboard API ==========

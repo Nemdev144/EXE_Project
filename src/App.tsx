@@ -28,6 +28,7 @@ import UserManagementPage from "./pages/admin/UserManagement";
 import StaffManagementPage from "./pages/admin/StaffManagement";
 import EmailTemplatesPage from "./pages/admin/EmailTemplates";
 import LearnManagementPage from "./pages/admin/LearnManagement";
+import VoucherManagementPage from "./pages/admin/VoucherManagement";
 
 // Staff Pages
 import StaffDashboardPage from "./pages/staff/StaffDashboard";
@@ -76,6 +77,7 @@ function App() {
           <Route path="/admin/staff" element={<StaffManagementPage />} />
           <Route path="/admin/emails" element={<EmailTemplatesPage />} />
           <Route path="/admin/learn" element={<LearnManagementPage />} />
+          <Route path="/admin/vouchers" element={<VoucherManagementPage />} />
         </Route>
 
         {/* Staff Routes */}

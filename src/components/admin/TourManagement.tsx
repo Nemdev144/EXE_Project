@@ -39,8 +39,18 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import dayjs, { Dayjs } from "dayjs";
 import TourSummaryCards from "./TourSummaryCards";
-import { getPublicTours, getArtisans } from "../../services/api";
-import type { Artisan } from "../../types";
+import {
+  getPublicTours,
+  getArtisans,
+  getProvinces,
+  clearApiCache,
+} from "../../services/api";
+import {
+  createTour,
+  updateTour,
+  type CreateTourRequest,
+} from "../../services/adminApi";
+import type { Artisan, Province } from "../../types";
 import type { Tour as ApiTour } from "../../types";
 
 const { RangePicker } = DatePicker;
@@ -50,6 +60,7 @@ interface Tour {
   id: string;
   title: string;
   location: string;
+  provinceId?: number;
   price: number;
   originalPrice?: number;
   minParticipants: number;
@@ -91,6 +102,7 @@ const statusConfig: Record<
 export default function TourManagement() {
   const [tours, setTours] = useState<Tour[]>([]);
   const [artisans, setArtisans] = useState<Artisan[]>([]);
+  const [provinces, setProvinces] = useState<Province[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -111,6 +123,44 @@ export default function TourManagement() {
   const [form] = Form.useForm();
   const [discountForm] = Form.useForm();
   const [artisanForm] = Form.useForm();
+
+  const mapApiTourToTour = (apiTour: ApiTour): Tour => {
+    const minParticipants = Math.floor(apiTour.maxParticipants * 0.5);
+    const currentParticipants = apiTour.totalBookings || 0;
+    let status: Tour["status"] = "OPEN";
+    if (apiTour.status) {
+      const apiStatus = apiTour.status.toUpperCase();
+      if (apiStatus === "ACTIVE" || apiStatus === "OPEN")
+        status = apiStatus === "ACTIVE" ? "ACTIVE" : "OPEN";
+      else if (apiStatus === "INACTIVE" || apiStatus === "CANCELLED")
+        status = apiStatus === "INACTIVE" ? "INACTIVE" : "CANCELLED";
+      else if (["NEAR_DEADLINE", "FULL", "NOT_ENOUGH"].includes(apiStatus))
+        status = apiStatus as Tour["status"];
+    }
+    const createdAt = dayjs(apiTour.createdAt);
+    return {
+      key: String(apiTour.id),
+      id: String(apiTour.id),
+      title: apiTour.title,
+      location: apiTour.provinceName || "Tây Nguyên",
+      provinceId: apiTour.provinceId,
+      price: apiTour.price,
+      originalPrice: undefined,
+      minParticipants,
+      maxParticipants: apiTour.maxParticipants,
+      currentParticipants,
+      status,
+      startDate: createdAt.format("DD/MM/YYYY"),
+      endDate: createdAt.add(apiTour.durationHours, "hour").format("DD/MM/YYYY"),
+      artisan: apiTour.artisanName,
+      artisanId: apiTour.artisanId ? String(apiTour.artisanId) : undefined,
+      daysUntil: createdAt.diff(dayjs(), "day"),
+      totalBookings: apiTour.totalBookings,
+      averageRating: apiTour.averageRating,
+      description: apiTour.description,
+      images: apiTour.images,
+    };
+  };
 
   // Fetch tours from /api/tours/public and artisans from Admin API
   useEffect(() => {
@@ -134,9 +184,14 @@ export default function TourManagement() {
         message.error("Không thể tải dữ liệu tours");
       }
 
-      // Fetch artisans from public API (non-blocking, avoids CORS issues)
+      // Fetch provinces and artisans
       try {
-        artisansData = await getArtisans();
+        const [provincesData, artisansFromApi] = await Promise.all([
+          getProvinces(),
+          getArtisans(),
+        ]);
+        setProvinces(provincesData ?? []);
+        artisansData = artisansFromApi ?? [];
       } catch (artisansErr: any) {
         console.error("Error fetching artisans:", artisansErr);
         hasArtisansError = true;
@@ -149,69 +204,7 @@ export default function TourManagement() {
       // Set artisans (empty array if failed)
       setArtisans(artisansData);
 
-      // Map PublicTour to Tour format
-      const mappedTours: Tour[] = publicTours.map((apiTour: ApiTour) => {
-        // Calculate minParticipants as 50% of maxParticipants (rounded down)
-        const minParticipants = Math.floor(apiTour.maxParticipants * 0.5);
-
-        // Use totalBookings as currentParticipants from API
-        const currentParticipants = apiTour.totalBookings || 0;
-
-        // Map status from API - keep original status if available
-        let status:
-          | "OPEN"
-          | "NEAR_DEADLINE"
-          | "FULL"
-          | "NOT_ENOUGH"
-          | "CANCELLED"
-          | "ACTIVE"
-          | "INACTIVE" = "OPEN";
-        if (apiTour.status) {
-          // Keep status from API, convert to uppercase for consistency
-          const apiStatus = apiTour.status.toUpperCase();
-          if (apiStatus === "ACTIVE" || apiStatus === "OPEN") {
-            status = apiStatus === "ACTIVE" ? "ACTIVE" : "OPEN";
-          } else if (apiStatus === "INACTIVE" || apiStatus === "CANCELLED") {
-            status = apiStatus === "INACTIVE" ? "INACTIVE" : "CANCELLED";
-          } else if (
-            ["NEAR_DEADLINE", "FULL", "NOT_ENOUGH"].includes(apiStatus)
-          ) {
-            status = apiStatus as any;
-          }
-        }
-
-        // Calculate dates from createdAt + durationHours
-        const createdAt = dayjs(apiTour.createdAt);
-        const startDate = createdAt.format("DD/MM/YYYY");
-        const endDate = createdAt
-          .add(apiTour.durationHours, "hour")
-          .format("DD/MM/YYYY");
-        const daysUntil = createdAt.diff(dayjs(), "day");
-
-        return {
-          key: String(apiTour.id),
-          id: String(apiTour.id),
-          title: apiTour.title,
-          location: apiTour.provinceName || "Tây Nguyên",
-          price: apiTour.price,
-          originalPrice: undefined, // Not available in public API
-          minParticipants,
-          maxParticipants: apiTour.maxParticipants,
-          currentParticipants,
-          status,
-          startDate,
-          endDate,
-          artisan: apiTour.artisanName,
-          artisanId: apiTour.artisanId ? String(apiTour.artisanId) : undefined,
-          daysUntil,
-          totalBookings: apiTour.totalBookings,
-          averageRating: apiTour.averageRating,
-          description: apiTour.description,
-          images: apiTour.images,
-        };
-      });
-
-      setTours(mappedTours);
+      setTours(publicTours.map(mapApiTourToTour));
 
       // Update error message if no tours were loaded
       if (hasToursError && publicTours.length === 0) {
@@ -275,51 +268,79 @@ export default function TourManagement() {
     setIsDiscountModalOpen(false);
   };
 
-  const handleAssignArtisan = (tourId: string, artisanId: string) => {
-    // TODO: Implement API call to assign artisan
-    setTours(
-      tours.map((tour) =>
-        tour.id === tourId ? { ...tour, artisanId: artisanId } : tour,
-      ),
-    );
-    message.success("Đã gắn nghệ nhân vào tour");
-    setIsArtisanModalOpen(false);
+  const handleAssignArtisan = async (tourId: string, artisanId: string) => {
+    try {
+      await updateTour(Number(tourId), { artisanId: Number(artisanId) });
+      message.success("Đã gắn nghệ nhân vào tour");
+      clearApiCache();
+      const publicTours = await getPublicTours();
+      setTours(publicTours.map(mapApiTourToTour));
+      setIsArtisanModalOpen(false);
+    } catch (err: any) {
+      message.error(err?.response?.data?.message || "Gắn nghệ nhân thất bại");
+    }
   };
 
-  const handleCancelTour = (tourId: string) => {
-    setTours(
-      tours.map((tour) =>
-        tour.id === tourId ? { ...tour, status: "CANCELLED" } : tour,
-      ),
-    );
-    message.warning("Tour đã được hủy");
+  const handleCancelTour = async (tourId: string) => {
+    try {
+      await updateTour(Number(tourId), { status: "CANCELLED" });
+      message.warning("Tour đã được hủy");
+      clearApiCache();
+      const publicTours = await getPublicTours();
+      setTours(publicTours.map(mapApiTourToTour));
+    } catch (err: any) {
+      message.error(err?.response?.data?.message || "Hủy tour thất bại");
+    }
   };
 
-  const handleCreateTour = (values: any) => {
-    // TODO: Implement API call to create tour
-    const selectedArtisan = artisans.find(
-      (a) => a.id === Number(values.artisan),
-    );
-    const newTour: Tour = {
-      key: String(tours.length + 1),
-      id: String(tours.length + 1),
-      title: values.title,
-      location: values.location,
-      price: values.price,
-      minParticipants: values.minParticipants,
-      maxParticipants: values.maxParticipants,
-      currentParticipants: 0,
-      status: "OPEN",
-      startDate: values.dateRange[0].format("DD/MM/YYYY"),
-      endDate: values.dateRange[1].format("DD/MM/YYYY"),
-      artisanId: values.artisan,
-      artisan: selectedArtisan?.fullName,
-      daysUntil: values.dateRange[0].diff(dayjs(), "day"),
-    };
-    setTours([...tours, newTour]);
-    message.success("Đã tạo tour thành công");
-    setIsModalOpen(false);
-    form.resetFields();
+  const refetchTours = async () => {
+    clearApiCache();
+    const publicTours = await getPublicTours();
+    setTours(publicTours.map(mapApiTourToTour));
+  };
+
+  const handleCreateTour = async (values: any) => {
+    try {
+      const startDate = values.dateRange?.[0] as Dayjs | undefined;
+      const endDate = values.dateRange?.[1] as Dayjs | undefined;
+      const durationHours =
+        startDate && endDate ? endDate.diff(startDate, "hour") || 1 : 1;
+      const imagesRaw = values.images ?? [];
+      const imagesPayload =
+        typeof imagesRaw === "string"
+          ? imagesRaw
+          : Array.isArray(imagesRaw)
+            ? imagesRaw.length > 0
+              ? JSON.stringify(imagesRaw)
+              : ""
+            : "";
+      const payload: CreateTourRequest = {
+        title: values.title,
+        description: values.description || "",
+        provinceId: values.provinceId,
+        price: values.price,
+        maxParticipants: values.maxParticipants,
+        durationHours,
+        thumbnailUrl: values.thumbnailUrl || "",
+        images: imagesPayload,
+        ...(values.artisan && { artisanId: Number(values.artisan) }),
+      };
+      if (selectedTour) {
+        await updateTour(Number(selectedTour.id), payload);
+        message.success("Đã cập nhật tour");
+      } else {
+        await createTour(payload);
+        message.success("Đã tạo tour thành công");
+      }
+      setIsModalOpen(false);
+      setSelectedTour(null);
+      form.resetFields();
+      await refetchTours();
+    } catch (err: any) {
+      message.error(
+        err?.response?.data?.message || (selectedTour ? "Cập nhật thất bại" : "Tạo tour thất bại"),
+      );
+    }
   };
 
   const columns: ColumnsType<Tour> = [
@@ -539,6 +560,19 @@ export default function TourManagement() {
               size="small"
               onClick={() => {
                 setSelectedTour(record);
+                form.setFieldsValue({
+                  title: record.title,
+                  provinceId: record.provinceId,
+                  price: record.price,
+                  minParticipants: record.minParticipants,
+                  maxParticipants: record.maxParticipants,
+                  description: record.description,
+                  artisan: record.artisanId,
+                  dateRange: [
+                    dayjs(record.startDate, "DD/MM/YYYY"),
+                    dayjs(record.endDate, "DD/MM/YYYY"),
+                  ],
+                });
                 setIsModalOpen(true);
               }}
             >
@@ -664,7 +698,11 @@ export default function TourManagement() {
         <Button
           type="primary"
           icon={<PlusOutlined />}
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setSelectedTour(null);
+            form.resetFields();
+            setIsModalOpen(true);
+          }}
           size="large"
           style={{
             height: 44,
@@ -726,11 +764,11 @@ export default function TourManagement() {
               onChange={(value) => setFilter({ ...filter, location: value })}
             >
               <Select.Option value="all">Tất cả</Select.Option>
-              <Select.Option value="Đắk Lắk">Đắk Lắk</Select.Option>
-              <Select.Option value="Gia Lai">Gia Lai</Select.Option>
-              <Select.Option value="Kon Tum">Kon Tum</Select.Option>
-              <Select.Option value="Đắk Nông">Đắk Nông</Select.Option>
-              <Select.Option value="Lâm Đồng">Lâm Đồng</Select.Option>
+              {provinces.map((p) => (
+                <Select.Option key={p.id} value={p.name}>
+                  {p.name}
+                </Select.Option>
+              ))}
             </Select>
           </Col>
           <Col xs={24} sm={12} md={8}>
@@ -802,25 +840,47 @@ export default function TourManagement() {
         <Form
           form={form}
           layout="vertical"
-          initialValues={selectedTour ? { ...selectedTour } : {}}
+          initialValues={
+            selectedTour
+              ? {
+                  title: selectedTour.title,
+                  provinceId: selectedTour.provinceId,
+                  price: selectedTour.price,
+                  minParticipants: selectedTour.minParticipants,
+                  maxParticipants: selectedTour.maxParticipants,
+                  description: selectedTour.description,
+                  artisan: selectedTour.artisanId,
+                  dateRange: [
+                    dayjs(selectedTour.startDate, "DD/MM/YYYY"),
+                    dayjs(selectedTour.endDate, "DD/MM/YYYY"),
+                  ],
+                }
+              : {}
+          }
           onFinish={handleCreateTour}
         >
           <Form.Item label="Tên tour" name="title" rules={[{ required: true }]}>
             <Input placeholder="Nhập tên tour" />
           </Form.Item>
+          <Form.Item
+            label="Mô tả"
+            name="description"
+          >
+            <Input.TextArea rows={2} placeholder="Mô tả tour (tùy chọn)" />
+          </Form.Item>
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                label="Địa điểm"
-                name="location"
-                rules={[{ required: true }]}
+                label="Tỉnh thành"
+                name="provinceId"
+                rules={[{ required: true, message: "Chọn tỉnh thành" }]}
               >
-                <Select placeholder="Chọn địa điểm">
-                  <Select.Option value="Đắk Lắk">Đắk Lắk</Select.Option>
-                  <Select.Option value="Gia Lai">Gia Lai</Select.Option>
-                  <Select.Option value="Kon Tum">Kon Tum</Select.Option>
-                  <Select.Option value="Đắk Nông">Đắk Nông</Select.Option>
-                  <Select.Option value="Lâm Đồng">Lâm Đồng</Select.Option>
+                <Select placeholder="Chọn tỉnh thành">
+                  {provinces.map((p) => (
+                    <Select.Option key={p.id} value={p.id}>
+                      {p.name}
+                    </Select.Option>
+                  ))}
                 </Select>
               </Form.Item>
             </Col>

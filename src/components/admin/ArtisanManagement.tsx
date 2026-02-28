@@ -190,6 +190,7 @@ export default function ArtisanManagement() {
   const handleOpenEdit = (record: Artisan) => {
     setSelectedArtisan(record);
     editForm.setFieldsValue({
+      fullName: record.name,
       specialization: record.specialty,
       bio: record.bio || "",
       profileImageUrl: record.profileImageUrl || "",
@@ -222,27 +223,27 @@ export default function ArtisanManagement() {
     if (isFallbackMode) return;
     try {
       const values = await form.validateFields();
-      const imagesStr = values.images?.trim() || "";
-      const images = imagesStr
-        ? imagesStr.split(/[\n,]+/).map((s: string) => s.trim()).filter(Boolean)
-        : [];
+      const selectedUser = userOptions.find((u) => u.id === values.userId);
       setCreateLoading(true);
-      await createArtisan({
+      const payload: Record<string, unknown> = {
         userId: values.userId,
+        fullName: values.fullName || selectedUser?.fullName || "Nghệ nhân",
         specialization: values.specialization,
-        bio: values.bio || "",
-        profileImageUrl: values.profileImageUrl || "",
-        images,
-        provinceId: values.provinceId,
-        workshopAddress: values.workshopAddress,
-      });
+      };
+      if (values.bio?.trim()) payload.bio = values.bio.trim();
+      if (values.workshopAddress?.trim()) payload.workshopAddress = values.workshopAddress.trim();
+      if (values.profileImageUrl?.trim()) payload.profileImageUrl = values.profileImageUrl.trim();
+      if (values.provinceId) payload.provinceId = values.provinceId;
+      await createArtisan(payload as any);
       message.success("Đã thêm nghệ nhân thành công");
       setIsModalOpen(false);
       form.resetFields();
       fetchArtisans();
     } catch (err: unknown) {
       if ((err as { errorFields?: unknown[] })?.errorFields) return;
-      message.error("Thêm nghệ nhân thất bại. Vui lòng thử lại.");
+      const msg = getApiErrorMessage(err);
+      console.error("[ArtisanManagement] createArtisan error:", err);
+      message.error(msg || "Thêm nghệ nhân thất bại. Vui lòng thử lại.");
     } finally {
       setCreateLoading(false);
     }
@@ -257,7 +258,9 @@ export default function ArtisanManagement() {
       return;
     }
     try {
-      await updateArtisan(parseInt(record.id), { status: newStatus });
+      await updateArtisan(parseInt(record.id), {
+        isActive: newStatus === "ACTIVE",
+      });
       message.success("Cập nhật trạng thái thành công");
       if (selectedArtisan?.id === record.id) {
         setSelectedArtisan({ ...record, status: newStatus });
@@ -290,13 +293,19 @@ export default function ArtisanManagement() {
     try {
       const values = await editForm.validateFields();
       setSaving(true);
-      await updateArtisan(parseInt(selectedArtisan.id), {
+      const payload: Record<string, unknown> = {
+        fullName: values.fullName,
         specialization: values.specialization,
         bio: values.bio ?? "",
-        profileImageUrl: values.profileImageUrl || "",
         workshopAddress: values.workshopAddress ?? "",
-        provinceId: values.provinceId,
-      });
+      };
+      if (values.profileImageUrl?.trim()) {
+        payload.profileImageUrl = values.profileImageUrl.trim();
+      }
+      if (values.provinceId) {
+        payload.provinceId = values.provinceId;
+      }
+      await updateArtisan(parseInt(selectedArtisan.id), payload);
       message.success("Cập nhật nghệ nhân thành công");
       setEditModalOpen(false);
       setSelectedArtisan(null);
@@ -627,7 +636,18 @@ export default function ArtisanManagement() {
                 value: u.id,
                 label: `${u.fullName}${u.email ? ` (${u.email})` : ""}`,
               }))}
+              onChange={(userId) => {
+                const u = userOptions.find((x) => x.id === userId);
+                if (u?.fullName) form.setFieldValue("fullName", u.fullName);
+              }}
             />
+          </Form.Item>
+          <Form.Item
+            label="Họ tên"
+            name="fullName"
+            rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
+          >
+            <Input placeholder="Họ tên nghệ nhân" />
           </Form.Item>
           <Form.Item
             label="Chuyên môn"
@@ -834,6 +854,13 @@ export default function ArtisanManagement() {
         width={560}
       >
         <Form form={editForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item
+            label="Họ tên"
+            name="fullName"
+            rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
+          >
+            <Input placeholder="Họ tên nghệ nhân" />
+          </Form.Item>
           <Form.Item
             label="Chuyên môn"
             name="specialization"
