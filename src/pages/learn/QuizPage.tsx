@@ -7,7 +7,7 @@ import type { LearnQuiz, LearnQuizQuestion } from '../../types';
 import '../../styles/pages/_quiz.scss';
 
 export default function QuizPage() {
-  const { category, slug } = useParams<{ category: string; slug: string }>();
+  const { moduleId } = useParams<{ moduleId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -54,9 +54,9 @@ export default function QuizPage() {
   }, [quiz, timeLeft, isSubmitted]);
 
   useEffect(() => {
-    if (timeLeft !== 0 || isSubmitted || !quiz || !category || !slug) return;
+    if (timeLeft !== 0 || isSubmitted || !quiz || !moduleId) return;
     setIsSubmitted(true);
-    navigate(`/learn/${category}/${slug}/quiz/results`, {
+    navigate(`/learn/${moduleId}/quiz/results`, {
       state: {
         quizId: quiz.id,
         quizTitle: quiz.title,
@@ -65,7 +65,7 @@ export default function QuizPage() {
         timeSpent: quiz.timeLimitMinutes * 60,
       },
     });
-  }, [timeLeft, isSubmitted, quiz, category, slug, navigate, selectedAnswers]);
+  }, [timeLeft, isSubmitted, quiz, moduleId, navigate, selectedAnswers]);
 
   const handleAnswerSelect = (questionId: number, optionIndex: number) => {
     if (isSubmitted || !quiz) return;
@@ -75,7 +75,7 @@ export default function QuizPage() {
   const handleSubmit = () => {
     if (!quiz) return;
     setIsSubmitted(true);
-    navigate(`/learn/${category}/${slug}/quiz/results`, {
+    navigate(`/learn/${moduleId}/quiz/results`, {
       state: {
         quizId: quiz.id,
         quizTitle: quiz.title,
@@ -101,7 +101,7 @@ export default function QuizPage() {
       <div className="quiz-page">
         <div className="quiz-page__container">
           <p className="quiz-page__error">{error || 'Không tìm thấy đề quiz.'}</p>
-          <button type="button" onClick={() => navigate(`/learn/${category}/${slug}`)}>
+          <button type="button" onClick={() => navigate(`/learn/${moduleId}`)}>
             Quay về bài học
           </button>
         </div>
@@ -115,7 +115,7 @@ export default function QuizPage() {
 
   const breadcrumbItems = [
     { label: 'Học nhanh', path: '/learn' },
-    { label: category || 'Bài học', path: `/learn/${category}` },
+    { label: 'Bài học', path: `/learn/${moduleId}` },
     { label: `Quiz: ${quiz.title}` },
   ];
 
@@ -155,7 +155,7 @@ export default function QuizPage() {
             totalQuestions={quiz.totalQuestions}
             answeredCount={answeredCount}
             onSubmit={handleSubmit}
-            backUrl={`/learn/${category}/${slug}`}
+            backUrl={`/learn/${moduleId}`}
             canSubmit={canSubmit}
           />
         </div>

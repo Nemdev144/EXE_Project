@@ -19,6 +19,9 @@ export interface Province {
   description: string;
   thumbnailUrl: string;
   isActive: boolean;
+  bestSeason?: string;
+  transportation?: string;
+  culturalTips?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -49,16 +52,31 @@ export interface Tour {
 // Culture Item
 export interface CultureItem {
   id: number;
-  provinceId: number;
+  province?: {
+    id: number;
+    name: string;
+    slug: string;
+    region: string;
+    latitude: number;
+    longitude: number;
+    thumbnailUrl: string;
+    description: string;
+    isActive: boolean;
+    bestSeason?: string;
+    transportation?: string;
+    culturalTips?: string;
+  };
+  provinceId?: number;
   provinceName?: string;
   category: CultureCategory;
   title: string;
   description: string;
   thumbnailUrl: string;
-  images: string[];
+  images: string | string[];
   videoUrl?: string;
+  status?: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export type CultureCategory =
@@ -315,6 +333,16 @@ export interface LearnModule {
   suggestedTours?: LearnSuggestedTour[];
 }
 
+// User learn stats (GET /api/learn/users/me/stats)
+export interface LearnUserStats {
+  totalLessonsCompleted: number;
+  averageScore: number;
+  learningStreak: number;
+  totalCoursesCompleted: number;
+  overallLearningProgressPercent: number;
+  featuredCourses: LearnModule[];
+}
+
 // GET /api/learn/public/lessons/{id}
 export type LearnLessonDifficulty = "BASIC" | "INTERMEDIATE" | "ADVANCED";
 
@@ -342,4 +370,53 @@ export interface LearnLesson {
   moduleId: number;
   moduleTitle: string;
   categoryName: string;
+}
+
+// ── Artisan Detail (GET /api/artisans/public/{id}/detail) ──
+
+export interface ArtisanNarrativeBlock {
+  title: string;
+  content: string;
+  imageUrl?: string;
+}
+
+export interface ArtisanRelatedTour {
+  id: number;
+  title: string;
+  slug: string;
+  thumbnailUrl: string;
+  location: string;
+  description: string;
+  price: number;
+}
+
+export interface ArtisanRelatedCulture {
+  id: number;
+  title: string;
+  thumbnailUrl: string;
+  description: string;
+}
+
+export interface ArtisanOther {
+  id: number;
+  fullName: string;
+  profileImageUrl: string;
+}
+
+export interface ArtisanDetail {
+  id: number;
+  fullName: string;
+  specialization: string;
+  bio: string;
+  profileImageUrl: string;
+  heroSubtitle: string;
+  ethnicity: string;
+  age: number;
+  location: string;
+  images: string[];
+  panoramaImageUrl: string;
+  narrativeContent: ArtisanNarrativeBlock[];
+  relatedTours: ArtisanRelatedTour[];
+  relatedCultureItems: ArtisanRelatedCulture[];
+  otherArtisans: ArtisanOther[];
 }

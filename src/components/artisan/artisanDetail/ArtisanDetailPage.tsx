@@ -1,50 +1,87 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  Star,
-  MapPin,
-  Briefcase,
-  Calendar,
-  Users,
-  Mail,
-  Phone,
-} from "lucide-react";
-import { getPublicArtisanById } from "../../../services/artisanApi";
-import type { PublicArtisan } from "../../../types";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
+import { getArtisanDetail } from "../../../services/artisanApi";
+import type {
+  ArtisanDetail,
+  ArtisanNarrativeBlock,
+} from "../../../types";
 import Breadcrumbs from "../../Breadcrumbs";
 import "../../../styles/components/artisan/artisanDetailscss/_artisan-detail.scss";
 
 const FALLBACK_IMG = "/dauvao.png";
 
+/* ── Sticky tab definitions ── */
+const TABS = [
+  { key: "narrative", label: "Nghệ nhân của tôi" },
+  { key: "gong", label: "Cồng chiêng truyền thống" },
+  { key: "culture", label: "Bảo tồn văn hoá" },
+] as const;
+type TabKey = (typeof TABS)[number]["key"];
+
+/* ── Helper: safely parse narrativeContent ── */
+function parseNarrative(raw: unknown): ArtisanNarrativeBlock[] {
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+/* ── Format price ── */
+function formatPrice(n: number) {
+  return n.toLocaleString("vi-VN");
+}
+
 export default function ArtisanDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [artisan, setArtisan] = useState<PublicArtisan | null>(null);
+  const [artisan, setArtisan] = useState<ArtisanDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [imgError, setImgError] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabKey>("narrative");
+  const [panoramaIdx, setPanoramaIdx] = useState(0);
 
+  const sectionRefs = useRef<Record<TabKey, HTMLElement | null>>({
+    narrative: null,
+    gong: null,
+    culture: null,
+  });
+
+  /* ── Fetch data ── */
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
-
-    const fetchArtisan = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await getPublicArtisanById(Number(id));
+        const data = await getArtisanDetail(Number(id));
         if (!cancelled) setArtisan(data);
       } catch (err) {
-        console.error("[ArtisanDetail] Failed to fetch artisan:", err);
+        console.error("[ArtisanDetail] Fetch failed:", err);
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
-
-    fetchArtisan();
-    return () => {
-      cancelled = true;
-    };
+    fetchData();
+    return () => { cancelled = true; };
   }, [id]);
+
+  /* ── Scroll to section ── */
+  const scrollTo = useCallback((key: TabKey) => {
+    setActiveTab(key);
+    sectionRefs.current[key]?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
+  /* ── Panorama slider ── */
+  const images = artisan?.images ?? [];
+  const panoramaImages = images.length > 0 ? images : (artisan?.panoramaImageUrl ? [artisan.panoramaImageUrl] : []);
+  const prevSlide = () => setPanoramaIdx((i) => (i === 0 ? panoramaImages.length - 1 : i - 1));
+  const nextSlide = () => setPanoramaIdx((i) => (i === panoramaImages.length - 1 ? 0 : i + 1));
 
   /* ---------- Loading ---------- */
   if (loading) {
@@ -61,25 +98,14 @@ export default function ArtisanDetailPage() {
     return (
       <div className="ad-loading">
         <p>Không tìm thấy nghệ nhân này.</p>
-        <Link to="/artisans" className="ad-back-btn">
-          Quay lại danh sách
-        </Link>
+        <Link to="/artisans" className="ad-back-btn">Quay lại danh sách</Link>
       </div>
     );
   }
 
   /* ---------- Derived ---------- */
-  const profileImg =
-    !imgError && artisan.profileImageUrl
-      ? artisan.profileImageUrl
-      : artisan.user?.avatarUrl || FALLBACK_IMG;
-
-  const joinDate = artisan.createdAt
-    ? new Date(artisan.createdAt).toLocaleDateString("vi-VN", {
-        year: "numeric",
-        month: "long",
-      })
-    : null;
+  const narrativeBlocks = parseNarrative(artisan.narrativeContent);
+  const profileImg = artisan.profileImageUrl || FALLBACK_IMG;
 
   const breadcrumbItems = [
     { label: "Trang chủ", path: "/" },
@@ -91,178 +117,202 @@ export default function ArtisanDetailPage() {
     <div className="artisan-detail">
       <Breadcrumbs items={breadcrumbItems} />
 
-      {/* ── Back button ── */}
-      <div className="artisan-detail__nav">
-        <button className="ad-back-btn" onClick={() => navigate("/artisans")}>
-          <ArrowLeft size={18} />
-          <span>Quay lại</span>
+      {/* ═══════════ HERO — dark photo overlay ═══════════ */}
+      <section className="ad-hero-banner">
+        <img
+          className="ad-hero-banner__bg"
+          src={artisan.profileImageUrl || FALLBACK_IMG}
+          alt={artisan.fullName}
+        />
+        <div className="ad-hero-banner__overlay" />
+
+        <button className="ad-hero-banner__back" onClick={() => navigate("/artisans")}>
+          <ArrowLeft size={20} />
         </button>
-      </div>
 
-      {/* ══════════════ Hero Section ══════════════ */}
-      <section className="ad-hero">
-        {/* Profile image with stamp frame */}
-        <div className="ad-hero__stamp">
-          <div className="ad-hero__img-wrap">
-            <img
-              src={profileImg}
-              alt={artisan.fullName}
-              className="ad-hero__img"
-              onError={() => setImgError(true)}
-            />
-          </div>
-        </div>
-
-        {/* Basic info */}
-        <div className="ad-hero__info">
-          <h1 className="ad-hero__name">{artisan.fullName}</h1>
-          <p className="ad-hero__spec">{artisan.specialization}</p>
-
-          {/* Rating */}
-          {artisan.averageRating > 0 && (
-            <div className="ad-hero__rating">
-              <Star size={18} />
-              <span className="ad-hero__rating-value">
-                {artisan.averageRating.toFixed(1)}
-              </span>
-              <span className="ad-hero__rating-label">đánh giá trung bình</span>
-            </div>
-          )}
-
-          {/* Quick stats */}
-          <div className="ad-hero__stats">
-            {artisan.totalTours > 0 && (
-              <div className="ad-hero__stat">
-                <Users size={16} />
-                <span>
-                  <strong>{artisan.totalTours}</strong> tour
-                </span>
-              </div>
-            )}
-            {artisan.province && (
-              <div className="ad-hero__stat">
-                <MapPin size={16} />
-                <span>{artisan.province.name}</span>
-              </div>
-            )}
-            {joinDate && (
-              <div className="ad-hero__stat">
-                <Calendar size={16} />
-                <span>Tham gia từ {joinDate}</span>
-              </div>
-            )}
-          </div>
-
-          {/* CTA */}
-          <div className="ad-hero__actions">
-            <Link to="/tours" className="ad-hero__btn ad-hero__btn--primary">
-              <Briefcase size={16} />
-              Xem tour của nghệ nhân
-            </Link>
-          </div>
+        <div className="ad-hero-banner__content">
+          <h1 className="ad-hero-banner__title">{artisan.specialization}</h1>
+          <p className="ad-hero-banner__subtitle">
+            {artisan.heroSubtitle || artisan.bio}
+          </p>
+          <Link to="/tours" className="ad-hero-banner__btn">Khám phá ngay</Link>
         </div>
       </section>
 
-      {/* ══════════════ Bio Section ══════════════ */}
-      {artisan.bio && (
-        <section className="ad-section ad-bio">
-          <div className="ad-section__container">
-            <h2 className="ad-section__title">Giới thiệu</h2>
-            <div className="ad-bio__content">
-              <p>{artisan.bio}</p>
+      {/* ═══════════ INFO CARD — name, tabs, stats ═══════════ */}
+      <section className="ad-info">
+        <div className="ad-info__container">
+          <h2 className="ad-info__name">
+            Nghệ nhân {artisan.fullName}
+          </h2>
+
+          {/* Sticky-ish tabs */}
+          <nav className="ad-info__tabs">
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                className={`ad-info__tab ${activeTab === t.key ? "ad-info__tab--active" : ""}`}
+                onClick={() => scrollTo(t.key)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </nav>
+
+          {/* Quick stats row */}
+          <div className="ad-info__stats">
+            <div className="ad-info__stat">
+              <span className="ad-info__stat-label">Dân tộc</span>
+              <span className="ad-info__stat-value">{artisan.ethnicity || "—"}</span>
             </div>
+            <div className="ad-info__stat">
+              <span className="ad-info__stat-label">Tuổi</span>
+              <span className="ad-info__stat-value">{artisan.age || "—"}</span>
+            </div>
+            <div className="ad-info__stat">
+              <span className="ad-info__stat-label">Nơi sinh sống</span>
+              <span className="ad-info__stat-value">{artisan.location || "—"}</span>
+            </div>
+          </div>
+
+          {/* Bio paragraph */}
+          {artisan.bio && <p className="ad-info__bio">{artisan.bio}</p>}
+        </div>
+      </section>
+
+      {/* ═══════════ NARRATIVE SECTIONS ═══════════ */}
+      {narrativeBlocks.length > 0 && (
+        <section
+          className="ad-narrative"
+          ref={(el) => { sectionRefs.current.narrative = el; }}
+        >
+          <div className="ad-narrative__container">
+            <h2 className="ad-narrative__heading">
+              Hành trình của nghệ nhân {artisan.fullName}
+            </h2>
+
+            {narrativeBlocks.map((block, idx) => (
+              <div
+                key={idx}
+                className={`ad-narrative__block ${idx % 2 !== 0 ? "ad-narrative__block--reverse" : ""}`}
+              >
+                <div className="ad-narrative__text">
+                  <h3 className="ad-narrative__block-title">{block.title}</h3>
+                  <p className="ad-narrative__block-content">{block.content}</p>
+                </div>
+                {block.imageUrl && (
+                  <div className="ad-narrative__img-wrap">
+                    <img
+                      src={block.imageUrl}
+                      alt={block.title}
+                      className="ad-narrative__img"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </section>
       )}
 
-      {/* ══════════════ Workshop & Location ══════════════ */}
-      {(artisan.workshopAddress || artisan.province) && (
-        <section className="ad-section ad-location">
-          <div className="ad-section__container">
-            <h2 className="ad-section__title">Xưởng & Địa điểm</h2>
-
-            <div className="ad-location__grid">
-              {/* Workshop address */}
-              {artisan.workshopAddress && (
-                <div className="ad-location__card">
-                  <div className="ad-location__icon">
-                    <MapPin size={24} />
-                  </div>
-                  <h3>Địa chỉ xưởng</h3>
-                  <p>{artisan.workshopAddress}</p>
+      {/* ═══════════ PANORAMA SLIDER ═══════════ */}
+      {panoramaImages.length > 0 && (
+        <section
+          className="ad-panorama"
+          ref={(el) => { sectionRefs.current.gong = el; }}
+        >
+          <div className="ad-panorama__slider">
+            <img
+              className="ad-panorama__img"
+              src={panoramaImages[panoramaIdx] || FALLBACK_IMG}
+              alt={`Panorama ${panoramaIdx + 1}`}
+            />
+            {panoramaImages.length > 1 && (
+              <>
+                <button className="ad-panorama__arrow ad-panorama__arrow--left" onClick={prevSlide}>
+                  <ChevronLeft size={28} />
+                </button>
+                <button className="ad-panorama__arrow ad-panorama__arrow--right" onClick={nextSlide}>
+                  <ChevronRight size={28} />
+                </button>
+                <div className="ad-panorama__dots">
+                  {panoramaImages.map((_, i) => (
+                    <span
+                      key={i}
+                      className={`ad-panorama__dot ${i === panoramaIdx ? "ad-panorama__dot--active" : ""}`}
+                      onClick={() => setPanoramaIdx(i)}
+                    />
+                  ))}
                 </div>
-              )}
-
-              {/* Province info */}
-              {artisan.province && (
-                <div className="ad-location__card">
-                  <div className="ad-location__icon">
-                    <MapPin size={24} />
-                  </div>
-                  <h3>{artisan.province.name}</h3>
-                  <p>{artisan.province.description}</p>
-                  {artisan.province.bestSeason && (
-                    <p className="ad-location__meta">
-                      <strong>Mùa đẹp nhất:</strong>{" "}
-                      {artisan.province.bestSeason}
-                    </p>
-                  )}
-                  {artisan.province.transportation && (
-                    <p className="ad-location__meta">
-                      <strong>Di chuyển:</strong>{" "}
-                      {artisan.province.transportation}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* Cultural tips */}
-              {artisan.province?.culturalTips && (
-                <div className="ad-location__card ad-location__card--tips">
-                  <div className="ad-location__icon">
-                    <Briefcase size={24} />
-                  </div>
-                  <h3>Mẹo văn hoá</h3>
-                  <p>{artisan.province.culturalTips}</p>
-                </div>
-              )}
-            </div>
+              </>
+            )}
           </div>
         </section>
       )}
 
-      {/* ══════════════ Contact Info ══════════════ */}
-      {(artisan.user?.email || artisan.user?.phone) && (
-        <section className="ad-section ad-contact">
-          <div className="ad-section__container">
-            <h2 className="ad-section__title">Liên hệ</h2>
-            <div className="ad-contact__list">
-              {artisan.user.email && (
-                <div className="ad-contact__item">
-                  <Mail size={20} />
-                  <span>{artisan.user.email}</span>
-                </div>
-              )}
-              {artisan.user.phone && (
-                <div className="ad-contact__item">
-                  <Phone size={20} />
-                  <span>{artisan.user.phone}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
+      {/* ═══════════ KẾT NỐI VĂN HOÁ — related culture + tours ═══════════ */}
+      <section
+        className="ad-connect"
+        ref={(el) => { sectionRefs.current.culture = el; }}
+      >
+        <div className="ad-connect__container">
+          <h2 className="ad-connect__heading">Kết nối văn hoá</h2>
 
-      {/* ══════════════ CTA Banner ══════════════ */}
-      <section className="ad-cta">
-        <div className="ad-cta__box">
-          <p className="ad-cta__text">
-            Bạn muốn trải nghiệm trực tiếp với nghệ nhân {artisan.fullName}?
-          </p>
-          <Link to="/tours" className="ad-cta__btn">
-            Đặt tour ngay
-          </Link>
+          <div className="ad-connect__grid">
+            {/* Related culture items */}
+            {artisan.relatedCultureItems?.slice(0, 2).map((item) => (
+              <div key={item.id} className="ad-connect__card">
+                <div className="ad-connect__card-img-wrap">
+                  <img
+                    src={item.thumbnailUrl || FALLBACK_IMG}
+                    alt={item.title}
+                    className="ad-connect__card-img"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="ad-connect__card-body">
+                  <h4>{item.title}</h4>
+                  <p>{item.description}</p>
+                </div>
+              </div>
+            ))}
+
+            {/* Related tours */}
+            {artisan.relatedTours?.slice(0, 2).map((tour) => (
+              <Link to={`/tours/${tour.id}`} key={tour.id} className="ad-connect__card ad-connect__card--tour">
+                <div className="ad-connect__card-img-wrap">
+                  <img
+                    src={tour.thumbnailUrl || FALLBACK_IMG}
+                    alt={tour.title}
+                    className="ad-connect__card-img"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="ad-connect__card-body">
+                  <h4>{tour.title}</h4>
+                  <p className="ad-connect__card-price">
+                    {formatPrice(tour.price)} VNĐ
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {/* CTA row */}
+          <div className="ad-connect__cta-row">
+            <Link to="/artisans" className="ad-connect__cta ad-connect__cta--outline">
+              Danh sách các nghệ nhân
+            </Link>
+            {artisan.otherArtisans && artisan.otherArtisans.length > 0 && (
+              <Link
+                to={`/artisans/${artisan.otherArtisans[0].id}`}
+                className="ad-connect__cta ad-connect__cta--outline"
+              >
+                Xem thêm nghệ nhân khác
+              </Link>
+            )}
+          </div>
         </div>
       </section>
     </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { getLearnModules } from '../../services/api';
+import { getLearnModules, getLearnUserStats } from '../../services/api';
 import { LearnPageContent, type LessonGroup } from '../../components/learn';
-import type { LearnModule, LearnCategory } from '../../types';
+import type { LearnModule, LearnCategory, LearnUserStats } from '../../types';
 
 function slugify(name: string): string {
   return (name ?? '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'all';
@@ -40,17 +40,17 @@ function extractCategoriesFromModules(modules: LearnModule[]): LearnCategory[] {
 
 export default function LearnPage() {
   const [lessonGroups, setLessonGroups] = useState<LessonGroup[]>([]);
-  const [modules, setModules] = useState<LearnModule[]>([]);
   const [categories, setCategories] = useState<LearnCategory[]>([]);
+  const [stats, setStats] = useState<LearnUserStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    getLearnModules()
+
+    const fetchModules = getLearnModules()
       .then((mods) => {
         if (!cancelled) {
           const safeModules = mods ?? [];
-          setModules(safeModules);
           const extractedCategories = extractCategoriesFromModules(safeModules);
           setCategories(extractedCategories);
           setLessonGroups(safeModules.map(mapModuleToLessonGroup));
@@ -62,12 +62,28 @@ export default function LearnPage() {
           setLessonGroups([]);
           setCategories([]);
         }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
       });
+
+    // Fetch user learn stats (requires auth, may fail silently)
+    const fetchStats = getLearnUserStats()
+      .then((data) => {
+        if (!cancelled) setStats(data);
+      })
+      .catch(() => {});
+
+    Promise.all([fetchModules, fetchStats]).finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+
     return () => { cancelled = true; };
   }, []);
 
-  return <LearnPageContent lessonGroups={lessonGroups} categories={categories} modules={modules} loading={loading} />;
+  return (
+    <LearnPageContent
+      lessonGroups={lessonGroups}
+      categories={categories}
+      stats={stats}
+      loading={loading}
+    />
+  );
 }

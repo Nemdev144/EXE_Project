@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
-import type { LearnCategory, LearnModule } from '../../types';
+import type { LearnCategory, LearnUserStats } from '../../types';
 import '../../styles/pages/_learn.scss';
 import '../../styles/components/_category-filter.scss';
 import '../../styles/components/_lesson-card.scss';
@@ -60,25 +60,25 @@ function CategoryFilter({ categories, activeCategorySlug, onCategoryChange }: Ca
 }
 
 // ---------------------------------------------------------------------------
-// LessonCard
+// LessonCard – Navigate to /learn/:moduleId
 // ---------------------------------------------------------------------------
 interface LessonCardProps {
   lesson: LessonGroup;
-  module?: LearnModule;
+  progressPercent?: number;
 }
 
-function LessonCard({ lesson, module }: LessonCardProps) {
-  const lessonUrl = `/learn/${lesson.categorySlug || 'all'}/${lesson.slug}`;
+function LessonCard({ lesson, progressPercent = 0 }: LessonCardProps) {
+  // Navigate directly to module detail using module ID
+  const lessonUrl = `/learn/${lesson.id}`;
 
   return (
-    <Link to={lessonUrl} state={{ moduleData: module }} className="lesson-card">
+    <Link to={lessonUrl} className="lesson-card">
       {lesson.thumbnailUrl ? (
         <div className="lesson-card__image">
           <img 
             src={lesson.thumbnailUrl} 
             alt={lesson.title}
             onError={(e) => {
-              console.error('[LessonCard] Failed to load image:', lesson.thumbnailUrl);
               (e.target as HTMLImageElement).src = '/nen.png';
             }}
           />
@@ -99,7 +99,10 @@ function LessonCard({ lesson, module }: LessonCardProps) {
           )}
         </div>
         <div className="lesson-card__progress">
-          <div className="lesson-card__progress-bar" />
+          <div
+            className="lesson-card__progress-bar"
+            style={{ width: `${Math.min(progressPercent, 100)}%` }}
+          />
         </div>
         <div className="lesson-card__button">Học ngay</div>
       </div>
@@ -150,17 +153,20 @@ function PromoBanner() {
 interface LearnPageContentProps {
   lessonGroups: LessonGroup[];
   categories: LearnCategory[];
-  modules?: LearnModule[];
+  stats?: LearnUserStats | null;
   loading: boolean;
 }
 
-export default function LearnPageContent({ lessonGroups, categories, modules = [], loading }: LearnPageContentProps) {
+export default function LearnPageContent({ lessonGroups, categories, stats, loading }: LearnPageContentProps) {
   const [activeCategorySlug, setActiveCategorySlug] = useState<string>('all');
 
   const filteredLessons =
     activeCategorySlug === 'all'
       ? lessonGroups
       : lessonGroups.filter((group) => group.categorySlug === activeCategorySlug);
+
+  // Use overallLearningProgressPercent from stats for progress bars
+  const progressPercent = stats?.overallLearningProgressPercent ?? 0;
 
   return (
     <div className="learn-page">
@@ -195,7 +201,11 @@ export default function LearnPageContent({ lessonGroups, categories, modules = [
         ) : (
           <div className="learn-page__grid">
             {filteredLessons.map((group) => (
-              <LessonCard key={group.id} lesson={group} module={modules.find((m) => m.id === group.id)} />
+              <LessonCard
+                key={group.id}
+                lesson={group}
+                progressPercent={progressPercent}
+              />
             ))}
           </div>
         )}

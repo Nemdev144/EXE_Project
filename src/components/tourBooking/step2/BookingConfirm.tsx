@@ -47,8 +47,7 @@ export default function BookingConfirm() {
       }
     : {
         departureDate: null,
-        adults: 2,
-        children: 0,
+        participants: 2,
         specialRequirements: '',
         tourType: 'individual',
         notes: '',

@@ -13,6 +13,7 @@ import type {
   LearnModule,
   LearnLesson,
   LearnCategory,
+  LearnUserStats,
 } from "../types";
 
 // API Base Configuration
@@ -254,6 +255,35 @@ export const getToursByProvince = async (
   return data;
 };
 
+// ========== Tour Highlights & Culture Items (per tour) ==========
+export const getTourHighlights = async (
+  tourId: number,
+): Promise<CultureItem[]> => {
+  const key = `tour:${tourId}:highlights`;
+  const cached = getCached<CultureItem[]>(key);
+  if (cached !== undefined) return cached;
+  const response = await api.get<ApiResponse<CultureItem[]>>(
+    `/api/tours/public/${tourId}/highlights`,
+  );
+  const data = response.data.data;
+  setCached(key, data);
+  return data;
+};
+
+export const getTourCultureItems = async (
+  tourId: number,
+): Promise<CultureItem[]> => {
+  const key = `tour:${tourId}:cultureItems`;
+  const cached = getCached<CultureItem[]>(key);
+  if (cached !== undefined) return cached;
+  const response = await api.get<ApiResponse<CultureItem[]>>(
+    `/api/tours/public/${tourId}/culture-items`,
+  );
+  const data = response.data.data;
+  setCached(key, data);
+  return data;
+};
+
 // ========== Reviews API ==========
 export const getTourReviews = async (tourId: number): Promise<Review[]> => {
   const key = `reviews:tour:${tourId}`;
@@ -438,6 +468,20 @@ export const getQuizById = async (id: number): Promise<LearnQuiz> => {
   const data = response.data.data;
   setCached(key, data);
   return data;
+};
+
+// ========== Learn user stats (requires auth) ==========
+export const getLearnUserStats = async (): Promise<LearnUserStats | null> => {
+  try {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return null;
+    const response = await api.get<ApiResponse<LearnUserStats>>(
+      '/api/learn/users/me/stats',
+    );
+    return response.data.data;
+  } catch {
+    return null;
+  }
 };
 
 export default api;

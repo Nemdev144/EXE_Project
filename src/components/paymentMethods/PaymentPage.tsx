@@ -53,8 +53,7 @@ export default function PaymentPage() {
       }
     : {
         departureDate: null,
-        adults: 2,
-        children: 0,
+        participants: 2,
         specialRequirements: '',
         tourType: 'individual',
         notes: '',
@@ -137,7 +136,7 @@ export default function PaymentPage() {
       }
 
       /* ---- 2. Create Booking ---- */
-      const numParticipants = bookingDetails.adults + bookingDetails.children;
+      const numParticipants = bookingDetails.participants;
 
       const booking = await createBooking({
         tourId: tour.id,

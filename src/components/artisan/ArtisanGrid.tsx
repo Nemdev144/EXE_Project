@@ -1,6 +1,10 @@
+import { useState } from "react";
+import { Pagination } from "antd";
 import type { PublicArtisan } from "../../types";
 import ArtisanCard from "./ArtisanCard";
 import "../../styles/components/artisan/_artisan-grid.scss";
+
+const PAGE_SIZE = 6;
 
 interface Props {
   artisans: PublicArtisan[];
@@ -23,6 +27,13 @@ function SkeletonCard() {
 }
 
 export default function ArtisanGrid({ artisans, loading }: Props) {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const paginatedArtisans = artisans.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
   return (
     <section className="artisan-grid">
       <div className="artisan-grid__inner">
@@ -30,14 +41,28 @@ export default function ArtisanGrid({ artisans, loading }: Props) {
 
         <div className="artisan-grid__list">
           {loading
-            ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
-            : artisans.map((a) => <ArtisanCard key={a.id} artisan={a} />)}
+            ? Array.from({ length: PAGE_SIZE }).map((_, i) => <SkeletonCard key={i} />)
+            : paginatedArtisans.map((a) => <ArtisanCard key={a.id} artisan={a} />)}
         </div>
 
         {!loading && artisans.length === 0 && (
           <p className="artisan-grid__empty">
             Chưa có nghệ nhân nào được hiển thị.
           </p>
+        )}
+
+        {!loading && artisans.length > PAGE_SIZE && (
+          <div className="artisan-grid__pagination">
+            <Pagination
+              current={currentPage}
+              pageSize={PAGE_SIZE}
+              total={artisans.length}
+              onChange={(page) => {
+                setCurrentPage(page);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            />
+          </div>
         )}
       </div>
     </section>

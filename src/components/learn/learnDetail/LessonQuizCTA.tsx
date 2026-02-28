@@ -2,27 +2,21 @@ import { useNavigate } from 'react-router-dom';
 import '../../../styles/components/learnDetail/_lesson-quiz-cta.scss';
 
 interface LessonQuizCTAProps {
-  category: string;
-  slug: string;
+  moduleId: number;
   questionCount?: number;
   /** Nếu có, navigate với state.quizId để QuizPage load đúng đề */
   quizId?: number;
 }
 
 export default function LessonQuizCTA({
-  category,
-  slug,
+  moduleId,
   questionCount = 5,
   quizId,
 }: LessonQuizCTAProps) {
   const navigate = useNavigate();
 
   const goToQuiz = () => {
-    if (quizId != null) {
-      navigate(`/learn/${category}/${slug}/quiz`, { state: { quizId } });
-    } else {
-      navigate(`/learn/${category}/${slug}/quiz`);
-    }
+    navigate(`/learn/${moduleId}/quiz`, { state: { quizId } });
   };
 
   return (

@@ -47,6 +47,12 @@
     font-size: $font-size-lg;
     padding: $spacing-3xl 0;
   }
+
+  &__pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: $spacing-2xl;
+  }
 }
 
 // Skeleton helpers
