@@ -24,7 +24,6 @@ import {
   DollarOutlined,
   TeamOutlined,
   PercentageOutlined,
-  MailOutlined,
   AlertOutlined,
   SwapOutlined,
 } from "@ant-design/icons";
@@ -173,9 +172,6 @@ export default function TourCoordination() {
     }
   };
 
-  const handleSendEmail = (tour: Tour, template: string) => {
-    message.success(`Đã gửi email "${template}" cho khách hàng của tour ${tour.title}`);
-  };
 
   const handleProposeAction = (tour: Tour, action: string, data?: any) => {
     message.info(`Đã gửi đề xuất "${action}" cho Admin. Vui lòng chờ Admin xử lý.`);
@@ -340,51 +336,6 @@ export default function TourCoordination() {
               }}
             >
               Gắn nghệ nhân
-            </Button>
-            <Button
-              type="link"
-              icon={<MailOutlined />}
-              size="small"
-              onClick={() => {
-                Modal.confirm({
-                  title: "Chọn template email",
-                  content: (
-                    <Space direction="vertical" style={{ width: "100%", marginTop: 16 }}>
-                      <Button
-                        block
-                        onClick={() => {
-                          handleSendEmail(record, "Nhắc thanh toán");
-                          Modal.destroyAll();
-                        }}
-                      >
-                        Nhắc thanh toán
-                      </Button>
-                      <Button
-                        block
-                        onClick={() => {
-                          handleSendEmail(record, "Thông báo thiếu người");
-                          Modal.destroyAll();
-                        }}
-                      >
-                        Thông báo thiếu người
-                      </Button>
-                      <Button
-                        block
-                        onClick={() => {
-                          handleSendEmail(record, "Đề xuất đổi tour");
-                          Modal.destroyAll();
-                        }}
-                      >
-                        Đề xuất đổi tour
-                      </Button>
-                    </Space>
-                  ),
-                  okButtonProps: { style: { display: "none" } },
-                  cancelText: "Đóng",
-                });
-              }}
-            >
-              Gửi email
             </Button>
             {record.status === "NOT_ENOUGH" && remaining > 0 && (
               <>

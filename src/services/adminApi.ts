@@ -144,6 +144,8 @@ export type BookingPaymentMethod =
   | "BANK_TRANSFER"
   | "CASH"
   | "EWALLET"
+  | "VNPAY"
+  | "MOMO"
   | string;
 export type BookingStatus =
   | "PENDING"
@@ -193,6 +195,22 @@ export interface UpdateBookingRequest {
   notes?: string;
 }
 
+/** Parse linh hoạt booking response - backend có thể trả data trực tiếp hoặc nested */
+function parseBookingResponse(raw: unknown): AdminBooking[] {
+  if (Array.isArray(raw)) return raw as AdminBooking[];
+  if (raw && typeof raw === "object") {
+    const obj = raw as Record<string, unknown>;
+    return (
+      (obj.bookings as AdminBooking[]) ??
+      (obj.content as AdminBooking[]) ??
+      (obj.data as AdminBooking[]) ??
+      (obj.items as AdminBooking[]) ??
+      []
+    );
+  }
+  return [];
+}
+
 export const getAdminBookings = async (params?: {
   page?: number;
   limit?: number;
@@ -201,29 +219,14 @@ export const getAdminBookings = async (params?: {
   startDate?: string;
   endDate?: string;
 }): Promise<{ data: AdminBooking[]; total: number }> => {
-  const response = await api.get<
-    ApiResponse<
-      | AdminBooking[]
-      | { content?: AdminBooking[]; totalElements?: number }
-      | { bookings?: AdminBooking[]; total?: number }
-      | { items?: AdminBooking[] }
-    >
-  >("/api/bookings", { params });
-  const raw = response.data.data;
-  let data: AdminBooking[] = [];
-  let total = 0;
-  if (Array.isArray(raw)) {
-    data = raw;
-    total = raw.length;
-  } else if (raw && typeof raw === "object") {
+  const response = await api.get<unknown>("/api/bookings", { params });
+  const body = response.data as Record<string, unknown>;
+  const raw = body.data ?? body;
+  let data = parseBookingResponse(raw);
+  let total = data.length;
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
     const obj = raw as Record<string, unknown>;
-    data =
-      (obj.content as AdminBooking[]) ??
-      (obj.bookings as AdminBooking[]) ??
-      (obj.items as AdminBooking[]) ??
-      [];
-    total =
-      (obj.totalElements as number) ?? (obj.total as number) ?? data.length;
+    total = (obj.totalElements as number) ?? (obj.total as number) ?? data.length;
   }
   return { data, total };
 };
@@ -1066,6 +1069,158 @@ export const updateVoucher = async (
 
 export const deleteVoucher = async (id: number): Promise<void> => {
   await api.delete(`/api/vouchers/${id}`);
+};
+
+// ========== Admin Tour Schedules API ==========
+// Theo spec: { success, code, message, data, errors, timestamp }
+// GET /api/tour-schedules/{id} -> data: AdminTourSchedule
+// GET /api/tour-schedules/tour/{tourId} -> data: AdminTourSchedule[] | { content: AdminTourSchedule[] }
+export type TourScheduleStatus = "SCHEDULED" | "CANCELLED" | "COMPLETED" | string;
+
+export interface AdminTourSchedule {
+  id: number;
+  tour: {
+    id: number;
+    title: string;
+    slug?: string;
+    province?: { id: number; name: string; slug?: string; region?: string };
+    price?: number;
+    maxParticipants?: number;
+    artisan?: { id: number; fullName: string };
+    [key: string]: unknown;
+  };
+  tourDate: string; // "YYYY-MM-DD"
+  startTime?: { hour: number; minute: number; second?: number; nano?: number } | string; // API có thể trả về "HH:mm:ss" hoặc object
+  maxSlots: number;
+  bookedSlots: number;
+  currentPrice?: number; // Backend có thể trả price thay vì currentPrice
+  discountPercent?: number;
+  status: TourScheduleStatus;
+  createdAt: string;
+}
+
+/** Response wrapper đúng theo API spec */
+export interface TourScheduleApiResponse<T> {
+  success: boolean;
+  code: number;
+  message: string;
+  data: T;
+  errors?: Record<string, unknown>;
+  timestamp: string;
+}
+
+/** startTime theo response: { hour, minute, second, nano } */
+export interface TourScheduleStartTime {
+  hour: number;
+  minute: number;
+  second?: number;
+  nano?: number;
+}
+
+export interface CreateTourScheduleRequest {
+  tourId: number;
+  tourDate: string; // "YYYY-MM-DD"
+  startTime?: TourScheduleStartTime | string;
+  maxSlots: number;
+  currentPrice: number;
+  discountPercent?: number;
+  status?: TourScheduleStatus;
+}
+
+export interface UpdateTourScheduleRequest {
+  tourDate?: string;
+  startTime?: TourScheduleStartTime | string;
+  maxSlots?: number;
+  currentPrice?: number;
+  discountPercent?: number;
+  status?: TourScheduleStatus;
+}
+
+export const getTourSchedules = async (params?: {
+  tourId?: number;
+  page?: number;
+  limit?: number;
+}): Promise<{ data: AdminTourSchedule[]; total: number }> => {
+  const response = await api.get<unknown>("/api/tour-schedules", { params });
+  const body = response.data as Record<string, unknown>;
+  const raw = body.data ?? body;
+  let data = parseScheduleResponse(raw);
+  let total = data.length;
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    const obj = raw as Record<string, unknown>;
+    total = (obj.totalElements as number) ?? (obj.total as number) ?? data.length;
+  }
+  return { data, total };
+};
+
+/** Parse linh hoạt response - backend có thể trả data trực tiếp hoặc nested */
+function parseScheduleResponse(raw: unknown): AdminTourSchedule[] {
+  if (Array.isArray(raw)) return raw as AdminTourSchedule[];
+  if (raw && typeof raw === "object") {
+    const obj = raw as Record<string, unknown>;
+    return (
+      (obj.schedules as AdminTourSchedule[]) ??
+      (obj.content as AdminTourSchedule[]) ??
+      (obj.data as AdminTourSchedule[]) ??
+      (obj.items as AdminTourSchedule[]) ??
+      []
+    );
+  }
+  return [];
+}
+
+export const getTourSchedulesByTourId = async (
+  tourId: number,
+): Promise<AdminTourSchedule[]> => {
+  const response = await api.get<TourScheduleApiResponse<
+    AdminTourSchedule[] | { content?: AdminTourSchedule[] }
+  >>(`/api/tour-schedules/tour/${tourId}`);
+  const body = response.data;
+  const raw = body.data;
+  if (Array.isArray(raw)) return raw;
+  if (raw && typeof raw === "object" && "content" in raw)
+    return (raw.content as AdminTourSchedule[]) ?? [];
+  return parseScheduleResponse(raw);
+};
+
+export const getTourScheduleById = async (
+  id: number,
+): Promise<AdminTourSchedule> => {
+  const response = await api.get<TourScheduleApiResponse<AdminTourSchedule>>(
+    `/api/tour-schedules/${id}`,
+  );
+  const body = response.data;
+  if (!body.data) throw new Error("API không trả về data");
+  return body.data;
+};
+
+export const createTourSchedule = async (
+  data: CreateTourScheduleRequest,
+): Promise<AdminTourSchedule> => {
+  const response = await api.post<TourScheduleApiResponse<AdminTourSchedule>>(
+    "/api/tour-schedules",
+    data,
+  );
+  const body = response.data;
+  if (!body.data) throw new Error("API không trả về data");
+  return body.data;
+};
+
+export const updateTourSchedule = async (
+  id: number,
+  data: UpdateTourScheduleRequest,
+): Promise<AdminTourSchedule> => {
+  const response = await api.put<TourScheduleApiResponse<AdminTourSchedule>>(
+    `/api/tour-schedules/${id}`,
+    data,
+  );
+  const body = response.data;
+  if (!body.data) throw new Error("API không trả về data");
+  return body.data;
+};
+
+export const deleteTourSchedule = async (id: number): Promise<void> => {
+  await api.delete(`/api/tour-schedules/${id}`);
 };
 
 // ========== Admin Dashboard API ==========
