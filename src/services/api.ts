@@ -473,10 +473,10 @@ export const getQuizById = async (id: number): Promise<LearnQuiz> => {
 // ========== Learn user stats (requires auth) ==========
 export const getLearnUserStats = async (): Promise<LearnUserStats | null> => {
   try {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem("accessToken");
     if (!token) return null;
     const response = await api.get<ApiResponse<LearnUserStats>>(
-      '/api/learn/users/me/stats',
+      "/api/learn/users/me/stats",
     );
     return response.data.data;
   } catch {

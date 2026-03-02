@@ -23,7 +23,6 @@ import {
   CalendarOutlined,
   TeamOutlined,
   UserOutlined,
-  MailOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   SettingOutlined,
@@ -37,6 +36,7 @@ import {
   GiftOutlined,
 } from "@ant-design/icons";
 import { antdTheme } from "../../config/antd-theme";
+import { adminLogout } from "../../services/adminApi";
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -49,52 +49,52 @@ const menuItems: MenuProps["items"] = [
   {
     key: "/admin",
     icon: <DashboardOutlined />,
-    label: <Link to="/admin">Dashboard</Link>,
+    label: <Link to="/admin" style={{ textDecoration: "none" }}>Dashboard</Link>,
   },
   {
     key: "/admin/content",
     icon: <FileTextOutlined />,
-    label: <Link to="/admin/content">Quản lý Nội dung</Link>,
+    label: <Link to="/admin/content" style={{ textDecoration: "none" }}>Quản lý Nội dung</Link>,
   },
   {
     key: "/admin/tours",
     icon: <EnvironmentOutlined />,
-    label: <Link to="/admin/tours">Quản lý Tour</Link>,
+    label: <Link to="/admin/tours" style={{ textDecoration: "none" }}>Quản lý Tour</Link>,
+  },
+  {
+    key: "/admin/tour-schedules",
+    icon: <CalendarOutlined />,
+    label: <Link to="/admin/tour-schedules" style={{ textDecoration: "none" }}>Quản lý Lịch trình</Link>,
   },
   {
     key: "/admin/bookings",
     icon: <CalendarOutlined />,
-    label: <Link to="/admin/bookings">Quản lý Booking</Link>,
+    label: <Link to="/admin/bookings" style={{ textDecoration: "none" }}>Quản lý Booking</Link>,
   },
   {
     key: "/admin/artisans",
     icon: <TeamOutlined />,
-    label: <Link to="/admin/artisans">Quản lý Nghệ nhân</Link>,
+    label: <Link to="/admin/artisans" style={{ textDecoration: "none" }}>Quản lý Nghệ nhân</Link>,
   },
   {
     key: "/admin/users",
     icon: <UserOutlined />,
-    label: <Link to="/admin/users">Quản lý Member</Link>,
+    label: <Link to="/admin/users" style={{ textDecoration: "none" }}>Quản lý Member</Link>,
   },
   {
     key: "/admin/staff",
     icon: <IdcardOutlined />,
-    label: <Link to="/admin/staff">Quản lý Staff</Link>,
-  },
-  {
-    key: "/admin/emails",
-    icon: <MailOutlined />,
-    label: <Link to="/admin/emails">Email Templates</Link>,
+    label: <Link to="/admin/staff" style={{ textDecoration: "none" }}>Quản lý Staff</Link>,
   },
   {
     key: "/admin/learn",
     icon: <BookOutlined />,
-    label: <Link to="/admin/learn">Quản lý Học nhanh</Link>,
+    label: <Link to="/admin/learn" style={{ textDecoration: "none" }}>Quản lý Học nhanh</Link>,
   },
   {
     key: "/admin/vouchers",
     icon: <GiftOutlined />,
-    label: <Link to="/admin/vouchers">Quản lý Voucher</Link>,
+    label: <Link to="/admin/vouchers" style={{ textDecoration: "none" }}>Quản lý Voucher</Link>,
   },
 ];
 
@@ -102,11 +102,11 @@ const pageTitles: Record<string, string> = {
   "/admin": "Dashboard",
   "/admin/content": "Quản lý Nội dung",
   "/admin/tours": "Quản lý Tour",
+  "/admin/tour-schedules": "Quản lý Lịch trình",
   "/admin/bookings": "Quản lý Booking",
   "/admin/artisans": "Quản lý Nghệ nhân",
   "/admin/users": "Quản lý Member",
   "/admin/staff": "Quản lý Staff",
-  "/admin/emails": "Email Templates",
   "/admin/learn": "Quản lý Học nhanh",
   "/admin/vouchers": "Quản lý Voucher",
 };
@@ -120,6 +120,10 @@ const breadcrumbMap: Record<string, { title: string; path?: string }[]> = {
   "/admin/tours": [
     { title: "Dashboard", path: "/admin" },
     { title: "Quản lý Tour" },
+  ],
+  "/admin/tour-schedules": [
+    { title: "Dashboard", path: "/admin" },
+    { title: "Quản lý Lịch trình" },
   ],
   "/admin/bookings": [
     { title: "Dashboard", path: "/admin" },
@@ -137,10 +141,6 @@ const breadcrumbMap: Record<string, { title: string; path?: string }[]> = {
     { title: "Dashboard", path: "/admin" },
     { title: "Quản lý Staff" },
   ],
-  "/admin/emails": [
-    { title: "Dashboard", path: "/admin" },
-    { title: "Email Templates" },
-  ],
   "/admin/learn": [
     { title: "Dashboard", path: "/admin" },
     { title: "Quản lý Học nhanh" },
@@ -157,14 +157,21 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
   const location = useLocation();
   const { message } = App.useApp();
 
-  const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
-    localStorage.removeItem("userAccount");
-    localStorage.removeItem("rememberAccount");
-    message.info("Đăng xuất thành công");
-    setTimeout(() => {
+  const handleLogout = async () => {
+    try {
+      await adminLogout();
+    } catch (err) {
+      console.error("[AdminLayout] Logout API error:", err);
+    } finally {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("isAuthenticated");
+      localStorage.removeItem("userAccount");
+      localStorage.removeItem("userInfo");
+      localStorage.removeItem("rememberAccount");
+      message.success("Đăng xuất thành công");
       window.location.href = "/login";
-    }, 500);
+    }
   };
 
   const userMenuItems: MenuProps["items"] = [
@@ -411,7 +418,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
             <Breadcrumb
               items={breadcrumbItems.map((item) => ({
                 title: item.path ? (
-                  <Link to={item.path}>{item.title}</Link>
+                  <Link to={item.path} style={{ textDecoration: "none" }}>{item.title}</Link>
                 ) : (
                   item.title
                 ),
