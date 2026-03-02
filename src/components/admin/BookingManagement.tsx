@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Card,
   Table,
@@ -21,7 +21,6 @@ import {
 const { Title, Text } = Typography;
 import {
   EyeOutlined,
-  MailOutlined,
   CloseOutlined,
   DollarOutlined,
   SearchOutlined,
@@ -30,6 +29,46 @@ import {
 import BookingSummaryCards from "./BookingSummaryCards";
 import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
+
+/** Format datetime từ UTC sang giờ Việt Nam (UTC+7) */
+function formatDateTimeVN(isoString: string | null | undefined): string {
+  if (!isoString) return "-";
+  
+  try {
+    // Nếu timestamp có Z hoặc timezone indicator → parse UTC và thêm 7 giờ
+    if (isoString.includes("Z") || isoString.match(/[+-]\d{2}:\d{2}$/)) {
+      return dayjs.utc(isoString).add(7, "hour").format("DD/MM/YYYY HH:mm");
+    }
+    
+    // Nếu không có timezone indicator, giả định là UTC (backend thường trả về UTC)
+    // dayjs.utc() sẽ tự động parse ISO string không có timezone như UTC
+    return dayjs.utc(isoString).add(7, "hour").format("DD/MM/YYYY HH:mm");
+  } catch (err) {
+    console.error("Error parsing datetime:", isoString, err);
+    return "-";
+  }
+}
+
+/** Format thời gian từ string "HH:mm" sang định dạng 12 giờ với AM/PM */
+function formatTime12h(timeStr: string | null | undefined): string {
+  if (!timeStr) return "—";
+  // Nếu là ISO string, parse và format
+  if (timeStr.includes("T") || timeStr.includes("Z")) {
+    const d = dayjs.utc(timeStr).add(7, "hour");
+    const hour12 = d.hour() === 0 ? 12 : d.hour() > 12 ? d.hour() - 12 : d.hour();
+    const ampm = d.hour() < 12 ? "AM" : "PM";
+    return `${String(hour12).padStart(2, "0")}:${String(d.minute()).padStart(2, "0")} ${ampm}`;
+  }
+  // Nếu là "HH:mm" format
+  const [h, m] = timeStr.split(":").map(Number);
+  if (isNaN(h) || isNaN(m)) return timeStr;
+  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  const ampm = h < 12 ? "AM" : "PM";
+  return `${String(hour12).padStart(2, "0")}:${String(m).padStart(2, "0")} ${ampm}`;
+}
+
 import {
   getAdminBookings,
   getAdminBookingById,
@@ -55,7 +94,7 @@ const statusConfig: Record<
   { label: string; color: string; bgColor?: string }
 > = {
   PENDING: { label: "Chờ xử lý", color: "#faad14", bgColor: "#fffbe6" },
-  CONFIRMED: { label: "Đã xác nhận", color: "#1890ff", bgColor: "#e6f7ff" },
+  CONFIRMED: { label: "Đã xác nhận", color: "#52c41a", bgColor: "#f6ffed" },
   PAID: { label: "Đã thanh toán", color: "#52c41a", bgColor: "#f6ffed" },
   CANCELLED: { label: "Đã hủy", color: "#ff4d4f", bgColor: "#fff1f0" },
   REFUNDED: { label: "Đã hoàn tiền", color: "#8c8c8c", bgColor: "#fafafa" },
@@ -73,6 +112,8 @@ const paymentMethodLabels: Record<string, string> = {
   BANK_TRANSFER: "Chuyển khoản",
   CASH: "Tiền mặt",
   EWALLET: "Ví điện tử",
+  VNPAY: "VNPay",
+  MOMO: "MoMo",
 };
 
 // Fallback tính phí hủy khi API cancellation-fee không có
@@ -87,9 +128,11 @@ const calculateCancelFee = (tourDate: string, totalAmount: number) => {
 
 export default function BookingManagement() {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
+  const [totalBookings, setTotalBookings] = useState<number>(0);
   const [tours, setTours] = useState<Tour[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasFetchedRef = useRef(false);
 
   const [filter, setFilter] = useState<{
     status: string;
@@ -122,29 +165,49 @@ export default function BookingManagement() {
   };
 
   useEffect(() => {
+    // Tránh duplicate requests - chỉ fetch 1 lần
+    if (hasFetchedRef.current) return;
+    
+    let cancelled = false;
     const fetchData = async () => {
       try {
+        hasFetchedRef.current = true;
         setLoading(true);
         setError(null);
         const [bookingsResult, toursData] = await Promise.all([
-          getAdminBookings(),
+          getAdminBookings({ limit: 100 }), // Lấy tất cả booking (30 booking trong DB)
           getPublicTours(),
         ]);
+        // Tránh set state nếu component đã unmount (StrictMode)
+        if (cancelled) {
+          hasFetchedRef.current = false;
+          return;
+        }
         setTours(toursData);
         const rows: BookingRow[] = (bookingsResult.data ?? []).map((b) => ({
           ...b,
           key: String(b.id),
         }));
         setBookings(rows);
+        setTotalBookings(bookingsResult.total ?? rows.length);
       } catch (err) {
+        hasFetchedRef.current = false; // Reset để có thể retry
+        if (cancelled) return;
         console.error("Error fetching bookings data:", err);
         setError("Không thể tải dữ liệu bookings. Vui lòng thử lại sau.");
         message.error("Không thể tải dữ liệu bookings");
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
     fetchData();
+    return () => {
+      cancelled = true;
+      // Reset khi component unmount để có thể fetch lại khi mount lại
+      hasFetchedRef.current = false;
+    };
   }, []);
 
   const filteredBookings = bookings
@@ -384,9 +447,6 @@ export default function BookingManagement() {
                 Hoàn tiền
               </Button>
             )}
-            <Button type="link" icon={<MailOutlined />} size="small">
-              Gửi email
-            </Button>
           </Space>
         );
       },
@@ -461,9 +521,7 @@ export default function BookingManagement() {
               <Select.Option value="all">Tất cả</Select.Option>
               <Select.Option value="PENDING">Chờ xử lý</Select.Option>
               <Select.Option value="CONFIRMED">Đã xác nhận</Select.Option>
-              <Select.Option value="PAID">Đã thanh toán</Select.Option>
               <Select.Option value="CANCELLED">Đã hủy</Select.Option>
-              <Select.Option value="REFUNDED">Đã hoàn tiền</Select.Option>
             </Select>
           </Col>
           <Col xs={24} sm={12} md={6}>
@@ -533,7 +591,8 @@ export default function BookingManagement() {
             pagination={{
               pageSize: 10,
               showSizeChanger: true,
-              showTotal: (total) => `Tổng ${total} booking`,
+              showTotal: (total, range) => 
+                `Hiển thị ${range[0]}-${range[1]} / Tổng ${totalBookings} booking`,
             }}
           />
         )}
@@ -579,9 +638,7 @@ export default function BookingManagement() {
                 : "—"}
             </Descriptions.Item>
             <Descriptions.Item label="Giờ khởi hành">
-              {selectedBooking.tourStartTime
-                ? dayjs(selectedBooking.tourStartTime).format("HH:mm")
-                : "—"}
+              {formatTime12h(selectedBooking.tourStartTime)}
             </Descriptions.Item>
             <Descriptions.Item label="Số người">
               {selectedBooking.numParticipants}
@@ -633,14 +690,10 @@ export default function BookingManagement() {
               </Tag>
             </Descriptions.Item>
             <Descriptions.Item label="Ngày thanh toán">
-              {selectedBooking.paidAt
-                ? dayjs(selectedBooking.paidAt).format("DD/MM/YYYY HH:mm")
-                : "—"}
+              {formatDateTimeVN(selectedBooking.paidAt)}
             </Descriptions.Item>
             <Descriptions.Item label="Ngày hủy">
-              {selectedBooking.cancelledAt
-                ? dayjs(selectedBooking.cancelledAt).format("DD/MM/YYYY HH:mm")
-                : "—"}
+              {formatDateTimeVN(selectedBooking.cancelledAt)}
             </Descriptions.Item>
             <Descriptions.Item label="Phí hủy">
               {selectedBooking.cancellationFee != null &&
@@ -663,14 +716,10 @@ export default function BookingManagement() {
               )}
             </Descriptions.Item>
             <Descriptions.Item label="Ngày tạo">
-              {selectedBooking.createdAt
-                ? dayjs(selectedBooking.createdAt).format("DD/MM/YYYY HH:mm")
-                : "—"}
+              {formatDateTimeVN(selectedBooking.createdAt)}
             </Descriptions.Item>
             <Descriptions.Item label="Cập nhật lúc">
-              {selectedBooking.updatedAt
-                ? dayjs(selectedBooking.updatedAt).format("DD/MM/YYYY HH:mm")
-                : "—"}
+              {formatDateTimeVN(selectedBooking.updatedAt)}
             </Descriptions.Item>
           </Descriptions>
         ) : null}

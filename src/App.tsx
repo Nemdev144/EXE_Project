@@ -26,9 +26,9 @@ import BookingManagementPage from "./pages/admin/BookingManagement";
 import ArtisanManagementPage from "./pages/admin/ArtisanManagement";
 import UserManagementPage from "./pages/admin/UserManagement";
 import StaffManagementPage from "./pages/admin/StaffManagement";
-import EmailTemplatesPage from "./pages/admin/EmailTemplates";
 import LearnManagementPage from "./pages/admin/LearnManagement";
 import VoucherManagementPage from "./pages/admin/VoucherManagement";
+import TourScheduleManagementPage from "./pages/admin/TourScheduleManagement";
 
 // Staff Pages
 import StaffDashboardPage from "./pages/staff/StaffDashboard";
@@ -71,11 +71,11 @@ function App() {
           <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="/admin/content" element={<ContentManagementPage />} />
           <Route path="/admin/tours" element={<TourManagementPage />} />
+          <Route path="/admin/tour-schedules" element={<TourScheduleManagementPage />} />
           <Route path="/admin/bookings" element={<BookingManagementPage />} />
           <Route path="/admin/artisans" element={<ArtisanManagementPage />} />
           <Route path="/admin/users" element={<UserManagementPage />} />
           <Route path="/admin/staff" element={<StaffManagementPage />} />
-          <Route path="/admin/emails" element={<EmailTemplatesPage />} />
           <Route path="/admin/learn" element={<LearnManagementPage />} />
           <Route path="/admin/vouchers" element={<VoucherManagementPage />} />
         </Route>

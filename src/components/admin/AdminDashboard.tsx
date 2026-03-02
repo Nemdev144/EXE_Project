@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
   Card,
@@ -151,9 +151,15 @@ export default function AdminDashboard() {
   const [revenueByMonth, setRevenueByMonth] = useState<
     { month: string; revenue: number; target: number }[]
   >([]);
+  const hasFetchedRef = useRef(false);
 
   useEffect(() => {
+    // Tránh duplicate requests - chỉ fetch 1 lần
+    if (hasFetchedRef.current) return;
+    
+    let cancelled = false;
     const fetchData = async () => {
+      hasFetchedRef.current = true;
       setLoading(true);
       setError(null);
       try {
@@ -179,6 +185,12 @@ export default function AdminDashboard() {
         const artisansTotal =
           artisansRes.status === "fulfilled" ? artisansRes.value.total : 0;
 
+        // Tránh set state nếu component đã unmount
+        if (cancelled) {
+          hasFetchedRef.current = false;
+          return;
+        }
+        
         setTours(toursData);
         setBookings(bookingsData);
 
@@ -261,15 +273,28 @@ export default function AdminDashboard() {
             target: 50,
           };
         });
+        if (cancelled) {
+          hasFetchedRef.current = false;
+          return;
+        }
         setRevenueByMonth(revData);
       } catch (err) {
+        hasFetchedRef.current = false; // Reset để có thể retry
+        if (cancelled) return;
         console.error("[AdminDashboard] fetch error:", err);
         setError("Không thể tải dữ liệu dashboard. Vui lòng thử lại.");
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
     fetchData();
+    return () => {
+      cancelled = true;
+      // Reset khi component unmount để có thể fetch lại khi mount lại
+      hasFetchedRef.current = false;
+    };
   }, []);
 
   const provinceMap: Record<string, number> = {};

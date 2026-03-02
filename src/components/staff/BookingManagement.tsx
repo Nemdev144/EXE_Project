@@ -20,13 +20,52 @@ import {
 const { Title, Text } = Typography;
 import {
   EyeOutlined,
-  MailOutlined,
   SearchOutlined,
   ExportOutlined,
   EditOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
+
+/** Format datetime từ UTC sang giờ Việt Nam (UTC+7) */
+function formatDateTimeVN(isoString: string | null | undefined): string {
+  if (!isoString) return "-";
+  
+  try {
+    // Nếu timestamp có Z hoặc timezone indicator → parse UTC và thêm 7 giờ
+    if (isoString.includes("Z") || isoString.match(/[+-]\d{2}:\d{2}$/)) {
+      return dayjs.utc(isoString).add(7, "hour").format("DD/MM/YYYY HH:mm");
+    }
+    
+    // Nếu không có timezone indicator, giả định là UTC (backend thường trả về UTC)
+    // dayjs.utc() sẽ tự động parse ISO string không có timezone như UTC
+    return dayjs.utc(isoString).add(7, "hour").format("DD/MM/YYYY HH:mm");
+  } catch (err) {
+    console.error("Error parsing datetime:", isoString, err);
+    return "-";
+  }
+}
+
+/** Format thời gian từ string "HH:mm" sang định dạng 12 giờ với AM/PM */
+function formatTime12h(timeStr: string | null | undefined): string {
+  if (!timeStr) return "—";
+  // Nếu là ISO string, parse và format
+  if (timeStr.includes("T") || timeStr.includes("Z")) {
+    const d = dayjs.utc(timeStr).add(7, "hour");
+    const hour12 = d.hour() === 0 ? 12 : d.hour() > 12 ? d.hour() - 12 : d.hour();
+    const ampm = d.hour() < 12 ? "AM" : "PM";
+    return `${String(hour12).padStart(2, "0")}:${String(d.minute()).padStart(2, "0")} ${ampm}`;
+  }
+  // Nếu là "HH:mm" format
+  const [h, m] = timeStr.split(":").map(Number);
+  if (isNaN(h) || isNaN(m)) return timeStr;
+  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  const ampm = h < 12 ? "AM" : "PM";
+  return `${String(hour12).padStart(2, "0")}:${String(m).padStart(2, "0")} ${ampm}`;
+}
+
 import {
   getAdminBookings,
   getAdminBookingById,
@@ -45,7 +84,7 @@ const statusConfig: Record<
   { label: string; color: string; bgColor?: string }
 > = {
   PENDING: { label: "Chờ thanh toán", color: "#faad14", bgColor: "#fffbe6" },
-  CONFIRMED: { label: "Đã xác nhận", color: "#1890ff", bgColor: "#e6f7ff" },
+  CONFIRMED: { label: "Đã xác nhận", color: "#52c41a", bgColor: "#f6ffed" },
   PAID: { label: "Đã thanh toán", color: "#52c41a", bgColor: "#f6ffed" },
   CANCELLED: { label: "Đã hủy", color: "#ff4d4f", bgColor: "#fff1f0" },
   REFUNDED: { label: "Đã hoàn tiền", color: "#8c8c8c", bgColor: "#fafafa" },
@@ -69,6 +108,8 @@ const paymentMethodLabels: Record<string, string> = {
   BANK_TRANSFER: "Chuyển khoản",
   CASH: "Tiền mặt",
   EWALLET: "Ví điện tử",
+  VNPAY: "VNPay",
+  MOMO: "MoMo",
 };
 
 function formatRevenue(value: number): string {
@@ -180,9 +221,6 @@ export default function BookingManagement() {
     setNoteText("");
   };
 
-  const handleSendEmail = (booking: BookingRow, template: string) => {
-    message.success(`Đã gửi email "${template}" đến ${booking.contactEmail}`);
-  };
 
   const stats = {
     total: bookings.length,
@@ -302,54 +340,6 @@ export default function BookingManagement() {
           >
             Ghi chú
           </Button>
-          <Button
-            type="link"
-            icon={<MailOutlined />}
-            size="small"
-            onClick={() => {
-              Modal.confirm({
-                title: "Chọn template email",
-                content: (
-                  <Space
-                    orientation="vertical"
-                    style={{ width: "100%", marginTop: 16 }}
-                  >
-                    <Button
-                      block
-                      onClick={() => {
-                        handleSendEmail(record, "Nhắc thanh toán");
-                        Modal.destroyAll();
-                      }}
-                    >
-                      Nhắc thanh toán
-                    </Button>
-                    <Button
-                      block
-                      onClick={() => {
-                        handleSendEmail(record, "Thông báo thiếu người");
-                        Modal.destroyAll();
-                      }}
-                    >
-                      Thông báo thiếu người
-                    </Button>
-                    <Button
-                      block
-                      onClick={() => {
-                        handleSendEmail(record, "Đề xuất đổi tour");
-                        Modal.destroyAll();
-                      }}
-                    >
-                      Đề xuất đổi tour
-                    </Button>
-                  </Space>
-                ),
-                okButtonProps: { style: { display: "none" } },
-                cancelText: "Đóng",
-              });
-            }}
-          >
-            Gửi email
-          </Button>
         </Space>
       ),
     },
@@ -429,11 +419,9 @@ export default function BookingManagement() {
               onChange={(value) => setFilter({ ...filter, status: value })}
             >
               <Select.Option value="all">Tất cả</Select.Option>
-              <Select.Option value="PENDING">Chờ thanh toán</Select.Option>
+              <Select.Option value="PENDING">Chờ xử lý</Select.Option>
               <Select.Option value="CONFIRMED">Đã xác nhận</Select.Option>
-              <Select.Option value="PAID">Đã thanh toán</Select.Option>
               <Select.Option value="CANCELLED">Đã hủy</Select.Option>
-              <Select.Option value="REFUNDED">Đã hoàn tiền</Select.Option>
             </Select>
           </Col>
           <Col xs={24} sm={12} md={6}>
@@ -528,9 +516,7 @@ export default function BookingManagement() {
                 : "—"}
             </Descriptions.Item>
             <Descriptions.Item label="Giờ khởi hành">
-              {selectedBooking.tourStartTime
-                ? dayjs(selectedBooking.tourStartTime).format("HH:mm")
-                : "—"}
+              {formatTime12h(selectedBooking.tourStartTime)}
             </Descriptions.Item>
             <Descriptions.Item label="Số người">
               {selectedBooking.numParticipants}
