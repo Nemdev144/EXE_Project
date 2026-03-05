@@ -153,6 +153,22 @@
   flex-direction: column;
   gap: 16px;
 
+  &__section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: variables.$color-gray-900;
+    margin: 0 0 4px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid variables.$color-primary;
+    display: inline-block;
+  }
+
+  &--other {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid variables.$color-gray-200;
+  }
+
   &__card {
     display: flex;
     gap: 12px;
@@ -168,7 +184,7 @@
     &:hover {
       background: white;
       border-color: variables.$color-primary;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       transform: translateX(4px);
     }
 
@@ -179,8 +195,8 @@
   }
 
   &__thumbnail {
-    width: 100px;
-    height: 70px;
+    width: 120px;
+    height: 75px;
     object-fit: cover;
     border-radius: 8px;
     flex-shrink: 0;

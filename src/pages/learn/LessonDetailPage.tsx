@@ -19,7 +19,7 @@ import {
   LessonQuickNotes,
   LessonQuizCTA,
 } from '../../components/learn';
-import { getModuleById, getLessonById, getApiErrorMessage } from '../../services/api';
+import { getModuleById, getLessonById, getPublicLessons, getApiErrorMessage } from '../../services/api';
 import type { LearnModule, LearnLesson, LearnModuleLesson } from '../../types';
 import '../../styles/pages/_lesson-detail.scss';
 
@@ -133,6 +133,7 @@ export default function LessonDetailPage() {
   const { moduleId } = useParams<{ moduleId: string }>();
 
   const [module, setModule] = useState<LearnModule | null>(null);
+  const [allPublicLessons, setAllPublicLessons] = useState<LearnModuleLesson[]>([]);
   const [activeLesson, setActiveLesson] = useState<LearnLesson | null>(null);
   const [activeLessonId, setActiveLessonId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -152,7 +153,7 @@ export default function LessonDetailPage() {
     setLoading(true);
     setError(null);
 
-    getModuleById(id)
+    const fetchModule = getModuleById(id)
       .then((data) => {
         if (cancelled) return;
         setModule(data);
@@ -166,10 +167,19 @@ export default function LessonDetailPage() {
       })
       .catch((err) => {
         if (!cancelled) setError(getApiErrorMessage(err) || 'Không tải được module.');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
       });
+
+    const fetchLessons = getPublicLessons()
+      .then((data) => {
+        if (!cancelled) setAllPublicLessons(data);
+      })
+      .catch(() => {
+        // silent – fallback to module.lessons
+      });
+
+    Promise.all([fetchModule, fetchLessons]).finally(() => {
+      if (!cancelled) setLoading(false);
+    });
 
     return () => {
       cancelled = true;
@@ -200,11 +210,16 @@ export default function LessonDetailPage() {
   }, [activeLessonId]);
 
   // ---- Derived data ----
-  const sortedLessons = module
-    ? [...(module.lessons ?? [])].sort((a, b) => a.orderIndex - b.orderIndex)
-    : [];
+  // Ưu tiên lessons từ module; nếu allPublicLessons có lessons cùng module thì dùng làm fallback
+  const moduleLessons = module?.lessons ?? [];
+  const sortedLessons = [...moduleLessons].sort((a, b) => a.orderIndex - b.orderIndex);
   const currentIndex = sortedLessons.findIndex((l) => l.id === activeLessonId);
   const totalLessons = sortedLessons.length;
+
+  // Bài học khác (từ allPublicLessons, loại bài đang xem, chỉ hiện bài ngoài module)
+  const otherLessonsFromApi = allPublicLessons
+    .filter((l) => !sortedLessons.some((ml) => ml.id === l.id))
+    .sort((a, b) => a.orderIndex - b.orderIndex);
   const progressPercent =
     totalLessons > 0 ? ((currentIndex + 1) / totalLessons) * 100 : 0;
 
@@ -358,9 +373,9 @@ export default function LessonDetailPage() {
                 tip={
                   module.culturalEtiquetteTitle && module.culturalEtiquetteText
                     ? {
-                        title: module.culturalEtiquetteTitle,
-                        content: module.culturalEtiquetteText,
-                      }
+                      title: module.culturalEtiquetteTitle,
+                      content: module.culturalEtiquetteText,
+                    }
                     : undefined
                 }
               />
@@ -373,6 +388,40 @@ export default function LessonDetailPage() {
                 activeLessonId={activeLessonId}
                 onSelectLesson={handleLessonSelect}
               />
+            )}
+            {otherLessonsFromApi.length > 0 && (
+              <div className="lesson-sidebar lesson-sidebar--other">
+                <h3 className="lesson-sidebar__section-title">Bài học khác</h3>
+                {otherLessonsFromApi.slice(0, 4).map((lesson) => (
+                  <button
+                    key={lesson.id}
+                    type="button"
+                    className="lesson-sidebar__card"
+                    onClick={() => {
+                      // Bài ngoài module → navigate bằng window.location
+                      window.location.href = `/learn/${lesson.id}`;
+                    }}
+                  >
+                    <img
+                      src={lesson.thumbnailUrl || '/nen.png'}
+                      alt={lesson.title}
+                      className="lesson-sidebar__thumbnail"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/nen.png';
+                      }}
+                    />
+                    <div className="lesson-sidebar__info">
+                      <h4 className="lesson-sidebar__title">{lesson.title}</h4>
+                      {lesson.duration > 0 && (
+                        <div className="lesson-sidebar__duration">
+                          <Clock size={14} />
+                          <span>{formatDuration(lesson.duration)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         </div>

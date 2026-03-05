@@ -11,6 +11,7 @@ import type {
   Review,
   LearnQuiz,
   LearnModule,
+  LearnModuleLesson,
   LearnLesson,
   LearnCategory,
   LearnUserStats,
@@ -19,7 +20,7 @@ import type {
 // API Base Configuration
 // Must use ngrok URL directly - backend requires auth and redirects to OAuth2/Google.
 // Vite proxy cannot bypass this CORS requirement.
-const API_BASE_URL = "https://legally-actual-mollusk.ngrok-free.app/";
+const API_BASE_URL = "https://exe-1-k8ma.onrender.com/";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -410,6 +411,18 @@ export const getVideoById = async (id: number): Promise<Video> => {
 };
 
 // ========== Learn (public) ==========
+export const getPublicLessons = async (): Promise<LearnModuleLesson[]> => {
+  const key = "learn:publicLessons";
+  const cached = getCached<LearnModuleLesson[]>(key);
+  if (cached !== undefined) return cached;
+  const response = await api.get<ApiResponse<LearnModuleLesson[]>>(
+    "/api/learn/public/lessons",
+  );
+  const data = response.data.data ?? [];
+  setCached(key, data);
+  return data;
+};
+
 export const getLearnCategories = async (): Promise<LearnCategory[]> => {
   const key = "learn:categories";
   const cached = getCached<LearnCategory[]>(key);

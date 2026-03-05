@@ -34,6 +34,21 @@ const ionLocationIcon = L.divIcon({
   `,
 });
 
+// Vietnamese flag icon for Hoàng Sa & Trường Sa (dùng ảnh cờ thật)
+const vietnamFlagIcon = L.icon({
+  iconUrl: '/geo/Flag_of_Vietnam.svg.png',
+  iconSize: [80, 47],
+  iconAnchor: [20, 13],
+  popupAnchor: [0, -13],
+  className: 'map-section__flag-icon',
+});
+
+// Sovereignty territories of Vietnam
+const SOVEREIGNTY_TERRITORIES = [
+  { lat: 16.132720, lng: 111.996356 },
+  { lat: 9.530963, lng: 112.906921 },
+];
+
 const normalizeName = (name: string): string => {
   const withSpaces = name
     .replace(/([a-z])([A-Z])/g, '$1 $2')
@@ -214,14 +229,19 @@ export default function MapSection() {
           maxZoom: 18,
         });
 
-        // Add OpenStreetMap tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-          maxZoom: 19,
-        }).addTo(map);
+        // Fixed base layer: Esri Satellite
+        L.tileLayer(
+          'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+          { attribution: 'Tiles &copy; Esri', maxZoom: 19 }
+        ).addTo(map);
 
         mapInstanceRef.current = map;
+
+        // Debug: click vào map để lấy tọa độ
+        map.on('click', function (e: L.LeafletMouseEvent) {
+          console.log('Lat:', e.latlng.lat);
+          console.log('Lng:', e.latlng.lng);
+        });
 
         // Invalidate size để đảm bảo map render đúng
         setTimeout(() => {
@@ -375,6 +395,11 @@ export default function MapSection() {
           marker.setZIndexOffset(1500);
         });
       },
+    });
+
+    // Add Vietnamese flag markers for Hoàng Sa & Trường Sa
+    SOVEREIGNTY_TERRITORIES.forEach(({ lat, lng }) => {
+      L.marker([lat, lng], { icon: vietnamFlagIcon, interactive: false }).addTo(markerLayer);
     });
 
     geoJsonLayer.addTo(mapInstanceRef.current);
