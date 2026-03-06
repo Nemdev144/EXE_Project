@@ -3,7 +3,6 @@ import { getPublicArtisans } from "../../services/artisanApi";
 import type { PublicArtisan } from "../../types";
 import ArtisanHero from "./ArtisanHero";
 import ArtisanGrid from "./ArtisanGrid";
-import ArtisanCTA from "./ArtisanCTA";
 import "../../styles/components/artisan/_artisan-page.scss";
 
 export default function ArtisanPage() {
@@ -37,7 +36,6 @@ export default function ArtisanPage() {
     <div className="artisan-page">
       <ArtisanHero />
       <ArtisanGrid artisans={artisans} loading={loading} />
-      <ArtisanCTA />
     </div>
   );
 }

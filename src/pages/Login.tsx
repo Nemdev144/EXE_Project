@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authGoogleLogin, authLogin, type LoginRequest } from "../services/authApi";
 import { message } from "antd";
 import { getGoogleIdToken } from "../utils/googleAuth";
@@ -11,6 +11,7 @@ const GOOGLE_CLIENT_ID =
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [formData, setFormData] = useState({
     account: "",
@@ -20,6 +21,13 @@ const Login = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Check if session expired
+  useEffect(() => {
+    if (searchParams.get("expired") === "true") {
+      message.warning("Phiên đăng nhập của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+    }
+  }, [searchParams]);
 
   // Load remembered account
   useEffect(() => {

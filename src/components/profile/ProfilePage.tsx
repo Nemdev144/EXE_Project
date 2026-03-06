@@ -22,6 +22,7 @@ import {
   type LearnStats,
 } from '../../services/profileApi';
 import { authLogout } from '../../services/authApi';
+import { clearAuthSession } from '../../utils/authSession';
 import { message } from 'antd';
 import '../../styles/components/profile/_profile-page.scss';
 
@@ -177,11 +178,7 @@ export default function ProfilePage() {
     } catch {
       // ignore
     } finally {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('isAuthenticated');
-      localStorage.removeItem('userAccount');
-      localStorage.removeItem('userInfo');
+      clearAuthSession();
       navigate('/');
     }
   };

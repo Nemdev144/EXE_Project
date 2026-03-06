@@ -5,6 +5,7 @@ import { Drawer } from "antd";
 import "../styles/components/_navbar.scss";
 import type { User as UserInfo } from "../types";
 import { authLogout } from "../services/authApi";
+import { isSessionExpired, clearAuthSession } from "../utils/authSession";
 
 const navLinks = [
   { path: "/", label: "Trang chủ" },
@@ -33,6 +34,33 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
+
+  // Check session timeout every 1 minute
+  useEffect(() => {
+    const checkSessionTimeout = () => {
+      if (isLoggedIn && isSessionExpired()) {
+        console.warn("[Navbar] Session expired, logging out...");
+        handleLogoutAndRedirect();
+      }
+    };
+
+    const interval = setInterval(checkSessionTimeout, 60000); // Check every 1 minute
+    return () => clearInterval(interval);
+  }, [isLoggedIn]);
+
+  const handleLogoutAndRedirect = async () => {
+    try {
+      await authLogout();
+    } catch (error) {
+      console.error("[Navbar] Logout failed:", error);
+    } finally {
+      clearAuthSession();
+      setIsLoggedIn(false);
+      setUserInfo(null);
+      setIsOpen(false);
+      navigate("/login?expired=true");
+    }
+  };
 
   useEffect(() => {
     const handleStorage = () => {
@@ -71,11 +99,7 @@ export default function Navbar() {
     } catch (error) {
       console.error("[Navbar] Logout failed:", error);
     } finally {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("isAuthenticated");
-      localStorage.removeItem("userAccount");
-      localStorage.removeItem("userInfo");
+      clearAuthSession();
       setIsLoggedIn(false);
       setUserInfo(null);
       setIsOpen(false);
