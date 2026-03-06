@@ -37,6 +37,7 @@ import {
 } from "@ant-design/icons";
 import { antdTheme } from "../../config/antd-theme";
 import { adminLogout } from "../../services/adminApi";
+import { clearAuthSession } from "../../utils/authSession";
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -163,11 +164,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
     } catch (err) {
       console.error("[AdminLayout] Logout API error:", err);
     } finally {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("isAuthenticated");
-      localStorage.removeItem("userAccount");
-      localStorage.removeItem("userInfo");
+      clearAuthSession();
       localStorage.removeItem("rememberAccount");
       message.success("Đăng xuất thành công");
       window.location.href = "/login";

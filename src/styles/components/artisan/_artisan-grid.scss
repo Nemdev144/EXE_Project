@@ -33,6 +33,7 @@
     @media (max-width: $breakpoint-lg) {
       grid-template-columns: repeat(2, 1fr);
     }
+
     @media (max-width: $breakpoint-sm) {
       grid-template-columns: 1fr;
       max-width: 360px;
@@ -55,14 +56,62 @@
   }
 }
 
+// Custom pagination
+.artisan-pagination {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  &__btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    color: #374151;
+    font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    line-height: 1;
+
+    &:hover:not(:disabled) {
+      border-color: $color-primary;
+      color: $color-primary;
+      background: rgba($color-primary, 0.05);
+    }
+
+    &:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    &--active {
+      background: $color-primary;
+      border-color: $color-primary;
+      color: #fff;
+
+      &:hover {
+        background: darken($color-primary, 8%);
+        color: #fff;
+      }
+    }
+
+    &--arrow {
+      font-size: 1.25rem;
+      font-weight: 400;
+    }
+  }
+}
+
 // Skeleton helpers
 .skeleton-pulse {
-  background: linear-gradient(
-    90deg,
-    $color-gray-200 25%,
-    $color-gray-100 50%,
-    $color-gray-200 75%
-  );
+  background: linear-gradient(90deg,
+      $color-gray-200 25%,
+      $color-gray-100 50%,
+      $color-gray-200 75%);
   background-size: 200% 100%;
   animation: pulse-move 1.4s ease infinite;
   border-radius: $radius-sm;
@@ -79,10 +128,12 @@
     height: 18px;
     margin: 0 auto $spacing-xs;
   }
+
   &--spec {
     width: 80%;
     margin: 0 auto $spacing-xs;
   }
+
   &--link {
     width: 40%;
     margin: 0 auto;
@@ -90,6 +141,11 @@
 }
 
 @keyframes pulse-move {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
