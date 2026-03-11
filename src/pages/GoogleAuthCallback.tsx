@@ -140,16 +140,18 @@ const GoogleAuthCallback = () => {
 
     if (!payload.success || !payload.accessToken) {
       clearAuthSession();
-      message.error(payload.message || "Đăng nhập Google thất bại");
-      navigate("/login", { replace: true });
+      const errorMsg = payload.message || "Đăng nhập Google thất bại";
+      message.error(errorMsg);
+      navigate(`/login?oauth_error=${encodeURIComponent(errorMsg)}`, { replace: true });
       return;
     }
 
     const jwt = decodeJwtPayload(payload.accessToken);
     if (jwt?.exp && jwt.exp * 1000 <= Date.now()) {
       clearAuthSession();
-      message.error("Token đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-      navigate("/login", { replace: true });
+      const errorMsg = "Token đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+      message.error(errorMsg);
+      navigate(`/login?oauth_error=${encodeURIComponent(errorMsg)}`, { replace: true });
       return;
     }
 
@@ -167,8 +169,9 @@ const GoogleAuthCallback = () => {
     const storedToken = localStorage.getItem("accessToken");
     if (!storedToken) {
       clearAuthSession();
-      message.error("Không thể lưu phiên đăng nhập. Vui lòng thử lại.");
-      navigate("/login", { replace: true });
+      const errorMsg = "Không thể lưu phiên đăng nhập. Vui lòng thử lại.";
+      message.error(errorMsg);
+      navigate(`/login?oauth_error=${encodeURIComponent(errorMsg)}`, { replace: true });
       return;
     }
 
