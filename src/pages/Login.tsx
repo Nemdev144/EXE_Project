@@ -6,7 +6,7 @@ import { persistAuthSession } from "../utils/authSession";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [formData, setFormData] = useState({
     account: "",
@@ -21,6 +21,19 @@ const Login = () => {
   useEffect(() => {
     if (searchParams.get("expired") === "true") {
       message.warning("Phiên đăng nhập của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+    }
+  }, [searchParams]);
+
+  // Hiển thị lỗi OAuth khi redirect từ Google callback thất bại
+  useEffect(() => {
+    const oauthError = searchParams.get("oauth_error");
+    if (oauthError) {
+      const decoded = decodeURIComponent(oauthError);
+      setError(decoded);
+      message.error(decoded);
+      const next = new URLSearchParams(searchParams);
+      next.delete("oauth_error");
+      setSearchParams(next, { replace: true });
     }
   }, [searchParams]);
 
