@@ -20,7 +20,7 @@ import type {
 // API Base Configuration
 // Must use ngrok URL directly - backend requires auth and redirects to OAuth2/Google.
 // Vite proxy cannot bypass this CORS requirement.
-export const API_BASE_URL = "https://exe-1-k8ma.onrender.com/";
+export const API_BASE_URL = "https://legally-actual-mollusk.ngrok-free.app/";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -291,9 +291,9 @@ export const getToursByProvince = async (
   const key = `tours:province:${provinceId}`;
   const cached = getCached<Tour[]>(key);
   if (cached !== undefined) return cached;
-  const response = await api.get<
-    ApiResponse<Array<Record<string, unknown>>>
-  >(`/api/tours/public/province/${provinceId}`);
+  const response = await api.get<ApiResponse<Array<Record<string, unknown>>>>(
+    `/api/tours/public/province/${provinceId}`,
+  );
   const rawList = response.data.data ?? [];
   const data = rawList.map((r) => normalizeTour(r));
   setCached(key, data);
@@ -480,7 +480,7 @@ export const getLearnCategories = async (): Promise<LearnCategory[]> => {
 };
 
 export const getLearnModules = async (
-  categoryId?: number
+  categoryId?: number,
 ): Promise<LearnModule[]> => {
   const key = categoryId
     ? `learn:modules:category:${categoryId}`
