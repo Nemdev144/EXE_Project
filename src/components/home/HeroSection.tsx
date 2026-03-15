@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import '../../styles/components/_hero-section.scss';
 
 const AUTO_RUN_DELAY = 7000;
-const ANIM_DURATION = 3000;
 
 const slides = [
   {
@@ -37,15 +36,23 @@ const slides = [
   },
 ];
 
+const ZOOM_DURATION_MS = 700;
+
 export default function HeroSection() {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const [progressKey, setProgressKey] = useState(0);
+  const [contentKey, setContentKey] = useState(0); // Trigger fade-in cho chữ khi đổi slide
+  const [zoomState, setZoomState] = useState<{
+    from: { left: number; top: number; width: number; height: number };
+    targetIdx: number;
+  } | null>(null);
+  const thumbRefs = useRef<(HTMLDivElement | null)[]>([]);
   const autoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
+    setContentKey((k) => k + 1);
   }, []);
 
   const resetAutoTimer = useCallback(() => {
@@ -57,23 +64,65 @@ export default function HeroSection() {
     setProgressKey((k) => k + 1);
   }, []);
 
-  const goNext = useCallback(() => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    nextSlide();
-    resetAutoTimer();
-    resetProgressBar();
-    setTimeout(() => setIsTransitioning(false), ANIM_DURATION);
-  }, [nextSlide, resetAutoTimer, resetProgressBar, isTransitioning]);
+  const handleThumbClickFallback = useCallback(
+    (idx: number) => {
+      resetAutoTimer();
+      resetProgressBar();
+      setCurrentSlide(idx);
+      setContentKey((k) => k + 1);
+    },
+    [resetAutoTimer, resetProgressBar]
+  );
 
-  const goPrev = useCallback(() => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-    resetAutoTimer();
-    resetProgressBar();
-    setTimeout(() => setIsTransitioning(false), ANIM_DURATION);
-  }, [resetAutoTimer, resetProgressBar, isTransitioning]);
+  const handleThumbClick = useCallback(
+    (idx: number, el: HTMLDivElement | null) => {
+      if (idx === currentSlide) return;
+      if (!el) {
+        handleThumbClickFallback(idx);
+        return;
+      }
+      const rect = el.getBoundingClientRect();
+      const carouselRect = el.closest('.hero-section__carousel')?.getBoundingClientRect();
+      if (!carouselRect) {
+        handleThumbClickFallback(idx);
+        return;
+      }
+      resetAutoTimer();
+      resetProgressBar();
+      setZoomState({
+        from: {
+          left: rect.left - carouselRect.left,
+          top: rect.top - carouselRect.top,
+          width: rect.width,
+          height: rect.height,
+        },
+        targetIdx: idx,
+      });
+      // Khi zoom xong: cập nhật slide + remove overlay (không animation, tránh giật)
+      setTimeout(() => {
+        setCurrentSlide(idx);
+        setZoomState(null);
+        setContentKey((k) => k + 1);
+      }, ZOOM_DURATION_MS);
+    },
+    [currentSlide, resetAutoTimer, resetProgressBar, handleThumbClickFallback]
+  );
+
+  const handleThumbRef = useCallback((el: HTMLDivElement | null, idx: number) => {
+    thumbRefs.current[idx] = el;
+  }, []);
+
+  const handleDotClick = useCallback(
+    (idx: number) => {
+      if (idx !== currentSlide) {
+        resetAutoTimer();
+        resetProgressBar();
+        setCurrentSlide(idx);
+        setContentKey((k) => k + 1);
+      }
+    },
+    [currentSlide, resetAutoTimer, resetProgressBar]
+  );
 
   useEffect(() => {
     resetAutoTimer();
@@ -92,11 +141,25 @@ export default function HeroSection() {
         className="hero-section__carousel"
         style={{ backgroundImage: `url('${activeSlide.src}')` }}
       >
-        {/* Progress bar (time running) - ref from image-slider */}
+        {/* Zoom overlay - ảnh nhỏ phóng to thay thế ảnh lớn */}
+        {zoomState && (
+          <div
+            className="hero-section__zoom-overlay"
+            style={{
+              '--zoom-from-left': `${zoomState.from.left}px`,
+              '--zoom-from-top': `${zoomState.from.top}px`,
+              '--zoom-from-width': `${zoomState.from.width}px`,
+              '--zoom-from-height': `${zoomState.from.height}px`,
+              backgroundImage: `url('${slides[zoomState.targetIdx].src}')`,
+            } as React.CSSProperties}
+          />
+        )}
+
+        {/* Progress bar */}
         <div key={progressKey} className="hero-section__progress" />
 
-        {/* Left content overlay - ref: .list .item .content */}
-        <div className="hero-section__content">
+        {/* Left content - fade in khi đổi slide */}
+        <div key={contentKey} className="hero-section__content">
           <div className="hero-section__brand">VĂN HÓA TÂY NGUYÊN</div>
           <h1 className="hero-section__heading">
             BẢO TỒN VÀ{' '}
@@ -107,7 +170,7 @@ export default function HeroSection() {
             <button
               type="button"
               className="hero-section__button hero-section__button--primary"
-              onClick={() => navigate('/tour')}
+              onClick={() => navigate('/tours')}
             >
               Khám phá ngay
               <ArrowRight size={18} />
@@ -120,50 +183,21 @@ export default function HeroSection() {
               Về chúng tôi
             </button>
           </div>
-
-          {/* Slider arrows - ref: .arrows */}
-          <div className="hero-section__arrows">
-            <button
-              type="button"
-              className="hero-section__arrow hero-section__arrow--prev"
-              onClick={goPrev}
-              aria-label="Trước"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <button
-              type="button"
-              className="hero-section__arrow hero-section__arrow--next"
-              onClick={goNext}
-              aria-label="Tiếp"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
         </div>
 
-        {/* Cards ảnh bên phải, nút <> giữa phía dưới */}
+        {/* Cards ảnh bên phải */}
         <div className="hero-section__thumbnails">
           <div className="hero-section__thumbnails-list">
             {slides.map((slide, idx) => (
               <div
                 key={idx}
+                ref={(el) => handleThumbRef(el, idx)}
                 className={`hero-section__thumb-item ${
                   idx === currentSlide ? 'hero-section__thumb-item--active' : ''
                 }`}
-                onClick={() => {
-                  if (idx !== currentSlide) {
-                    setCurrentSlide(idx);
-                    resetAutoTimer();
-                    resetProgressBar();
-                  }
-                }}
+                onClick={(e) => handleThumbClick(idx, (e.currentTarget as HTMLDivElement))}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && idx !== currentSlide) {
-                    setCurrentSlide(idx);
-                    resetAutoTimer();
-                    resetProgressBar();
-                  }
+                  if (e.key === 'Enter') handleThumbClick(idx, thumbRefs.current[idx] ?? null);
                 }}
                 role="button"
                 tabIndex={0}
@@ -174,24 +208,6 @@ export default function HeroSection() {
                 />
               </div>
             ))}
-          </div>
-          <div className="hero-section__thumb-arrows">
-            <button
-              type="button"
-              className="hero-section__thumb-arrow"
-              onClick={goPrev}
-              aria-label="Trước"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button
-              type="button"
-              className="hero-section__thumb-arrow"
-              onClick={goNext}
-              aria-label="Tiếp"
-            >
-              <ChevronRight size={16} />
-            </button>
           </div>
         </div>
       </div>
@@ -205,11 +221,7 @@ export default function HeroSection() {
             className={`hero-section__dot ${
               idx === currentSlide ? 'hero-section__dot--active' : ''
             }`}
-            onClick={() => {
-              setCurrentSlide(idx);
-              resetAutoTimer();
-              resetProgressBar();
-            }}
+            onClick={() => handleDotClick(idx)}
             aria-label={`Slide ${idx + 1}`}
           />
         ))}
