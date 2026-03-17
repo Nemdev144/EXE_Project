@@ -204,8 +204,8 @@ export default function MailManagement() {
           </>
         }
       >
-        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-          <Col xs={24} sm={12} md={6}>
+        <Row gutter={[12, 12]} style={{ marginBottom: 16 }} wrap={false}>
+          <Col flex="1 1 140px">
             <Input
               placeholder="Email người nhận"
               value={filterRecipient}
@@ -213,7 +213,7 @@ export default function MailManagement() {
               allowClear
             />
           </Col>
-          <Col xs={24} sm={12} md={5}>
+          <Col flex="0 0 140px">
             <Select
               style={{ width: "100%" }}
               placeholder="Loại template"
@@ -222,7 +222,7 @@ export default function MailManagement() {
               options={templateOptions}
             />
           </Col>
-          <Col xs={24} sm={12} md={4}>
+          <Col flex="0 0 100px">
             <Select
               style={{ width: "100%" }}
               placeholder="Đã mở"
@@ -235,7 +235,7 @@ export default function MailManagement() {
               ]}
             />
           </Col>
-          <Col xs={24} sm={12} md={4}>
+          <Col flex="0 0 120px">
             <DatePicker
               style={{ width: "100%" }}
               placeholder="Từ ngày"
@@ -245,7 +245,7 @@ export default function MailManagement() {
               }
             />
           </Col>
-          <Col xs={24} sm={12} md={4}>
+          <Col flex="0 0 120px">
             <DatePicker
               style={{ width: "100%" }}
               placeholder="Đến ngày"
@@ -255,7 +255,7 @@ export default function MailManagement() {
               }
             />
           </Col>
-          <Col xs={24} sm={12} md={4}>
+          <Col flex="0 0 auto">
             <Button type="primary" onClick={() => fetchMails()}>
               Tìm kiếm
             </Button>

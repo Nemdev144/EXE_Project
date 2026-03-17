@@ -37,6 +37,10 @@ export const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     console.log(`[API] 🚀 ${config.method?.toUpperCase()} ${config.url}`);
+    // FormData: bỏ Content-Type để browser/axios tự set multipart/form-data + boundary
+    if (config.data instanceof FormData && config.headers) {
+      delete config.headers["Content-Type"];
+    }
     const skipAuth = (config as { skipAuth?: boolean }).skipAuth;
     if (!skipAuth) {
       const token = localStorage.getItem("accessToken");
