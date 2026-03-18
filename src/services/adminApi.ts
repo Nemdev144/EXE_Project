@@ -35,6 +35,48 @@ export const adminLogout = async (): Promise<void> => {
 };
 
 // ========== Admin Tours API ==========
+/** GET /api/tours/public/{id} - Response structure từ backend */
+export interface PublicTourDetail {
+  id: number;
+  province?: {
+    id: number;
+    name: string;
+    slug?: string;
+    region?: string;
+    latitude?: number;
+    longitude?: number;
+    thumbnailUrl?: string;
+    description?: string;
+    isActive?: boolean;
+    bestSeason?: string;
+    transportation?: string;
+    culturalTips?: string;
+  };
+  title: string;
+  slug?: string;
+  description: string;
+  bestSeason?: string;
+  transportation?: string;
+  culturalTips?: string;
+  preparationTips?: string;
+  durationHours: number;
+  maxParticipants: number;
+  price: number;
+  thumbnailUrl?: string;
+  images?: string | string[]; // Backend trả string (JSON array)
+  artisan?: {
+    id: number;
+    fullName?: string;
+    user?: Record<string, unknown>;
+    province?: Record<string, unknown>;
+    [key: string]: unknown;
+  };
+  totalBookings?: number;
+  averageRating?: number;
+  status?: string;
+  createdAt?: string;
+}
+
 export interface AdminTour {
   id: number;
   title: string;
@@ -46,18 +88,72 @@ export interface AdminTour {
   minParticipants: number;
   maxParticipants: number;
   durationHours: number;
-  status: "OPEN" | "NEAR_DEADLINE" | "FULL" | "NOT_ENOUGH" | "CANCELLED";
+  status: "OPEN" | "NEAR_DEADLINE" | "FULL" | "NOT_ENOUGH" | "CANCELLED" | "ACTIVE" | "INACTIVE";
   thumbnailUrl: string;
   images: string[];
   artisanId?: number;
   artisanName?: string;
-  startDate: string;
-  endDate: string;
+  bestSeason?: string;
+  transportation?: string;
+  culturalTips?: string;
+  preparationTips?: string;
+  totalBookings?: number;
+  averageRating?: number;
+  startDate?: string;
+  endDate?: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
-/** Payload cho POST /api/tours và PUT /api/tours/{id} - khớp backend response */
+/** Parse images từ string (JSON) hoặc array */
+function parseTourImages(images?: string | string[]): string[] {
+  if (!images) return [];
+  if (Array.isArray(images)) return images;
+  const trimmed = (typeof images === "string" ? images : "").trim();
+  if (!trimmed) return [];
+  if (trimmed.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return trimmed.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
+/** Chuẩn hóa PublicTourDetail thành AdminTour - chỉ dùng field từ API */
+export function normalizePublicTourDetail(raw: PublicTourDetail | Record<string, unknown>): AdminTour {
+  const r = raw as Record<string, unknown>;
+  const province = r.province as { id?: number; name?: string } | undefined;
+  const artisan = r.artisan as { id?: number; fullName?: string } | undefined;
+  return {
+    id: r.id as number,
+    title: (r.title as string) ?? "",
+    description: (r.description as string) ?? "",
+    provinceId: (r.provinceId as number) ?? province?.id ?? 0,
+    provinceName: (r.provinceName as string) ?? province?.name,
+    price: (r.price as number) ?? 0,
+    minParticipants: 0, // API không có - dùng maxParticipants cho Đăng ký
+    maxParticipants: (r.maxParticipants as number) ?? 0,
+    durationHours: (r.durationHours as number) ?? 0,
+    status: (r.status as AdminTour["status"]) ?? "ACTIVE",
+    thumbnailUrl: (r.thumbnailUrl as string) ?? "",
+    images: parseTourImages(r.images as string | string[]),
+    artisanId: (r.artisanId as number) ?? artisan?.id,
+    artisanName: (r.artisanName as string) ?? artisan?.fullName,
+    bestSeason: r.bestSeason as string | undefined,
+    transportation: r.transportation as string | undefined,
+    culturalTips: r.culturalTips as string | undefined,
+    preparationTips: r.preparationTips as string | undefined,
+    totalBookings: r.totalBookings as number | undefined,
+    averageRating: r.averageRating as number | undefined,
+    createdAt: (r.createdAt as string) ?? "",
+    updatedAt: (r.updatedAt as string) ?? "",
+  };
+}
+
+/** Payload cho POST /api/tours và PUT /api/tours/{id} - khớp Swagger */
 export interface CreateTourRequest {
   title: string;
   description: string;
@@ -65,9 +161,15 @@ export interface CreateTourRequest {
   price: number;
   durationHours: number;
   maxParticipants: number;
+  slug?: string;
   thumbnailUrl?: string;
-  images?: string | string[]; // Backend trả images: string
+  images?: string | string[];
   artisanId?: number | null;
+  preparationTips?: string;
+  bestSeason?: string;
+  transportation?: string;
+  culturalTips?: string;
+  status?: "OPEN" | "NEAR_DEADLINE" | "FULL" | "NOT_ENOUGH" | "CANCELLED" | "ACTIVE" | "INACTIVE";
 }
 
 export interface UpdateTourRequest extends Partial<CreateTourRequest> {
@@ -90,47 +192,90 @@ export const getAdminTours = async (params?: {
 }): Promise<{ data: AdminTour[]; total: number }> => {
   const response = await api.get<
     ApiResponse<
+      | PublicTourDetail[]
       | AdminTour[]
-      | { tours?: AdminTour[]; content?: AdminTour[]; total?: number }
+      | { tours?: PublicTourDetail[] | AdminTour[]; content?: PublicTourDetail[] | AdminTour[]; total?: number }
     >
   >("/api/tours/public", { params });
   const raw = response.data.data;
-  let data: AdminTour[] = [];
+  let items: (PublicTourDetail | AdminTour | Record<string, unknown>)[] = [];
   let total = 0;
   if (Array.isArray(raw)) {
-    data = raw as AdminTour[];
-    total = data.length;
+    items = raw;
+    total = items.length;
   } else if (raw && typeof raw === "object") {
     const obj = raw as Record<string, unknown>;
-    data = (obj.tours as AdminTour[]) ?? (obj.content as AdminTour[]) ?? [];
-    total = (obj.total as number) ?? data.length;
+    items = (obj.tours as (PublicTourDetail | AdminTour)[]) ?? (obj.content as (PublicTourDetail | AdminTour)[]) ?? [];
+    total = (obj.total as number) ?? items.length;
   }
+  const data = items.map((item) =>
+    "provinceId" in item && typeof item.provinceId === "number"
+      ? (item as AdminTour)
+      : normalizePublicTourDetail(item as PublicTourDetail)
+  );
   return { data, total };
 };
 
+/** GET /api/tours/public/{id} - Chi tiết tour theo JSON spec */
 export const getAdminTourById = async (id: number): Promise<AdminTour> => {
-  const response = await api.get<ApiResponse<AdminTour>>(
+  const response = await api.get<ApiResponse<PublicTourDetail | Record<string, unknown>>>(
     `/api/tours/public/${id}`,
   );
-  return response.data.data;
+  const raw = response.data.data;
+  if (!raw || typeof raw !== "object") throw new Error("API không trả về data");
+  return normalizePublicTourDetail(raw as PublicTourDetail);
 };
+
+/** API Tour yêu cầu multipart/form-data (theo .md docs). Build FormData từ payload. */
+function buildTourFormData(data: CreateTourRequest | Partial<CreateTourRequest>): FormData {
+  const form = new FormData();
+  const entries: (keyof CreateTourRequest)[] = [
+    "provinceId", "title", "slug", "description", "bestSeason", "transportation",
+    "culturalTips", "preparationTips", "durationHours", "maxParticipants", "price", "artisanId", "status",
+  ];
+  for (const k of entries) {
+    const v = data[k];
+    if (v === undefined || v === null) continue;
+    if (k === "artisanId" && (v === 0 || v === "0")) continue;
+    if (typeof v === "string" && !v.trim()) continue;
+    form.append(k, typeof v === "number" ? String(v) : String(v).trim());
+  }
+  if (data.thumbnailUrl && typeof data.thumbnailUrl === "string" && data.thumbnailUrl.trim()) {
+    form.append("thumbnailUrl", data.thumbnailUrl.trim());
+  }
+  if (data.images) {
+    const img = data.images;
+    const str = typeof img === "string" ? img : (Array.isArray(img) ? JSON.stringify(img) : "");
+    if (str.trim()) form.append("images", str.trim());
+  }
+  return form;
+}
 
 export const createTour = async (
   data: CreateTourRequest,
 ): Promise<AdminTour> => {
-  const response = await api.post<ApiResponse<AdminTour>>("/api/tours", data);
-  return response.data.data;
+  const formData = buildTourFormData(data);
+  const response = await api.post<ApiResponse<PublicTourDetail | Record<string, unknown>>>(
+    "/api/tours",
+    formData,
+  );
+  const raw = response.data.data;
+  if (!raw || typeof raw !== "object") throw new Error("API không trả về data");
+  return normalizePublicTourDetail(raw as PublicTourDetail);
 };
 
 export const updateTour = async (
   id: number,
   data: Partial<CreateTourRequest>,
 ): Promise<AdminTour> => {
-  const response = await api.put<ApiResponse<AdminTour>>(
+  const formData = buildTourFormData(data);
+  const response = await api.put<ApiResponse<PublicTourDetail | Record<string, unknown>>>(
     `/api/tours/${id}`,
-    data,
+    formData,
   );
-  return response.data.data;
+  const raw = response.data.data;
+  if (!raw || typeof raw !== "object") throw new Error("API không trả về data");
+  return normalizePublicTourDetail(raw as PublicTourDetail);
 };
 
 export const deleteTour = async (id: number): Promise<void> => {
@@ -688,24 +833,32 @@ export const getAdminFeedback = async (params?: {
   status?: string;
   search?: string;
 }): Promise<{ data: AdminFeedback[]; total: number }> => {
-  const response = await api.get<ApiResponse<AdminFeedback[] | { content?: AdminFeedback[]; totalElements?: number; total?: number }>>(
-    "/api/admin/feedback",
-    { params }
-  );
+  const response = await api.get<
+    ApiResponse<
+      | AdminFeedback[]
+      | { content?: AdminFeedback[]; totalElements?: number; total?: number }
+    >
+  >("/api/admin/feedback", { params });
   const d = response.data?.data;
   if (!d) return { data: [], total: 0 };
-  const data = Array.isArray(d) ? d : (d as { content?: AdminFeedback[] }).content ?? [];
+  const data = Array.isArray(d)
+    ? d
+    : ((d as { content?: AdminFeedback[] }).content ?? []);
   const total = Array.isArray(d)
     ? d.length
-    : (d as { totalElements?: number; total?: number }).totalElements ??
+    : ((d as { totalElements?: number; total?: number }).totalElements ??
       (d as { total?: number }).total ??
-      data.length;
+      data.length);
   return { data, total };
 };
 
 /** GET /api/admin/feedback/:id - Chi tiết feedback */
-export const getAdminFeedbackById = async (id: number): Promise<AdminFeedback | null> => {
-  const response = await api.get<ApiResponse<AdminFeedback>>(`/api/admin/feedback/${id}`);
+export const getAdminFeedbackById = async (
+  id: number,
+): Promise<AdminFeedback | null> => {
+  const response = await api.get<ApiResponse<AdminFeedback>>(
+    `/api/admin/feedback/${id}`,
+  );
   return response.data?.data ?? null;
 };
 
@@ -764,15 +917,19 @@ export const getAdminMails = async (params?: {
   if (params?.opened === false) q.opened = false;
   if (params?.from) q.from = params.from;
   if (params?.to) q.to = params.to;
-  const response = await api.get<ApiResponse<AdminMailPageResponse>>("/api/admin/mails", {
-    params: q,
-  });
+  const response = await api.get<ApiResponse<AdminMailPageResponse>>(
+    "/api/admin/mails",
+    {
+      params: q,
+    },
+  );
   // response.data = { success, code, message, data, errors, timestamp }
   // response.data.data = { totalPages, totalElements, size, content, number, ... }
   const d = response.data?.data as AdminMailPageResponse | undefined;
   if (!d || typeof d !== "object") return { data: [], total: 0 };
   const content = Array.isArray(d.content) ? d.content : [];
-  const total = typeof d.totalElements === "number" ? d.totalElements : content.length;
+  const total =
+    typeof d.totalElements === "number" ? d.totalElements : content.length;
   return { data: content, total };
 };
 
@@ -780,8 +937,12 @@ export const getAdminMails = async (params?: {
  * GET /api/admin/mails/:id - Chi tiết email log
  * Response: { success, code, message, data: { id, recipientEmail, subject, templateType, relatedId, relatedType, status, sentAt, openedAt, openedCount, createdAt, opened } }
  */
-export const getAdminMailById = async (id: number): Promise<AdminMail | null> => {
-  const response = await api.get<ApiResponse<AdminMail>>(`/api/admin/mails/${id}`);
+export const getAdminMailById = async (
+  id: number,
+): Promise<AdminMail | null> => {
+  const response = await api.get<ApiResponse<AdminMail>>(
+    `/api/admin/mails/${id}`,
+  );
   return response.data?.data ?? null;
 };
 
@@ -827,9 +988,12 @@ export const getAdminLeads = async (params?: {
   };
   if (params?.status) q.status = params.status;
   if (params?.tourId != null) q.tourId = params.tourId;
-  const response = await api.get<ApiResponse<AdminLeadPageResponse>>("/api/admin/leads", {
-    params: q,
-  });
+  const response = await api.get<ApiResponse<AdminLeadPageResponse>>(
+    "/api/admin/leads",
+    {
+      params: q,
+    },
+  );
   const d = response.data?.data as AdminLeadPageResponse | undefined;
   if (!d || typeof d !== "object") return { data: [], total: 0 };
   const content = Array.isArray(d.content) ? d.content : [];
@@ -839,8 +1003,12 @@ export const getAdminLeads = async (params?: {
 };
 
 /** GET /api/admin/leads/:id - Chi tiết lead */
-export const getAdminLeadById = async (id: number): Promise<AdminLead | null> => {
-  const response = await api.get<ApiResponse<AdminLead>>(`/api/admin/leads/${id}`);
+export const getAdminLeadById = async (
+  id: number,
+): Promise<AdminLead | null> => {
+  const response = await api.get<ApiResponse<AdminLead>>(
+    `/api/admin/leads/${id}`,
+  );
   return response.data?.data ?? null;
 };
 
@@ -849,7 +1017,10 @@ export const updateAdminLead = async (
   id: number,
   data: { status?: string; adminNote?: string },
 ): Promise<AdminLead | null> => {
-  const response = await api.put<ApiResponse<AdminLead>>(`/api/admin/leads/${id}`, data);
+  const response = await api.put<ApiResponse<AdminLead>>(
+    `/api/admin/leads/${id}`,
+    data,
+  );
   return response.data?.data ?? null;
 };
 
@@ -882,6 +1053,12 @@ export interface AdminArtisan {
   };
   workshopAddress?: string;
   profileImageUrl?: string;
+  ethnicity?: string;
+  dateOfBirth?: string;
+  images?: string | string[];
+  heroSubtitle?: string;
+  narrativeContent?: string;
+  panoramaImageUrl?: string;
   totalTours?: number;
   averageRating?: number;
   isActive?: boolean;
@@ -889,7 +1066,7 @@ export interface AdminArtisan {
   updatedAt?: string;
 }
 
-/** POST /api/artisans - Tạo nghệ nhân mới - khớp backend response */
+/** POST /api/artisans - Tạo nghệ nhân mới - khớp backend request/response */
 export interface CreateArtisanRequest {
   userId: number;
   fullName: string;
@@ -899,6 +1076,12 @@ export interface CreateArtisanRequest {
   provinceId?: number;
   province?: { id: number };
   workshopAddress?: string;
+  ethnicity?: string;
+  dateOfBirth?: string;
+  images?: string | string[];
+  heroSubtitle?: string;
+  narrativeContent?: string;
+  panoramaImageUrl?: string;
 }
 
 /** PUT /api/artisans/{id} - Cập nhật nghệ nhân - khớp backend response */
@@ -910,6 +1093,12 @@ export interface UpdateArtisanRequest {
   provinceId?: number;
   province?: { id: number };
   workshopAddress?: string;
+  ethnicity?: string;
+  dateOfBirth?: string;
+  images?: string | string[];
+  heroSubtitle?: string;
+  narrativeContent?: string;
+  panoramaImageUrl?: string;
   isActive?: boolean;
 }
 
@@ -939,6 +1128,34 @@ export const getAdminArtisanById = async (
 ): Promise<AdminArtisan> => {
   const response = await api.get<ApiResponse<AdminArtisan>>(
     `/api/artisans/${id}`,
+  );
+  return response.data.data;
+};
+
+/** Chi tiết đầy đủ nghệ nhân (narrative, relatedTours, relatedCultureItems). GET /api/artisans/public/{id}/detail */
+export interface AdminArtisanDetail {
+  id: number;
+  fullName: string;
+  specialization: string;
+  bio: string;
+  profileImageUrl: string;
+  heroSubtitle: string;
+  ethnicity: string;
+  age: number;
+  location: string;
+  images: string[];
+  panoramaImageUrl: string | null;
+  narrativeContent: { title: string; content: string; imageUrl?: string }[];
+  relatedTours: { id: number; title: string; slug: string; thumbnailUrl: string; location: string; description: string; price: number }[];
+  relatedCultureItems: { id: number; title: string; thumbnailUrl: string; description: string }[];
+  otherArtisans: { id: number; fullName: string; profileImageUrl: string }[];
+}
+
+export const getAdminArtisanDetail = async (
+  id: number,
+): Promise<AdminArtisanDetail> => {
+  const response = await api.get<ApiResponse<AdminArtisanDetail>>(
+    `/api/artisans/public/${id}/detail`,
   );
   return response.data.data;
 };
@@ -994,9 +1211,16 @@ export const updateArtisan = async (
   }
 };
 
-/** Xóa nghệ nhân. Backend: DELETE /api/artisans/{id} */
+/**
+ * Xóa nghệ nhân. Backend: DELETE /api/artisans/{id}
+ * Response: { success: true, code, message, data: {}, errors: {}, timestamp }
+ */
 export const deleteArtisan = async (id: number): Promise<void> => {
-  await api.delete(`/api/artisans/${id}`);
+  const artisanId = Number(id);
+  if (isNaN(artisanId) || artisanId <= 0) {
+    throw new Error(`Invalid artisan ID: ${id}`);
+  }
+  await api.delete(`/api/artisans/${artisanId}`);
 };
 
 // ========== Admin Learn API ==========
@@ -1700,6 +1924,72 @@ export const deleteTourSchedule = async (id: number): Promise<void> => {
 };
 
 // ========== Admin Dashboard API ==========
+/** GET /api/admin/dashboard/summary - Tổng quan dashboard */
+export interface DashboardSummary {
+  fromDate: string;
+  toDate: string;
+  users: {
+    total: number;
+    newInRange: number;
+    byStatus?: Record<string, number>;
+  };
+  tours: {
+    total: number;
+    active: number;
+  };
+  tourSchedules: {
+    total: number;
+    upcoming: number;
+    byStatus?: Record<string, number>;
+  };
+  bookings: {
+    total: number;
+    newInRange: number;
+    completed: number;
+    cancelled: number;
+  };
+  payments: {
+    total: number;
+    newInRange: number;
+    byStatus?: Record<string, number>;
+    totalRevenue: number;
+    revenueInRange: number;
+  };
+  reviews: {
+    total: number;
+    newInRange: number;
+    byStatus?: Record<string, number>;
+    averageRating: number;
+  };
+  content: {
+    blogPostsTotal: number;
+    blogPostsByStatus?: Record<string, number>;
+    videosTotal: number;
+    videosByStatus?: Record<string, number>;
+    cultureItemsTotal: number;
+    cultureItemsByStatus?: Record<string, number>;
+    userMemoriesTotal: number;
+    userMemoriesByStatus?: Record<string, number>;
+  };
+  notifications: {
+    total: number;
+    newInRange: number;
+    unread: number;
+  };
+}
+
+export const getDashboardSummary = async (params?: {
+  fromDate?: string;
+  toDate?: string;
+}): Promise<DashboardSummary> => {
+  const response = await api.get<ApiResponse<DashboardSummary>>(
+    "/api/admin/dashboard/summary",
+    { params },
+  );
+  return response.data.data;
+};
+
+/** @deprecated Dùng getDashboardSummary thay thế */
 export interface DashboardStats {
   totalTours: number;
   totalBookings: number;

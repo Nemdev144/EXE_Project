@@ -1,12 +1,9 @@
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { getArtisanDetail } from "../../../services/artisanApi";
-import type {
-  ArtisanDetail,
-  ArtisanNarrativeBlock,
-} from "../../../types";
+import type { ArtisanDetail, ArtisanNarrativeBlock } from "../../../types";
 import "../../../styles/components/artisan/artisanDetailscss/_artisan-detail.scss";
 
 const FALLBACK_IMG = "/dauvao.png";
@@ -40,6 +37,7 @@ function formatPrice(n: number) {
 
 export default function ArtisanDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [artisan, setArtisan] = useState<ArtisanDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabKey>("narrative");
@@ -67,20 +65,32 @@ export default function ArtisanDetailPage() {
       }
     };
     fetchData();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   /* ── Scroll to section ── */
   const scrollTo = useCallback((key: TabKey) => {
     setActiveTab(key);
-    sectionRefs.current[key]?.scrollIntoView({ behavior: "smooth", block: "start" });
+    sectionRefs.current[key]?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   }, []);
 
   /* ── Panorama slider ── */
   const images = artisan?.images ?? [];
-  const panoramaImages = images.length > 0 ? images : (artisan?.panoramaImageUrl ? [artisan.panoramaImageUrl] : []);
-  const prevSlide = () => setPanoramaIdx((i) => (i === 0 ? panoramaImages.length - 1 : i - 1));
-  const nextSlide = () => setPanoramaIdx((i) => (i === panoramaImages.length - 1 ? 0 : i + 1));
+  const panoramaImages =
+    images.length > 0
+      ? images
+      : artisan?.panoramaImageUrl
+        ? [artisan.panoramaImageUrl]
+        : [];
+  const prevSlide = () =>
+    setPanoramaIdx((i) => (i === 0 ? panoramaImages.length - 1 : i - 1));
+  const nextSlide = () =>
+    setPanoramaIdx((i) => (i === panoramaImages.length - 1 ? 0 : i + 1));
 
   /* ---------- Loading ---------- */
   if (loading) {
@@ -97,14 +107,15 @@ export default function ArtisanDetailPage() {
     return (
       <div className="ad-loading">
         <p>Không tìm thấy nghệ nhân này.</p>
-        <Link to="/artisans" className="ad-back-btn">Quay lại danh sách</Link>
+        <Link to="/artisans" className="ad-back-btn">
+          Quay lại danh sách
+        </Link>
       </div>
     );
   }
 
   /* ---------- Derived ---------- */
   const narrativeBlocks = parseNarrative(artisan.narrativeContent);
-  const profileImg = artisan.profileImageUrl || FALLBACK_IMG;
 
   const sectionMotion = {
     initial: { opacity: 0, y: 24 },
@@ -132,6 +143,14 @@ export default function ArtisanDetailPage() {
         />
         <div className="ad-hero-banner__overlay" />
 
+        <button
+          className="ad-hero-banner__back"
+          onClick={() => navigate("/artisans")}
+          type="button"
+        >
+          <ArrowLeft size={20} />
+        </button>
+
         <motion.div
           className="ad-hero-banner__content"
           initial={{ opacity: 0, y: 20 }}
@@ -142,7 +161,9 @@ export default function ArtisanDetailPage() {
           <p className="ad-hero-banner__subtitle">
             {artisan.heroSubtitle || artisan.bio}
           </p>
-          <Link to="/tours" className="ad-hero-banner__btn">Khám phá ngay</Link>
+          <Link to="/tours" className="ad-hero-banner__btn">
+            Khám phá ngay
+          </Link>
         </motion.div>
       </motion.section>
 
@@ -154,9 +175,7 @@ export default function ArtisanDetailPage() {
         transition={{ duration: 0.5, delay: 0.1 }}
       >
         <div className="ad-info__container">
-          <h2 className="ad-info__name">
-            Nghệ nhân {artisan.fullName}
-          </h2>
+          <h2 className="ad-info__name">Nghệ nhân {artisan.fullName}</h2>
 
           {/* Sticky-ish tabs */}
           <nav className="ad-info__tabs">
@@ -165,6 +184,7 @@ export default function ArtisanDetailPage() {
                 key={t.key}
                 className={`ad-info__tab ${activeTab === t.key ? "ad-info__tab--active" : ""}`}
                 onClick={() => scrollTo(t.key)}
+                type="button"
               >
                 {t.label}
               </button>
@@ -175,7 +195,9 @@ export default function ArtisanDetailPage() {
           <div className="ad-info__stats">
             <div className="ad-info__stat">
               <span className="ad-info__stat-label">Dân tộc</span>
-              <span className="ad-info__stat-value">{artisan.ethnicity || "—"}</span>
+              <span className="ad-info__stat-value">
+                {artisan.ethnicity || "—"}
+              </span>
             </div>
             <div className="ad-info__stat">
               <span className="ad-info__stat-label">Tuổi</span>
@@ -183,7 +205,9 @@ export default function ArtisanDetailPage() {
             </div>
             <div className="ad-info__stat">
               <span className="ad-info__stat-label">Nơi sinh sống</span>
-              <span className="ad-info__stat-value">{artisan.location || "—"}</span>
+              <span className="ad-info__stat-value">
+                {artisan.location || "—"}
+              </span>
             </div>
           </div>
 
@@ -196,7 +220,9 @@ export default function ArtisanDetailPage() {
       {narrativeBlocks.length > 0 && (
         <motion.section
           className="ad-narrative"
-          ref={(el) => { sectionRefs.current.narrative = el; }}
+          ref={(el) => {
+            sectionRefs.current.narrative = el;
+          }}
           {...sectionMotion}
         >
           <div className="ad-narrative__container">
@@ -227,17 +253,19 @@ export default function ArtisanDetailPage() {
                     />
                   </div>
                 )}
-              </div>
+              </motion.div>
             ))}
           </div>
-        </section>
+        </motion.section>
       )}
 
       {/* ═══════════ PANORAMA SLIDER ═══════════ */}
       {panoramaImages.length > 0 && (
         <motion.section
           className="ad-panorama"
-          ref={(el) => { sectionRefs.current.gong = el; }}
+          ref={(el) => {
+            sectionRefs.current.gong = el;
+          }}
           {...sectionMotion}
         >
           <div className="ad-panorama__slider">
@@ -248,10 +276,18 @@ export default function ArtisanDetailPage() {
             />
             {panoramaImages.length > 1 && (
               <>
-                <button className="ad-panorama__arrow ad-panorama__arrow--left" onClick={prevSlide}>
+                <button
+                  className="ad-panorama__arrow ad-panorama__arrow--left"
+                  onClick={prevSlide}
+                  type="button"
+                >
                   <ChevronLeft size={28} />
                 </button>
-                <button className="ad-panorama__arrow ad-panorama__arrow--right" onClick={nextSlide}>
+                <button
+                  className="ad-panorama__arrow ad-panorama__arrow--right"
+                  onClick={nextSlide}
+                  type="button"
+                >
                   <ChevronRight size={28} />
                 </button>
                 <div className="ad-panorama__dots">
@@ -272,80 +308,87 @@ export default function ArtisanDetailPage() {
       {/* ═══════════ KẾT NỐI VĂN HOÁ — related culture + tours ═══════════ */}
       <motion.section
         className="ad-connect"
-        ref={(el) => { sectionRefs.current.culture = el; }}
+        ref={(el) => {
+          sectionRefs.current.culture = el;
+        }}
         {...sectionMotion}
       >
         <div className="ad-connect__container">
           <h2 className="ad-connect__heading">Kết nối văn hoá</h2>
 
-          <div className="ad-connect__grid">
-            {/* Related culture items */}
-            {artisan.relatedCultureItems?.slice(0, 2).map((item, i) => (
-              <motion.div
-                key={item.id}
-                className="ad-connect__card"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: i * 0.1 }}
-              >
-                <div className="ad-connect__card-img-wrap">
-                  <img
-                    src={item.thumbnailUrl || FALLBACK_IMG}
-                    alt={item.title}
-                    className="ad-connect__card-img"
-                    loading="lazy"
-                  />
-                </div>
-                <div className="ad-connect__card-body">
-                  <h4>{item.title}</h4>
-                  <p>{item.description}</p>
-                </div>
-              </motion.div>
-            ))}
+          {artisan.relatedCultureItems && artisan.relatedCultureItems.length > 0 && (
+            <>
+              <h3 className="ad-connect__subheading">Văn hoá liên quan</h3>
+              <div className="ad-connect__grid">
+                {artisan.relatedCultureItems.map((item, i) => (
+                  <motion.div
+                    key={item.id}
+                    className="ad-connect__card"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.45, delay: i * 0.1 }}
+                  >
+                    <div className="ad-connect__card-img-wrap">
+                      <img
+                        src={item.thumbnailUrl || FALLBACK_IMG}
+                        alt={item.title}
+                        className="ad-connect__card-img"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="ad-connect__card-body">
+                      <h4>{item.title}</h4>
+                      <p>{item.description}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </>
+          )}
 
-            {/* Related tours */}
-            {artisan.relatedTours?.slice(0, 2).map((tour, i) => (
-              <motion.div
-                key={tour.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: (i + 2) * 0.1 }}
-              >
-              <Link to={`/tours/${tour.id}`} className="ad-connect__card ad-connect__card--tour">
-                <div className="ad-connect__card-img-wrap">
-                  <img
-                    src={tour.thumbnailUrl || FALLBACK_IMG}
-                    alt={tour.title}
-                    className="ad-connect__card-img"
-                    loading="lazy"
-                  />
-                </div>
-                <div className="ad-connect__card-body">
-                  <h4>{tour.title}</h4>
-                  <p className="ad-connect__card-price">
-                    {formatPrice(tour.price)} VNĐ
-                  </p>
-                </div>
-              </Link>
-              </motion.div>
-            ))}
-          </div>
+          {artisan.relatedTours && artisan.relatedTours.length > 0 && (
+            <>
+              <h3 className="ad-connect__subheading">Tour liên quan</h3>
+              <div className="ad-connect__grid">
+                {artisan.relatedTours.map((tour, i) => (
+                  <motion.div
+                    key={tour.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.45, delay: i * 0.1 }}
+                  >
+                    <Link to={`/tours/${tour.id}`} className="ad-connect__card ad-connect__card--tour">
+                      <div className="ad-connect__card-img-wrap">
+                        <img
+                          src={tour.thumbnailUrl || FALLBACK_IMG}
+                          alt={tour.title}
+                          className="ad-connect__card-img"
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="ad-connect__card-body">
+                        <h4>{tour.title}</h4>
+                        <p className="ad-connect__card-price">
+                          {formatPrice(tour.price)} VNĐ
+                        </p>
+                      </div>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            </>
+          )}
 
           {/* CTA row */}
           <div className="ad-connect__cta-row">
-            <Link to="/artisans" className="ad-connect__cta ad-connect__cta--outline">
+            <Link
+              to="/artisans"
+              className="ad-connect__cta ad-connect__cta--outline"
+            >
               Danh sách các nghệ nhân
             </Link>
-            {artisan.otherArtisans && artisan.otherArtisans.length > 0 && (
-              <Link
-                to={`/artisans/${artisan.otherArtisans[0].id}`}
-                className="ad-connect__cta ad-connect__cta--outline"
-              >
-                Xem thêm nghệ nhân khác
-              </Link>
-            )}
           </div>
         </div>
       </motion.section>

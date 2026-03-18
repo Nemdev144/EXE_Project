@@ -30,7 +30,7 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
 import {
-  getDashboardStats,
+  getDashboardSummary,
   getAdminTours,
   getAdminBookings,
   getAdminContent,
@@ -146,6 +146,13 @@ export default function AdminDashboard() {
     contentGrowth: 0,
     revenueGrowth: 0,
   });
+  const [summaryRange, setSummaryRange] = useState<{ fromDate: string; toDate: string } | null>(null);
+  const [summaryData, setSummaryData] = useState<{
+    users?: { total: number; newInRange: number };
+    tours?: { total: number; active: number };
+    tourSchedules?: { total: number; upcoming: number };
+    reviews?: { total: number; averageRating: number };
+  } | null>(null);
   const [tours, setTours] = useState<AdminTour[]>([]);
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
   const [revenueByMonth, setRevenueByMonth] = useState<
@@ -163,9 +170,9 @@ export default function AdminDashboard() {
       setLoading(true);
       setError(null);
       try {
-        const [statsRes, toursRes, bookingsRes, contentRes, artisansRes] =
+        const [summaryRes, toursRes, bookingsRes, contentRes, artisansRes] =
           await Promise.allSettled([
-            getDashboardStats(),
+            getDashboardSummary(),
             getAdminTours({ limit: 100 }),
             getAdminBookings({ limit: 100 }),
             getAdminContent({ limit: 500 }),
@@ -214,20 +221,32 @@ export default function AdminDashboard() {
           )
           .reduce((s, b) => s + (b.finalAmount || 0), 0);
 
-        if (statsRes.status === "fulfilled") {
-          const s = statsRes.value;
+        if (summaryRes.status === "fulfilled") {
+          const s = summaryRes.value;
+          setSummaryRange({ fromDate: s.fromDate, toDate: s.toDate });
+          setSummaryData({
+            users: s.users,
+            tours: s.tours,
+            tourSchedules: s.tourSchedules,
+            reviews: s.reviews,
+          });
+          const contentTotalSum =
+            (s.content?.blogPostsTotal ?? 0) +
+            (s.content?.videosTotal ?? 0) +
+            (s.content?.cultureItemsTotal ?? 0) +
+            (s.content?.userMemoriesTotal ?? 0);
           setStats({
-            totalTours: s.totalTours ?? toursData.length,
-            totalBookings: s.totalBookings ?? bookingsData.length,
-            totalUsers: s.totalUsers ?? 0,
-            totalContent: contentTotal || contentData.length,
+            totalTours: s.tours?.total ?? toursData.length,
+            totalBookings: s.bookings?.total ?? bookingsData.length,
+            totalUsers: s.users?.total ?? 0,
+            totalContent: contentTotalSum || contentTotal || contentData.length,
             totalArtisans: artisansTotal || artisansData.length,
-            bookingsToday: s.bookingsToday ?? bookingsTodayCount,
-            monthlyRevenue: (s.totalRevenue ?? monthlyRevenue) / 1_000_000,
-            toursGrowth: s.toursGrowth ?? 0,
-            bookingsGrowth: s.bookingsGrowth ?? 0,
+            bookingsToday: s.bookings?.newInRange ?? bookingsTodayCount,
+            monthlyRevenue: (s.payments?.revenueInRange ?? s.payments?.totalRevenue ?? monthlyRevenue) / 1_000_000,
+            toursGrowth: 0,
+            bookingsGrowth: 0,
             contentGrowth: 0,
-            revenueGrowth: s.revenueGrowth ?? 0,
+            revenueGrowth: 0,
           });
         } else {
           setStats({
@@ -365,7 +384,9 @@ export default function AdminDashboard() {
           Dashboard
         </Title>
         <Text type="secondary" style={{ fontSize: 16 }}>
-          Tổng quan hệ thống và thống kê
+          {summaryRange
+            ? `Tổng quan hệ thống (${dayjs(summaryRange.fromDate).format("DD/MM/YYYY")} - ${dayjs(summaryRange.toDate).format("DD/MM/YYYY")})`
+            : "Tổng quan hệ thống và thống kê"}
         </Text>
       </div>
 
@@ -377,6 +398,55 @@ export default function AdminDashboard() {
           revenueGrowth: stats.revenueGrowth,
         }}
       />
+
+      {summaryData && (
+        <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+          <Col xs={12} sm={6}>
+            <Card size="small" style={{ borderRadius: 12 }}>
+              <Text type="secondary">Tổng Users</Text>
+              <div style={{ fontSize: 24, fontWeight: 700, color: "#1a1a1a" }}>
+                {summaryData.users?.total ?? 0}
+              </div>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                +{summaryData.users?.newInRange ?? 0} trong kỳ
+              </Text>
+            </Card>
+          </Col>
+          <Col xs={12} sm={6}>
+            <Card size="small" style={{ borderRadius: 12 }}>
+              <Text type="secondary">Tour đang hoạt động</Text>
+              <div style={{ fontSize: 24, fontWeight: 700, color: "#1a1a1a" }}>
+                {summaryData.tours?.active ?? 0}
+              </div>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                / {summaryData.tours?.total ?? 0} tổng
+              </Text>
+            </Card>
+          </Col>
+          <Col xs={12} sm={6}>
+            <Card size="small" style={{ borderRadius: 12 }}>
+              <Text type="secondary">Lịch sắp tới</Text>
+              <div style={{ fontSize: 24, fontWeight: 700, color: "#1a1a1a" }}>
+                {summaryData.tourSchedules?.upcoming ?? 0}
+              </div>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                / {summaryData.tourSchedules?.total ?? 0} tổng
+              </Text>
+            </Card>
+          </Col>
+          <Col xs={12} sm={6}>
+            <Card size="small" style={{ borderRadius: 12 }}>
+              <Text type="secondary">Đánh giá TB</Text>
+              <div style={{ fontSize: 24, fontWeight: 700, color: "#1a1a1a" }}>
+                {(summaryData.reviews?.averageRating ?? 0).toFixed(1)}
+              </div>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                {summaryData.reviews?.total ?? 0} đánh giá
+              </Text>
+            </Card>
+          </Col>
+        </Row>
+      )}
 
       <Row gutter={[20, 20]} style={{ marginBottom: 24 }}>
         <Col xs={24} lg={16}>
