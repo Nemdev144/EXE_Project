@@ -137,6 +137,8 @@ export interface ClaimedVoucherInfo {
   minPurchase: number;
   validUntil: string;
   claimedAt?: string;
+  /** Đã sử dụng — nếu có thì voucher không còn dùng được */
+  usedAt?: string | null;
 }
 
 /** Lấy voucher đã claim - GET /api/vouchers/my-claimed */
@@ -151,5 +153,6 @@ export async function getMyClaimedVouchers(): Promise<ClaimedVoucherInfo[]> {
     minPurchase: Number(v.minPurchase ?? 0),
     validUntil: (v.validUntil as string) ?? '',
     claimedAt: v.claimedAt as string | undefined,
+    usedAt: (v.usedAt as string | null | undefined) ?? null,
   }));
 }

@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { message } from "antd";
 import Breadcrumbs from "../../../components/Breadcrumbs";
 import { getApiErrorMessage, getModuleById, getQuizById } from "../../../services/api";
 import { submitQuiz } from "../../../services/learnApi";
@@ -83,6 +84,11 @@ export default function QuizPage() {
 
   const doSubmit = async () => {
     if (!quiz || !moduleId) return;
+    const allAnswered = quiz.questions.every((q) => q.id in selectedAnswers);
+    if (!allAnswered) {
+      message.warning("Bạn vẫn còn câu chưa hoàn thành, hãy kiểm tra trước khi nộp bài nhé");
+      return;
+    }
     const timeSpent = Math.max(0, quiz.timeLimitMinutes * 60 - timeLeft);
     const answers: Record<number, number> = {};
     quiz.questions.forEach((q) => {

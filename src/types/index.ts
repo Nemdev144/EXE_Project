@@ -26,20 +26,59 @@ export interface Province {
   updatedAt: string;
 }
 
+// Tour province (nested in tour detail)
+export interface TourProvince {
+  id: number;
+  name: string;
+  slug: string;
+  region?: string;
+  latitude?: number;
+  longitude?: number;
+  thumbnailUrl?: string;
+  description?: string;
+  isActive?: boolean;
+  bestSeason?: string;
+  transportation?: string;
+  culturalTips?: string;
+}
+
+// Tour artisan (nested in tour detail)
+export interface TourArtisanUser {
+  id: number;
+  username: string;
+  fullName: string;
+  avatarUrl?: string;
+}
+
+export interface TourArtisan {
+  id: number;
+  user?: TourArtisanUser;
+  fullName: string;
+  specialization: string;
+  bio: string;
+  profileImageUrl?: string;
+  province?: TourProvince;
+  workshopAddress?: string;
+  ethnicity?: string;
+  dateOfBirth?: string;
+  heroSubtitle?: string;
+  narrativeContent?: string; // JSON array of { title, content, imageUrl }
+}
+
 // Tour
 export interface Tour {
   id: number;
   provinceId: number;
   provinceName?: string;
+  /** Nested province khi fetch detail */
+  province?: TourProvince;
   title: string;
   slug: string;
   description: string;
-  /** Thời điểm đẹp nhất (e.g. "Tháng 10 - Tháng 3 mùa khô") */
   bestSeason?: string;
-  /** Cách di chuyển đến vùng (e.g. "Xe máy, xe khách từ Pleiku") */
   transportation?: string;
-  /** Lưu ý ứng xử văn hoá */
   culturalTips?: string;
+  preparationTips?: string;
   durationHours?: number;
   maxParticipants: number;
   price: number;
@@ -47,6 +86,8 @@ export interface Tour {
   images: string[];
   artisanId?: number;
   artisanName?: string;
+  /** Nested artisan khi fetch detail */
+  artisan?: TourArtisan;
   averageRating: number;
   totalReviews: number;
   totalBookings?: number;

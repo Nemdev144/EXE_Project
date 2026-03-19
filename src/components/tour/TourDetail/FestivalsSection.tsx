@@ -33,11 +33,13 @@ const CULTURE_TIPS = [
 
 interface FestivalsSectionProps {
   festivals: CultureItem[];
+  culturalTips?: string;
   sectionRef: (el: HTMLElement | null) => void;
 }
 
 export default function FestivalsSection({
   festivals,
+  culturalTips,
   sectionRef,
 }: FestivalsSectionProps) {
   /* Only take CRAFT items, max 2 – fall back to hardcoded data */
@@ -69,19 +71,23 @@ export default function FestivalsSection({
             ))}
           </div>
 
-          {/* Cultural behavior tips — hardcoded, right column */}
+          {/* Cultural behavior tips — from API or fallback */}
           <div className="td-festivals__tips-card">
             <h4 className="td-festivals__tips-heading">
               <HandHeart size={20} />
               Lưu ý ứng xử văn hoá
             </h4>
-            <ul className="td-festivals__tips-list">
-              {CULTURE_TIPS.map((tip, i) => (
-                <li key={i} className="td-festivals__tip">
-                  <span>{tip.text}</span>
-                </li>
-              ))}
-            </ul>
+            {culturalTips ? (
+              <p className="td-festivals__tips-text">{culturalTips}</p>
+            ) : (
+              <ul className="td-festivals__tips-list">
+                {CULTURE_TIPS.map((tip, i) => (
+                  <li key={i} className="td-festivals__tip">
+                    <span>{tip.text}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </div>

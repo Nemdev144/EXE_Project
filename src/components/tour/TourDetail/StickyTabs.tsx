@@ -1,6 +1,6 @@
-import { BookOpen, MapPin, Play, Landmark, Utensils } from 'lucide-react';
+import { BookOpen, MapPin, User, Landmark, Utensils } from 'lucide-react';
 
-export type TabKey = 'intro' | 'highlights' | 'videos' | 'festivals' | 'food';
+export type TabKey = 'intro' | 'province' | 'artisan' | 'highlights' | 'festivals' | 'food';
 
 export interface TabItem {
   key: TabKey;
@@ -8,24 +8,26 @@ export interface TabItem {
   icon: React.ReactNode;
 }
 
-export const TABS: TabItem[] = [
-  { key: 'intro', label: 'Giới thiệu chung', icon: <BookOpen size={16} /> },
-  { key: 'highlights', label: 'Địa điểm nổi bật', icon: <MapPin size={16} /> },
-  { key: 'videos', label: 'Videos/Story', icon: <Play size={16} /> },
-  { key: 'festivals', label: 'Lễ hội - phong tục', icon: <Landmark size={16} /> },
-  { key: 'food', label: 'Ẩm thực địa phương', icon: <Utensils size={16} /> },
-];
-
 interface StickyTabsProps {
   activeTab: TabKey;
   onTabClick: (key: TabKey) => void;
+  hasArtisan?: boolean;
 }
 
-export default function StickyTabs({ activeTab, onTabClick }: StickyTabsProps) {
+export default function StickyTabs({ activeTab, onTabClick, hasArtisan }: StickyTabsProps) {
+  const tabs: TabItem[] = [
+    { key: 'intro', label: 'Giới thiệu', icon: <BookOpen size={16} /> },
+    { key: 'province', label: 'Vùng đất', icon: <MapPin size={16} /> },
+    ...(hasArtisan ? [{ key: 'artisan' as TabKey, label: 'Nghệ nhân', icon: <User size={16} /> }] : []),
+    { key: 'highlights', label: 'Địa điểm nổi bật', icon: <MapPin size={16} /> },
+    { key: 'festivals', label: 'Lễ hội & phong tục', icon: <Landmark size={16} /> },
+    { key: 'food', label: 'Ẩm thực', icon: <Utensils size={16} /> },
+  ];
+
   return (
     <nav className="td-tabs">
       <div className="td-tabs__container">
-        {TABS.map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab.key}
             className={`td-tabs__item ${activeTab === tab.key ? 'td-tabs__item--active' : ''}`}

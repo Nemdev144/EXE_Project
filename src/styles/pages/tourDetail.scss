@@ -5,6 +5,89 @@
 @use '../variables' as *;
 @use '../mixins' as *;
 
+// Fonts
+@font-face {
+  font-family: 'iCiel Lodestone';
+  src: url('../../assets/iCielBCLodestone-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Afacad';
+  src: url('../../assets/Afacad-VariableFont_wght.ttf') format('truetype');
+}
+
+// Override layout overflow để sidebar sticky hoạt động (overflow-x: hidden phá sticky)
+.main-layout--tour-detail .main-layout__content {
+  overflow-x: visible;
+}
+
+// Page wrapper - cream background
+.tour-detail {
+  background: #FDF5F0;
+  min-height: 100vh;
+}
+
+// Layout: Phần trên 2 cột (sidebar sticky) + Phần dưới full width
+.td-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 $spacing-md $spacing-3xl;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  @media (min-width: $breakpoint-lg) {
+    padding: 0 $spacing-lg $spacing-3xl;
+  }
+}
+
+// Phần trên: Breadcrumb, Intro, Quick Info, Gallery, Thời điểm đẹp nhất + Sidebar
+.td-main__top {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-2xl;
+  align-items: start;
+
+  @media (min-width: $breakpoint-lg) {
+    grid-template-columns: 1fr 340px;
+  }
+}
+
+.td-main__content {
+  min-width: 0;
+}
+
+.td-main__sidebar {
+  // Mobile: hiển thị sidebar ngay dưới breadcrumb (order -1 = lên trước content)
+  order: -1;
+
+  @media (min-width: $breakpoint-lg) {
+    order: unset;
+    position: sticky;
+    top: calc(var(--navbar-h, 88px) + 1rem);
+    align-self: start;
+  }
+}
+
+// Phần dưới: Địa điểm, Nghệ nhân, Ẩm thực, Lễ hội - full width
+.td-main__full {
+  width: 100%;
+  margin-top: $spacing-2xl;
+}
+
+// Section title - red, iCiel Lodestone
+.td-about-title,
+.td-section__title,
+.td-gallery__title {
+  font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+  color: $color-primary;
+  font-weight: $font-weight-bold;
+}
+
+.td-about-title {
+  font-size: $font-size-2xl;
+  margin: 0 0 $spacing-lg;
+}
+
 // Stars
 .td-star {
   width: 1rem;
@@ -42,18 +125,1024 @@
   to { transform: rotate(360deg); }
 }
 
-// Hero
+// Hero Gallery - ảnh to + overlay
 .td-hero {
   width: 100%;
-  max-height: 480px;
   overflow: hidden;
+  position: relative;
+
+  &__gallery {
+    position: relative;
+    width: 100%;
+    height: 55vh;
+    min-height: 380px;
+
+    @media (min-width: $breakpoint-md) {
+      height: 65vh;
+      min-height: 480px;
+    }
+  }
 
   &__image {
     width: 100%;
-    height: 480px;
+    height: 100%;
     object-fit: cover;
     display: block;
   }
+
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.3) 40%, transparent 70%);
+    display: flex;
+    align-items: flex-end;
+    padding: 2rem $spacing-md 2.5rem;
+  }
+
+  &__overlay-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    color: $color-white;
+  }
+
+  &__location {
+    display: inline-block;
+    font-size: $font-size-sm;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: $font-weight-semibold;
+    margin-bottom: 0.25rem;
+    text-decoration: none;
+
+    &:hover {
+      color: $color-white;
+      text-decoration: underline;
+    }
+  }
+
+  &__title {
+    font-size: 1.75rem;
+    font-weight: $font-weight-bold;
+    color: $color-white;
+    line-height: 1.3;
+    margin: 0 0 0.5rem;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+
+    @media (min-width: $breakpoint-md) {
+      font-size: 2.25rem;
+    }
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    font-size: $font-size-sm;
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  &__rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    .td-star--active { color: #fbbf24; fill: #fbbf24; }
+    .td-star--inactive { color: rgba(255, 255, 255, 0.4); }
+  }
+
+  &__bookings {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  &__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    background: $color-primary;
+    color: $color-white !important;
+    font-weight: $font-weight-semibold;
+    border-radius: $radius-md;
+    text-decoration: none;
+    transition: all 0.2s;
+
+    &:hover {
+      background: $color-primary-hover;
+    }
+  }
+
+  &__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    color: $color-primary;
+    cursor: pointer;
+    @include flex-center;
+    transition: all 0.2s;
+    box-shadow: $shadow-md;
+
+    &:hover {
+      background: $color-white;
+      box-shadow: $shadow-lg;
+    }
+
+    &--prev { left: 1rem; }
+    &--next { right: 1rem; }
+  }
+
+  &__dots {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &--active {
+      background: $color-white;
+      transform: scale(1.2);
+    }
+  }
+
+  &__counter {
+    position: absolute;
+    bottom: 1rem;
+    left: 2rem;
+    font-size: $font-size-sm;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: $font-weight-medium;
+  }
+}
+
+// Quick Info - 2 rows: Top (Thời điểm đẹp nhất full-width) + Bottom (3 cards nhỏ)
+.td-quick-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-md;
+  margin: $spacing-xl 0;
+
+  @media (min-width: $breakpoint-md) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  &__card {
+    background: $color-red-50;
+    border: 1px solid $color-red-100;
+    border-radius: $radius-lg;
+    padding: $spacing-lg;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-sm;
+    text-align: center;
+  }
+
+  &__card--top {
+    @media (min-width: $breakpoint-md) {
+      grid-column: 1 / -1;
+      padding: $spacing-xl;
+      border-color: $color-primary;
+      border-width: 2px;
+    }
+  }
+
+  &__icon {
+    color: $color-primary;
+  }
+
+  &__label {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+    font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+  }
+
+  &__value {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-gray-900;
+    font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+    line-height: 1.6;
+  }
+
+  &__card--top &__value {
+    font-size: $font-size-base;
+    max-width: 800px;
+  }
+}
+
+// Gallery - 3 images
+.td-gallery {
+  margin: $spacing-2xl 0;
+
+  &__title {
+    font-size: $font-size-xl;
+    margin-bottom: $spacing-lg;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: $spacing-md;
+  }
+
+  &__img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: $radius-lg;
+  }
+}
+
+// Four-block: Thời điểm đẹp nhất + 3 sections dọc (Địa điểm -> Nghệ nhân -> Ẩm thực)
+.td-four-block {
+  margin: $spacing-2xl 0;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3xl;
+}
+
+.td-four-block__top {
+  border-radius: $radius-lg;
+  padding: $spacing-xl;
+
+  &--framed {
+    background: $color-red-50;
+    border: 2px solid $color-primary;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: $spacing-sm;
+  }
+}
+
+.td-four-block__top-title {
+  font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  margin: 0;
+}
+
+.td-four-block__top-value {
+  font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+  font-size: $font-size-base;
+  color: $color-gray-900;
+  line-height: 1.7;
+  margin: 0;
+  max-width: 800px;
+}
+
+// Section chung (Địa điểm, Nghệ nhân, Ẩm thực) - xếp dọc
+.td-four-block__section {
+  background: #fbf7f1;
+  border-radius: $radius-xl;
+  padding: $spacing-xl;
+  border: 1px solid $color-gray-200;
+}
+
+.td-four-block__section-title {
+  font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  margin: 0 0 $spacing-xl;
+}
+
+// Grid cho Địa điểm nổi bật & Ẩm thực - cards to, ảnh full, chữ hiện khi hover
+.td-four-block__highlights-grid,
+.td-four-block__food-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-xl;
+
+  @media (min-width: $breakpoint-md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: $breakpoint-lg) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.td-four-block__card {
+  position: relative;
+  border-radius: $radius-xl;
+  overflow: hidden;
+  box-shadow: $shadow-md;
+  transition: transform $transition-base, box-shadow $transition-base;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-xl;
+  }
+
+  &--hover {
+    aspect-ratio: 4 / 3;
+    min-height: 240px;
+
+    @media (min-width: $breakpoint-md) {
+      min-height: 280px;
+    }
+
+    @media (min-width: $breakpoint-lg) {
+      min-height: 320px;
+    }
+  }
+}
+
+.td-four-block__card-image {
+  position: absolute;
+  inset: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.td-four-block__card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.4) 50%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: $spacing-xl;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+
+  .td-four-block__card:hover & {
+    opacity: 1;
+  }
+}
+
+.td-four-block__card-title {
+  font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-white;
+  margin: 0 0 $spacing-sm;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.td-four-block__card-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.95);
+  font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+  margin-bottom: $spacing-sm;
+}
+
+.td-four-block__card-desc {
+  font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.7;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// Nghệ nhân - card đầy đủ
+.td-four-block__artisan {
+  background: $color-white;
+  border-radius: $radius-lg;
+  padding: $spacing-xl;
+  border: 1px solid $color-gray-200;
+}
+
+.td-four-block__artisan-header {
+  display: flex;
+  gap: $spacing-xl;
+  margin-bottom: $spacing-lg;
+}
+
+.td-four-block__artisan-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid $color-primary;
+  flex-shrink: 0;
+}
+
+.td-four-block__artisan-info {
+  min-width: 0;
+}
+
+.td-four-block__artisan-name {
+  font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  margin: 0 0 0.25rem;
+}
+
+.td-four-block__artisan-subtitle {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+  margin: 0 0 $spacing-sm;
+  font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+}
+
+.td-four-block__artisan-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-sm;
+}
+
+.td-four-block__tag {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  background: $color-red-50;
+  color: $color-primary;
+  border-radius: $radius-md;
+  font-size: $font-size-xs;
+  font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+}
+
+.td-four-block__artisan-address {
+  font-size: $font-size-sm;
+  color: $color-gray-600;
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+}
+
+.td-four-block__artisan-bio {
+  margin-bottom: $spacing-lg;
+
+  p {
+    font-size: $font-size-base;
+    color: $color-gray-900;
+    line-height: 1.7;
+    margin: 0;
+    font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+  }
+}
+
+.td-four-block__artisan-narrative {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+.td-four-block__narrative-block {
+  background: $color-gray-50;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  border: 1px solid $color-gray-200;
+
+  h4 {
+    font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+    font-size: $font-size-base;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+    margin: 0 0 0.5rem;
+  }
+
+  p {
+    font-size: $font-size-sm;
+    color: $color-gray-900;
+    line-height: 1.7;
+    margin: 0;
+    font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+  }
+}
+
+.td-four-block__narrative-img {
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-md;
+}
+
+.td-four-block__link {
+  display: inline-block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+  text-decoration: underline;
+
+  &:hover {
+    color: $color-primary-hover;
+  }
+}
+
+.td-four-block__empty {
+  font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+  font-size: $font-size-sm;
+  color: $color-gray-600;
+  margin: 0;
+}
+
+// Booking Sidebar
+.td-booking-sidebar {
+  &__card {
+    background: $color-white;
+    border-radius: 16px;
+    padding: $spacing-xl;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid $color-gray-200;
+  }
+
+  &__price-label {
+    font-size: $font-size-sm;
+    color: $color-gray-500;
+    margin: 0 0 0.25rem;
+    font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+  }
+
+  &__price-row {
+    display: flex;
+    align-items: baseline;
+    gap: $spacing-sm;
+    margin-bottom: $spacing-lg;
+  }
+
+  &__price {
+    font-size: 1.75rem;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+    margin: 0;
+    font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+  }
+
+  &__price-original {
+    font-size: $font-size-sm;
+    color: $color-gray-500;
+    text-decoration: line-through;
+    font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+  }
+
+  &__field {
+    margin-bottom: $spacing-md;
+    position: relative;
+  }
+
+  &__label {
+    display: block;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+    color: $color-gray-900;
+    margin-bottom: 0.5rem;
+    font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+  }
+
+  &__select {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: $color-white;
+    border: 1px solid $color-gray-300;
+    border-radius: $radius-md;
+    cursor: pointer;
+    transition: border-color 0.2s;
+
+    &:hover {
+      border-color: $color-gray-400;
+    }
+  }
+
+  &__select-value {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: $font-size-sm;
+    color: $color-gray-900;
+    font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+  }
+
+  &__chevron {
+    color: $color-gray-500;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+
+    &--open {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 0.25rem;
+    background: $color-white;
+    border: 1px solid $color-gray-200;
+    border-radius: $radius-md;
+    box-shadow: $shadow-lg;
+    z-index: 10;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  &__option {
+    display: block;
+    width: 100%;
+    padding: 0.6rem 1rem;
+    border: none;
+    background: none;
+    font-size: $font-size-sm;
+    color: $color-gray-900;
+    text-align: left;
+    cursor: pointer;
+    font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+    transition: background 0.15s;
+
+    &:hover {
+      background: $color-gray-50;
+    }
+
+    &--active {
+      background: $color-red-50;
+      color: $color-primary;
+      font-weight: $font-weight-semibold;
+    }
+
+    &--exp {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.15rem;
+
+      small {
+        font-size: $font-size-xs;
+        color: $color-gray-500;
+        font-weight: normal;
+      }
+    }
+  }
+
+  &__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.875rem 1.25rem;
+    background: $color-primary;
+    color: $color-white !important;
+    font-weight: $font-weight-semibold;
+    border-radius: $radius-md;
+    text-decoration: none;
+    font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+    transition: all 0.2s;
+    margin-top: $spacing-md;
+
+    &:hover {
+      background: $color-primary-hover;
+    }
+  }
+
+  &__divider {
+    height: 1px;
+    background: $color-gray-200;
+    margin: $spacing-lg 0;
+  }
+
+  &__trust {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+    font-size: $font-size-xs;
+    color: $color-gray-600;
+    font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      svg {
+        color: #22c55e;
+        flex-shrink: 0;
+      }
+    }
+  }
+}
+
+// Thông tin nhanh - dạng ngang
+.td-quick-bar {
+  background: $color-white;
+  border-bottom: 1px solid $color-gray-200;
+  padding: $spacing-md 0;
+}
+
+.td-quick-bar__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-lg 2rem;
+}
+
+.td-quick-bar__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.td-quick-bar__icon {
+  color: $color-primary;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.td-quick-bar__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.td-quick-bar__label {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-gray-600;
+}
+
+.td-quick-bar__value {
+  font-size: $font-size-sm;
+  color: $color-gray-700;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.td-quick-bar__cta {
+  flex-shrink: 0;
+  padding: 0.5rem 1rem;
+  background: $color-primary;
+  color: $color-white !important;
+  font-weight: $font-weight-semibold;
+  border-radius: $radius-md;
+  text-decoration: none;
+  font-size: $font-size-sm;
+  transition: all 0.2s;
+
+  &:hover {
+    background: $color-primary-hover;
+  }
+}
+
+// Province + Artisan xen kẽ (2 cột)
+.td-province-artisan {
+  background: transparent;
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $spacing-2xl;
+
+    @media (min-width: $breakpoint-md) {
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+    }
+  }
+
+  &__col {
+    min-width: 0;
+  }
+}
+
+// Province Section (dùng trong grid)
+.td-province {
+  background: transparent;
+}
+
+.td-province__card {
+  background: $color-white;
+  border-radius: $radius-xl;
+  padding: $spacing-xl;
+  border: 1px solid $color-gray-200;
+}
+
+.td-province__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  background: $color-red-50;
+  color: $color-primary;
+  border-radius: $radius-full;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  margin-bottom: $spacing-lg;
+}
+
+.td-province__block {
+  margin-bottom: $spacing-lg;
+
+  &:last-child { margin-bottom: 0; }
+
+  h4 {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+    margin: 0 0 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+  }
+
+  p {
+    font-size: $font-size-base;
+    color: $color-gray-900;
+    line-height: 1.7;
+    margin: 0;
+    font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+  }
+}
+
+// Artisan Section
+.td-artisan {
+  background: $color-white;
+}
+
+.td-artisan__card {
+  background: $color-gray-50;
+  border-radius: $radius-xl;
+  padding: $spacing-xl;
+  border: 1px solid $color-gray-200;
+}
+
+.td-artisan__header {
+  display: flex;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+.td-artisan__avatar-wrap {
+  flex-shrink: 0;
+}
+
+.td-artisan__avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid $color-primary;
+}
+
+.td-artisan__info {
+  min-width: 0;
+}
+
+.td-artisan__name {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  margin: 0 0 0.25rem;
+  font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+}
+
+.td-artisan__subtitle {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+  margin: 0 0 0.5rem;
+}
+
+.td-artisan__specialty,
+.td-artisan__ethnicity {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  background: $color-red-50;
+  color: $color-primary;
+  border-radius: $radius-md;
+  font-size: $font-size-xs;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.td-artisan__address {
+  font-size: $font-size-sm;
+  color: $color-gray-600;
+  margin: 0.5rem 0 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.td-artisan__bio {
+  margin-bottom: $spacing-lg;
+
+  p {
+    font-size: $font-size-base;
+    color: $color-gray-900;
+    line-height: 1.7;
+    margin: 0;
+    font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+  }
+}
+
+.td-artisan__narrative {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+  margin-bottom: $spacing-lg;
+}
+
+.td-artisan__narrative-block {
+  background: $color-white;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  border: 1px solid $color-gray-200;
+
+  h4 {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+    margin: 0 0 0.5rem;
+    font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+  }
+
+  p {
+    font-size: $font-size-sm;
+    color: $color-gray-900;
+    line-height: 1.7;
+    margin: 0;
+    font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+  }
+}
+
+.td-artisan__narrative-img {
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-md;
+}
+
+.td-artisan__link {
+  display: inline-block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+  text-decoration: underline;
+
+  &:hover {
+    color: $color-primary-hover;
+  }
+}
+
+// Festivals tips text
+.td-festivals__tips-text {
+  font-size: $font-size-sm;
+  color: $color-gray-900;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-line;
+  font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
+}
+
+.td-festivals__card-title {
+  font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+  color: $color-primary;
 }
 
 // Tabs
@@ -118,44 +1207,39 @@
     font-size: $font-size-2xl;
     font-weight: $font-weight-bold;
     margin-bottom: $spacing-2xl;
-    text-align: center;
+    text-align: left;
+    font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+    color: $color-primary;
 
     &--decorated {
-      font-family: 'Playfair Display', serif;
-      font-style: italic;
-      color: $color-gray-900;
-      font-size: 2rem;
+      font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
+      color: $color-primary;
+      font-size: 1.5rem;
     }
 
     &--stamp {
-      font-family: 'Playfair Display', serif;
-      font-style: italic;
+      font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
       color: $color-white;
       font-size: 2rem;
     }
   }
 }
 
-// Intro
+// Intro - chỉ mô tả, không sidebar
 .td-intro {
-  background: $color-white;
-
-  &__grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: $spacing-2xl;
-
-    @media (min-width: $breakpoint-md) {
-      grid-template-columns: 1.4fr 1fr;
-    }
-  }
+  background: transparent;
+  padding: 0 0 $spacing-xl;
 
   &__text {
+    max-width: 800px;
+    margin: 0;
+
     p {
-      color: $color-gray-700;
+      color: $color-gray-900;
       font-size: $font-size-base;
       line-height: 1.8;
       margin-bottom: $spacing-md;
+      font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
     }
   }
 }
@@ -406,7 +1490,7 @@
 
 // Festivals — redesigned
 .td-festivals {
-  background: $color-white;
+  background: transparent;
 
   /* ── Two-column layout: cards left, tips right ── */
   &__body {
@@ -458,9 +1542,10 @@
 
   &__card-desc {
     font-size: $font-size-sm;
-    color: $color-gray-600;
+    color: $color-gray-900;
     line-height: 1.7;
     margin: 0;
+    font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
   }
 
   /* ── Cultural behaviour tips — right column card ── */
@@ -485,6 +1570,7 @@
     font-weight: $font-weight-bold;
     color: $color-primary;
     margin-bottom: $spacing-lg;
+    font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
   }
 
   &__tips-list {
@@ -498,10 +1584,11 @@
 
   &__tip {
     font-size: $font-size-sm;
-    color: $color-gray-700;
+    color: $color-gray-900;
     line-height: 1.6;
     padding-left: $spacing-sm;
     border-left: 2px solid transparent;
+    font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
 
     &:hover {
       border-left-color: $color-primary;
