@@ -146,7 +146,10 @@ export default function AdminDashboard() {
     contentGrowth: 0,
     revenueGrowth: 0,
   });
-  const [summaryRange, setSummaryRange] = useState<{ fromDate: string; toDate: string } | null>(null);
+  const [summaryRange, setSummaryRange] = useState<{
+    fromDate: string;
+    toDate: string;
+  } | null>(null);
   const [summaryData, setSummaryData] = useState<{
     users?: { total: number; newInRange: number };
     tours?: { total: number; active: number };
@@ -163,7 +166,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     // Tránh duplicate requests - chỉ fetch 1 lần
     if (hasFetchedRef.current) return;
-    
+
     let cancelled = false;
     const fetchData = async () => {
       hasFetchedRef.current = true;
@@ -197,7 +200,7 @@ export default function AdminDashboard() {
           hasFetchedRef.current = false;
           return;
         }
-        
+
         setTours(toursData);
         setBookings(bookingsData);
 
@@ -242,7 +245,10 @@ export default function AdminDashboard() {
             totalContent: contentTotalSum || contentTotal || contentData.length,
             totalArtisans: artisansTotal || artisansData.length,
             bookingsToday: s.bookings?.newInRange ?? bookingsTodayCount,
-            monthlyRevenue: (s.payments?.revenueInRange ?? s.payments?.totalRevenue ?? monthlyRevenue) / 1_000_000,
+            monthlyRevenue:
+              (s.payments?.revenueInRange ??
+                s.payments?.totalRevenue ??
+                monthlyRevenue) / 1_000_000,
             toursGrowth: 0,
             bookingsGrowth: 0,
             contentGrowth: 0,
