@@ -308,6 +308,142 @@
     }
   }
 
+  &__card--review {
+    .profile-orders__card-title {
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  &__review-comment {
+    margin: 0.5rem 0 0;
+    font-size: $font-size-sm;
+    color: $color-gray-600;
+    line-height: 1.5;
+  }
+
+  &__review-images {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  &__review-img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: $radius-md;
+  }
+
+  // Tab Đã đánh giá – preview cards
+  &__reviews {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    @include mixins.respond-to(sm) {
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    }
+  }
+
+  &__review-preview {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: $color-white;
+    border: 1px solid $color-gray-200;
+    border-radius: $radius-lg;
+    transition: box-shadow 0.2s;
+
+    &:hover {
+      box-shadow: $shadow-md;
+    }
+  }
+
+  &__review-preview-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__review-preview-title {
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+    margin: 0 0 0.5rem;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &__review-preview-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+    font-size: $font-size-xs;
+    color: $color-gray-500;
+  }
+
+  &__review-preview-stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    color: #f59e0b;
+  }
+
+  &__review-preview-rating {
+    margin-left: 0.25rem;
+    color: $color-gray-600;
+    font-weight: $font-weight-medium;
+  }
+
+  &__review-preview-date {
+    color: $color-gray-400;
+  }
+
+  &__review-preview-comment {
+    margin: 0;
+    font-size: $font-size-sm;
+    color: $color-gray-600;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &__review-preview-thumb {
+    flex-shrink: 0;
+    position: relative;
+    width: 72px;
+    height: 72px;
+    border-radius: $radius-md;
+    overflow: hidden;
+    background: $color-gray-100;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__review-preview-more {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    padding: 0.15rem 0.4rem;
+    background: rgba(0, 0, 0, 0.6);
+    color: $color-white;
+    font-size: 0.65rem;
+    font-weight: $font-weight-semibold;
+    border-radius: $radius-sm 0 0 0;
+  }
+
   // Table – ẩn trên mobile
   &__table-wrap {
     display: none;

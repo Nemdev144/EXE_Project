@@ -12,16 +12,19 @@ import { ChangeProfile } from "./changeProfile";
 import {
   getUserProfile,
   getUserBookings,
-  getUserVouchers,
+  getAllUserVouchers,
   getLearnStats,
+  getLearnCourses,
   getSavedLessons,
+  getMyReviews,
   uploadAvatar,
   updateUserProfile,
   type UserProfile,
   type UserBooking,
-  type UserVoucher,
+  type UserVoucherWithSource,
   type LearnStats,
   type FeaturedCourse,
+  type MyReview,
 } from "../../services/profileApi";
 import { authLogout } from "../../services/authApi";
 import { clearAuthSession } from "../../utils/authSession";
@@ -49,9 +52,11 @@ export default function ProfilePage() {
   const [activeSection, setActiveSection] = useState("overview");
   const [user, setUser] = useState<UserProfile | null>(null);
   const [bookings, setBookings] = useState<UserBooking[]>([]);
-  const [vouchers, setVouchers] = useState<UserVoucher[]>([]);
+  const [vouchers, setVouchers] = useState<UserVoucherWithSource[]>([]);
   const [learnStats, setLearnStats] = useState<LearnStats | null>(null);
+  const [coursesInProgress, setCoursesInProgress] = useState<FeaturedCourse[]>([]);
   const [savedCourses, setSavedCourses] = useState<FeaturedCourse[]>([]);
+  const [myReviews, setMyReviews] = useState<MyReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
@@ -118,13 +123,15 @@ export default function ProfilePage() {
     const fetchAll = async () => {
       setLoading(true);
       try {
-        const [profileData, bookingsData, vouchersData, statsData, savedData] =
+        const [profileData, bookingsData, vouchersData, statsData, coursesData, savedData, reviewsData] =
           await Promise.all([
             getUserProfile(userId).catch(() => null),
             getUserBookings().catch(() => [] as UserBooking[]),
-            getUserVouchers().catch(() => [] as UserVoucher[]),
+            getAllUserVouchers().catch(() => [] as UserVoucherWithSource[]),
             getLearnStats().catch(() => null),
+            getLearnCourses().catch(() => [] as FeaturedCourse[]),
             getSavedLessons().catch(() => [] as FeaturedCourse[]),
+            getMyReviews().catch(() => [] as MyReview[]),
           ]);
 
         if (profileData) {
@@ -172,7 +179,9 @@ export default function ProfilePage() {
         setBookings(bookingsData);
         setVouchers(vouchersData);
         if (statsData) setLearnStats(statsData);
+        setCoursesInProgress(coursesData ?? []);
         setSavedCourses(savedData ?? []);
+        setMyReviews(reviewsData ?? []);
       } catch (err) {
         console.error("Failed to load profile:", err);
       } finally {
@@ -253,12 +262,12 @@ export default function ProfilePage() {
 
   const handleReviewSuccess = async () => {
     try {
-      const storedUser = localStorage.getItem('userInfo');
-      if (storedUser) {
-        const parsed = JSON.parse(storedUser);
-        const bookingsData = await getUserBookings();
-        setBookings(bookingsData);
-      }
+      const [bookingsData, reviewsData] = await Promise.all([
+        getUserBookings(),
+        getMyReviews(),
+      ]);
+      setBookings(bookingsData);
+      setMyReviews(reviewsData ?? []);
     } catch {
       // ignore
     }
@@ -339,7 +348,7 @@ export default function ProfilePage() {
             }}
             className="profile-page__section profile-page__section--card"
           >
-            <ProfileOrders bookings={bookings} onReviewSuccess={handleReviewSuccess} />
+            <ProfileOrders bookings={bookings} myReviews={myReviews} onReviewSuccess={handleReviewSuccess} />
           </div>
 
           <div
@@ -349,7 +358,7 @@ export default function ProfilePage() {
             }}
             className="profile-page__section profile-page__section--card"
           >
-            <ProfileLearn stats={learnStats} savedCourses={savedCourses} />
+            <ProfileLearn stats={learnStats} coursesInProgress={coursesInProgress} savedCourses={savedCourses} />
           </div>
 
           <div

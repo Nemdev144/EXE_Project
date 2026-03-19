@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import axios from 'axios';
 import { ArrowLeft } from 'lucide-react';
@@ -11,10 +11,11 @@ import {
   createBooking,
   createPayment,
   validateVoucher,
+  getVouchersByTourId,
   type PaymentMethod,
   type Voucher,
 } from '../../services/paymentApi';
-import { getUserVouchers, isLearnVoucher, type UserVoucher } from '../../services/profileApi';
+import { getAllUserVouchers, isVoucherUsed, type UserVoucherWithSource } from '../../services/profileApi';
 import type { Tour, Province } from '../../types';
 import type { ContactInfo } from '../tourBooking/ContactForm';
 import type { BookingDetailsData } from '../tourBooking/BookingDetails';
@@ -46,6 +47,15 @@ async function withRetry<T>(
 interface PaymentLocationState {
   contactInfo: ContactInfo;
   bookingDetails: BookingDetailsData;
+}
+
+const PAYMENT_STATE_KEY = (tourId: number) => `paymentFormState_${tourId}`;
+
+interface PaymentFormState {
+  paymentMethod: PaymentMethod;
+  voucherCode: string;
+  appliedVoucher: Voucher | null;
+  agreedToTerms: boolean;
 }
 
 export default function PaymentPage() {
@@ -85,7 +95,7 @@ export default function PaymentPage() {
         scheduleBasePrice: null,
       };
 
-  // Payment form state
+  // Payment form state (khôi phục từ sessionStorage khi quay lại)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
@@ -95,7 +105,8 @@ export default function PaymentPage() {
   const [voucherError, setVoucherError] = useState<string | null>(null);
   const [voucherLoading, setVoucherLoading] = useState(false);
   const [voucherAnimating, setVoucherAnimating] = useState(false);
-  const [userVouchers, setUserVouchers] = useState<UserVoucher[]>([]);
+  const [userVouchers, setUserVouchers] = useState<UserVoucherWithSource[]>([]);
+  const [tourVouchers, setTourVouchers] = useState<Voucher[]>([]);
 
   useEffect(() => {
     if (!id) return;
@@ -104,8 +115,12 @@ export default function PaymentPage() {
 
     const fetchData = async () => {
       try {
-        const tourData = await getTourById(tourId);
+        const [tourData, vouchersForTour] = await Promise.all([
+          getTourById(tourId),
+          getVouchersByTourId(tourId).catch(() => []),
+        ]);
         setTour(tourData);
+        setTourVouchers(vouchersForTour);
 
         if (tourData.provinceId) {
           const provinceData = await getProvinceById(tourData.provinceId);
@@ -121,6 +136,43 @@ export default function PaymentPage() {
     fetchData();
   }, [id]);
 
+  // by-tour: voucher theo tour (tour sắp hết hạn → sinh voucher CTA). System/claimed = áp tour nào cũng được.
+  const tourVoucherCodes = useMemo(() => new Set(tourVouchers.map((v) => (v.code ?? '').toUpperCase())), [tourVouchers]);
+  const eligibleUserVouchers = useMemo(() => {
+    const available = userVouchers.filter((v) => !isVoucherUsed(v) && v.isActive);
+    if (tourVoucherCodes.size > 0) {
+      return available.filter(
+        (v) =>
+          tourVoucherCodes.has((v.code ?? '').toUpperCase()) ||
+          v.source === 'SYSTEM' ||
+          v.source === 'LEARN',
+      );
+    }
+    return available;
+  }, [userVouchers, tourVoucherCodes]);
+
+  // Restore payment form state from sessionStorage when tour loads (chỉ 1 lần khi quay lại)
+  const hasRestoredRef = useRef(false);
+  useEffect(() => {
+    if (!tour || !id || hasRestoredRef.current) return;
+    const tourId = Number(id);
+    try {
+      const stored = sessionStorage.getItem(PAYMENT_STATE_KEY(tourId));
+      if (stored) {
+        hasRestoredRef.current = true;
+        const parsed = JSON.parse(stored) as PaymentFormState;
+        if (parsed.paymentMethod) setPaymentMethod(parsed.paymentMethod);
+        if (parsed.voucherCode != null) setVoucherCode(parsed.voucherCode);
+        if (parsed.agreedToTerms != null) setAgreedToTerms(parsed.agreedToTerms);
+        if (parsed.appliedVoucher) {
+          setAppliedVoucher(parsed.appliedVoucher);
+        }
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, [tour?.id, id]);
+
   // Redirect back if no state
   useEffect(() => {
     if (!loading && !state) {
@@ -128,24 +180,20 @@ export default function PaymentPage() {
     }
   }, [loading, state, id, navigate]);
 
-  // Load user vouchers (khi đã đăng nhập) — hiển thị trong bước thanh toán
+  // Load user vouchers (bao gồm Learn + hệ thống) — hiển thị trong bước thanh toán
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     if (!token) return;
-    getUserVouchers()
+    getAllUserVouchers()
       .then((data) => setUserVouchers(data ?? []))
       .catch(() => setUserVouchers([]));
   }, []);
 
-  // Voucher apply handler
+  // Voucher apply handler — dùng validate API để kiểm tra (bao gồm voucher từ Learn/quiz)
   const handleApplyVoucher = async () => {
     const code = voucherCode.trim().toUpperCase();
     if (!code) {
       setVoucherError('Vui lòng nhập mã voucher.');
-      return;
-    }
-    if (isLearnVoucher(code)) {
-      setVoucherError('Voucher từ Learn không áp dụng giảm giá khi đặt tour.');
       return;
     }
     setVoucherLoading(true);
@@ -153,29 +201,20 @@ export default function PaymentPage() {
     setAppliedVoucher(null);
     setVoucherAnimating(false);
 
+    const unitPrice = bookingDetails.schedulePrice ?? tour!.price;
+    const totalPrice = bookingDetails.participants * unitPrice;
+
     try {
-      const voucher = await validateVoucher(code);
-
-      // Check min purchase
-      const unitPrice = bookingDetails.schedulePrice ?? tour!.price;
-      const totalPrice = bookingDetails.participants * unitPrice;
-      if (totalPrice < voucher.minPurchase) {
-        setVoucherError(
-          `Đơn hàng tối thiểu ${voucher.minPurchase.toLocaleString('vi-VN')}đ để áp dụng voucher này.`,
-        );
-        return;
-      }
-
+      const voucher = await validateVoucher(code, totalPrice);
       setAppliedVoucher(voucher);
-      // Trigger animation
       setVoucherAnimating(true);
       setTimeout(() => setVoucherAnimating(false), 1200);
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         const msg = err.response?.data?.message;
-        setVoucherError(msg || 'Mã voucher không hợp lệ hoặc đã hết hạn.');
+        setVoucherError(msg || 'Voucher không hợp lệ hoặc không áp dụng cho tour này.');
       } else {
-        setVoucherError('Không thể kiểm tra voucher. Vui lòng thử lại.');
+        setVoucherError('Voucher không hợp lệ hoặc không áp dụng cho tour này.');
       }
     } finally {
       setVoucherLoading(false);
@@ -189,7 +228,7 @@ export default function PaymentPage() {
     setVoucherAnimating(false);
   };
 
-  const handleSelectUserVoucher = (uv: UserVoucher) => {
+  const handleSelectUserVoucher = (uv: UserVoucherWithSource) => {
     if (!tour) return;
     const unitPrice = bookingDetails.schedulePrice ?? tour.price;
     const totalPrice = bookingDetails.participants * unitPrice;
@@ -323,7 +362,8 @@ export default function PaymentPage() {
         if (redirectUrl && redirectUrl.trim().length > 0) {
           console.log('[Payment] ✓ URL FOUND - Redirecting to:', redirectUrl);
           isRedirecting = true;
-          
+          sessionStorage.removeItem(PAYMENT_STATE_KEY(tour.id));
+
           // Store booking info in sessionStorage for quick access if needed
           const bookingInfo = {
             bookingId: booking.id,
@@ -355,6 +395,7 @@ export default function PaymentPage() {
 
       /* ---- 4. CASH → navigate to e-ticket page ---- */
       console.log('[Payment] CASH payment - navigating to e-ticket with bookingCode:', booking.bookingCode);
+      sessionStorage.removeItem(PAYMENT_STATE_KEY(tour.id));
       navigate(
         `/tours/${tour.id}/booking/e-ticket?bookingCode=${encodeURIComponent(booking.bookingCode)}`,
         {
@@ -399,6 +440,15 @@ export default function PaymentPage() {
   };
 
   const handleBack = () => {
+    if (id && tour) {
+      const state: PaymentFormState = {
+        paymentMethod,
+        voucherCode,
+        appliedVoucher,
+        agreedToTerms,
+      };
+      sessionStorage.setItem(PAYMENT_STATE_KEY(Number(id)), JSON.stringify(state));
+    }
     navigate(`/tours/${id}/booking/confirm`, {
       state: { contactInfo, bookingDetails },
     });
@@ -460,21 +510,24 @@ export default function PaymentPage() {
             {/* Voucher */}
             <div className="payment-page__voucher">
               <label className="payment-page__voucher-label">Mã giảm giá (Voucher)</label>
-              {/* Voucher từ profile — hiển thị khi đặt tour */}
-              {userVouchers.length > 0 && (
+              <p className="payment-page__voucher-note">
+                Voucher từ Quiz/Lesson hoặc hệ thống áp dụng mọi tour. Voucher theo tour (tour sắp hết hạn) chỉ áp
+                dụng tour đó. Chọn hoặc nhập mã và bấm Áp dụng để kiểm tra.
+              </p>
+              {eligibleUserVouchers.length > 0 && (
                 <div className="payment-page__voucher-mine">
-                  <p className="payment-page__voucher-mine-title">Voucher của bạn</p>
+                  <p className="payment-page__voucher-mine-title">
+                    {tourVouchers.length > 0 ? 'Voucher của bạn (áp dụng cho tour này)' : 'Voucher của bạn'}
+                  </p>
                   <div className="payment-page__voucher-mine-list">
-                    {userVouchers
-                      .filter((v) => v.isActive)
-                      .map((v) => {
+                    {eligibleUserVouchers.map((v) => {
                         const unitPrice = bookingDetails.schedulePrice ?? tour!.price;
                         const totalPrice = bookingDetails.participants * unitPrice;
                         const canUse = totalPrice >= v.minPurchase;
                         const isSelected = appliedVoucher?.code === v.code;
                         return (
                           <button
-                            key={v.id}
+                            key={`${v.code}-${v.source ?? 'default'}`}
                             type="button"
                             className={`payment-page__voucher-mine-item ${isSelected ? 'payment-page__voucher-mine-item--selected' : ''} ${!canUse ? 'payment-page__voucher-mine-item--disabled' : ''}`}
                             onClick={() => canUse && handleSelectUserVoucher(v)}
@@ -513,7 +566,7 @@ export default function PaymentPage() {
                 </div>
               ) : (
                 <>
-                  {userVouchers.length > 0 && (
+                  {eligibleUserVouchers.length > 0 && (
                     <p className="payment-page__voucher-or">Hoặc nhập mã khác</p>
                   )}
                   <div className="payment-page__voucher-input-row">

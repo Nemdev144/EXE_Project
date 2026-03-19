@@ -74,6 +74,22 @@ export interface UserVoucher {
   validUntil: string;
   isActive: boolean;
   createdAt: string;
+  /** Đã sử dụng — nếu có thì voucher không còn dùng được */
+  usedAt?: string | null;
+}
+
+export type VoucherSource = 'LEARN' | 'SYSTEM';
+
+export interface UserVoucherWithSource extends UserVoucher {
+  source: VoucherSource;
+}
+
+/** Voucher đã sử dụng — không hiển thị trong thanh toán */
+export function isVoucherUsed(v: { usedAt?: string | null; currentUsage?: number; maxUsage?: number }): boolean {
+  if (v.usedAt) return true;
+  const cur = v.currentUsage ?? 0;
+  const max = v.maxUsage ?? 1;
+  return cur >= max;
 }
 
 export interface LearnStats {
@@ -191,6 +207,41 @@ export const getBookingById = async (id: number): Promise<UserBooking> => {
 
 // ========== Reviews ==========
 
+export interface MyReview {
+  id: number;
+  bookingId: number;
+  userId: number;
+  userName?: string;
+  userAvatar?: string;
+  tourId: number;
+  tourTitle: string;
+  rating: number;
+  comment: string;
+  images?: string[];
+  status?: string;
+  createdAt: string;
+}
+
+/** Lấy danh sách review của user (GET /api/reviews/my-reviews) */
+export const getMyReviews = async (): Promise<MyReview[]> => {
+  const res = await api.get<ApiResponse<MyReview[]>>("/api/reviews/my-reviews");
+  const raw = res.data.data ?? [];
+  return raw.map((r: Record<string, unknown>) => ({
+    id: Number(r.id ?? 0),
+    bookingId: Number(r.bookingId ?? 0),
+    userId: Number(r.userId ?? 0),
+    userName: r.userName as string | undefined,
+    userAvatar: r.userAvatar as string | undefined,
+    tourId: Number(r.tourId ?? 0),
+    tourTitle: (r.tourTitle as string) ?? "",
+    rating: Number(r.rating ?? 0),
+    comment: (r.comment as string) ?? "",
+    images: r.images as string[] | undefined,
+    status: r.status as string | undefined,
+    createdAt: (r.createdAt as string) ?? "",
+  }));
+};
+
 export interface CreateReviewRequest {
   bookingId: number;
   rating: number;
@@ -244,8 +295,51 @@ export const getUserVouchers = async (): Promise<UserVoucher[]> => {
     validUntil: (v.validUntil as string) ?? "",
     isActive: (v.isActive as boolean) ?? true,
     createdAt: (v as any).claimedAt ?? (v.createdAt as string) ?? "",
+    usedAt: (v.usedAt as string | null | undefined) ?? null,
   }));
   return filterOutLearnVouchers(mapped);
+};
+
+/** Gộp voucher từ my-claimed (quiz) và my (hệ thống). Hiển thị tất cả với source. */
+export const getAllUserVouchers = async (): Promise<UserVoucherWithSource[]> => {
+  const [claimed, system] = await Promise.all([
+    import("./learnApi").then((m) => m.getMyClaimedVouchers()).catch(() => []),
+    getUserVouchers().catch(() => [] as UserVoucher[]),
+  ]);
+
+  const seen = new Set<string>();
+  const result: UserVoucherWithSource[] = [];
+
+  for (const v of claimed) {
+    const code = (v.code ?? "").toUpperCase();
+    if (seen.has(code)) continue;
+    seen.add(code);
+    const usedAt = v.usedAt ?? null;
+    result.push({
+      id: v.id,
+      code: v.code,
+      discountType: v.discountType,
+      discountValue: v.discountValue,
+      minPurchase: v.minPurchase,
+      maxUsage: 1,
+      currentUsage: usedAt ? 1 : 0,
+      validFrom: v.claimedAt ?? "",
+      validUntil: v.validUntil,
+      isActive: !usedAt,
+      createdAt: v.claimedAt ?? "",
+      usedAt: usedAt ?? null,
+      source: "LEARN",
+    });
+  }
+
+  for (const v of system) {
+    const code = (v.code ?? "").toUpperCase();
+    if (seen.has(code)) continue;
+    seen.add(code);
+    result.push({ ...v, source: "SYSTEM" as const });
+  }
+
+  return result;
 };
 
 // ========== Learn Stats ==========
@@ -257,17 +351,53 @@ export const getLearnStats = async (): Promise<LearnStats> => {
   return res.data.data;
 };
 
+/** Khóa đang học - modules user có progress (GET /api/learn/users/me/courses) */
 export const getLearnCourses = async (): Promise<FeaturedCourse[]> => {
-  const res = await api.get<ApiResponse<FeaturedCourse[]>>(
+  const res = await api.get<ApiResponse<unknown[]>>(
     "/api/learn/users/me/courses",
   );
-  return res.data.data;
+  const raw = res.data.data ?? [];
+  return raw.map((m: Record<string, unknown>) => ({
+    id: Number(m.id ?? 0),
+    title: (m.title as string) ?? "",
+    slug: (m.slug as string) ?? "",
+    thumbnailUrl: (m.thumbnailUrl as string) ?? "",
+    categoryId: Number(m.categoryId ?? 0),
+    categoryName: (m.categoryName as string) ?? "",
+    quickNotesJson: (m.quickNotesJson as string) ?? "",
+    culturalEtiquetteTitle: (m.culturalEtiquetteTitle as string) ?? "",
+    culturalEtiquetteText: (m.culturalEtiquetteText as string) ?? "",
+    lessonsCount: Number(m.lessonsCount ?? 0),
+    durationMinutes: Number(m.durationMinutes ?? 0),
+    lessons: (m.lessons as FeaturedCourse["lessons"]) ?? [],
+    quizPrompt: m.quizPrompt as FeaturedCourse["quizPrompt"],
+    suggestedTours: m.suggestedTours as FeaturedCourse["suggestedTours"],
+  }));
 };
 
-/** Bài đã lưu - modules chứa lesson user đã lưu (save button) */
+/** Bài đã lưu - lessons user đã lưu (save button). Map sang format tương thích FeaturedCourse. */
 export const getSavedLessons = async (): Promise<FeaturedCourse[]> => {
-  const res = await api.get<ApiResponse<FeaturedCourse[]>>(
+  const res = await api.get<ApiResponse<unknown[]>>(
     "/api/learn/users/me/saved-lessons",
   );
-  return res.data.data;
+  const raw = res.data.data ?? [];
+  return raw.map((l: Record<string, unknown>) => {
+    const moduleId = l.moduleId != null ? Number(l.moduleId) : l.id;
+    return {
+      id: moduleId,
+      title: (l.title as string) ?? "",
+      slug: (l.slug as string) ?? "",
+      thumbnailUrl: (l.thumbnailUrl as string) ?? "",
+      categoryId: 0,
+      categoryName: "",
+      quickNotesJson: "",
+      culturalEtiquetteTitle: "",
+      culturalEtiquetteText: "",
+      lessonsCount: 1,
+      durationMinutes: Number(l.duration ?? 0),
+      lessons: [],
+      quizPrompt: undefined,
+      suggestedTours: undefined,
+    } as FeaturedCourse;
+  });
 };

@@ -1,10 +1,10 @@
 import { MapPin } from 'lucide-react';
-import type { Tour, CultureItem, Province } from '../../../types';
+import type { Tour, CultureItem } from '../../../types';
 import { parseImages } from './utils';
 
 interface HighlightsSectionProps {
   tour: Tour;
-  province: Province | null;
+  province: { name?: string } | null;
   cultureItems: CultureItem[];
   highlights: CultureItem[];
   sectionRef: (el: HTMLElement | null) => void;
