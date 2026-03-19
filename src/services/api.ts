@@ -24,7 +24,7 @@ import type {
 // API Base Configuration
 // Must use ngrok URL directly - backend requires auth and redirects to OAuth2/Google.
 // Vite proxy cannot bypass this CORS requirement.
-export const API_BASE_URL = "https://legally-actual-mollusk.ngrok-free.app/";
+export const API_BASE_URL = "https://exe-1-k8ma.onrender.com/";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -80,7 +80,9 @@ export function getApiErrorMessage(error: unknown): string {
     if (error.response?.status === 500) {
       const data = error.response?.data as { message?: string } | undefined;
       const msg = typeof data?.message === "string" ? data.message.trim() : "";
-      return msg || "Lỗi máy chủ. Vui lòng thử lại sau hoặc liên hệ Admin backend.";
+      return (
+        msg || "Lỗi máy chủ. Vui lòng thử lại sau hoặc liên hệ Admin backend."
+      );
     }
     if (error.response?.status)
       return `Lỗi ${error.response.status}. Vui lòng thử lại.`;

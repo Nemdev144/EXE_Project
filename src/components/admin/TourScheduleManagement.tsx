@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Card,
   Table,
@@ -38,8 +38,12 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 import minMax from "dayjs/plugin/minMax";
 import utc from "dayjs/plugin/utc";
 import isLeapYear from "dayjs/plugin/isLeapYear";
-import { Calendar, dayjsLocalizer } from "react-big-calendar";
-import "react-big-calendar/lib/css/react-big-calendar.css";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import listPlugin from "@fullcalendar/list";
+import viLocale from "@fullcalendar/core/locales/vi";
 import "./TourScheduleCalendar.css";
 import {
   getAdminTours,
@@ -83,14 +87,13 @@ function formatDateTimeVN(isoString: string | null | undefined): string {
   }
 }
 
-const localizer = dayjsLocalizer(dayjs);
-
 const { Title, Text } = Typography;
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   SCHEDULED: { label: "Đã lên lịch", color: "blue" },
   CANCELLED: { label: "Đã hủy", color: "red" },
   COMPLETED: { label: "Hoàn thành", color: "green" },
+  FULL: { label: "Đã đầy", color: "orange" },
 };
 
 function formatVnd(value: number | string | null | undefined): string {
@@ -144,13 +147,15 @@ function parseStartTimeToApi(timeStr: string): {
   return { hour, minute, second: 0, nano: 0 };
 }
 
-/** Chuyển AdminTourSchedule thành event cho react-big-calendar */
+/** Chuyển AdminTourSchedule thành event cho FullCalendar */
 function scheduleToEvent(s: AdminTourSchedule): {
-  id: number;
+  id: string;
   title: string;
   start: Date;
   end: Date;
-  resource: AdminTourSchedule;
+  backgroundColor?: string;
+  borderColor?: string;
+  extendedProps: { resource: AdminTourSchedule };
 } {
   let h = 8, m = 0;
   
@@ -170,24 +175,26 @@ function scheduleToEvent(s: AdminTourSchedule): {
   const end = dayjs(start).add(2, "hour").toDate(); // Mặc định 2 giờ
   const price = getSchedulePrice(s);
   const title = `${s.tour?.title ?? "Tour"} • ${formatStartTime(s.startTime)} • ${formatVnd(price)} • ${s.bookedSlots ?? 0}/${s.maxSlots ?? 0} slot`;
-  return { id: s.id, title, start, end, resource: s };
+  const statusColor = STATUS_CONFIG[s.status]?.color ?? "blue";
+  const colors: Record<string, { bg: string; text: string }> = {
+    blue: { bg: "#1677ff", text: "#fff" },
+    green: { bg: "#389e0d", text: "#fff" },
+    red: { bg: "#cf1322", text: "#fff" },
+    orange: { bg: "#d46b08", text: "#fff" },
+    default: { bg: "#434343", text: "#fff" },
+  };
+  const c = colors[statusColor] ?? colors.blue;
+  return {
+    id: String(s.id),
+    title,
+    start,
+    end,
+    backgroundColor: c.bg,
+    borderColor: c.bg,
+    textColor: c.text,
+    extendedProps: { resource: s },
+  };
 }
-
-const messages = {
-  date: "Ngày",
-  time: "Giờ",
-  event: "Sự kiện",
-  allDay: "Cả ngày",
-  week: "Tuần",
-  work_week: "Tuần làm việc",
-  day: "Ngày",
-  month: "Tháng",
-  previous: "Trước",
-  next: "Sau",
-  today: "Hôm nay",
-  agenda: "Lịch trình",
-  noEventsInRange: "Không có lịch trình trong khoảng này.",
-};
 
 export default function TourScheduleManagement() {
   const { message: msg } = App.useApp();
@@ -271,7 +278,14 @@ export default function TourScheduleManagement() {
   };
 
   const openForm = (record?: AdminTourSchedule, slot?: { start: Date; end: Date }) => {
-    // Đóng detail modal nếu đang mở
+    if (!record) {
+      const tourId = selectedTourId ?? undefined;
+      const tour = tours.find((t) => t.id === tourId);
+      if (tour && !tour.artisanId) {
+        msg.warning("Tour chưa có nghệ nhân. Vui lòng gắn nghệ nhân cho tour trước khi tạo lịch.");
+        return;
+      }
+    }
     if (detailModalOpen) {
       setDetailModalOpen(false);
     }
@@ -341,7 +355,6 @@ export default function TourScheduleManagement() {
       const startTime = parseStartTimeToApi(values.startTime || "08:00");
       const maxSlots = Number(values.maxSlots) || 1;
       
-      // Lấy currentPrice từ form hoặc từ tour nếu không có
       let selectedTour = tours.find((t) => t.id === tourId);
       
       // Nếu không tìm thấy trong danh sách đã load, gọi API để lấy thông tin tour
@@ -353,6 +366,7 @@ export default function TourScheduleManagement() {
             title: tourDetail.title,
             price: tourDetail.price,
             maxParticipants: tourDetail.maxParticipants,
+            artisanId: tourDetail.artisanId,
           } as AdminTour;
         } catch (err) {
           console.error("Error fetching tour detail:", err);
@@ -360,6 +374,12 @@ export default function TourScheduleManagement() {
           setFormSaving(false);
           return;
         }
+      }
+      
+      if (!selectedTour?.artisanId) {
+        msg.warning("Tour chưa có nghệ nhân. Vui lòng gắn nghệ nhân cho tour trước khi tạo lịch.");
+        setFormSaving(false);
+        return;
       }
       
       let currentPrice: number;
@@ -435,19 +455,17 @@ export default function TourScheduleManagement() {
     }
   };
 
-  const handleSelectEvent = (event: { resource: AdminTourSchedule }) => {
-    // Click vào event → chỉ hiện detail, không mở form edit
-    openDetail(event.resource);
+  const calendarRef = useRef<FullCalendar>(null);
+
+  const handleEventClick = (info: { event: { extendedProps: { resource: AdminTourSchedule } }; jsEvent: Event }) => {
+    info.jsEvent.preventDefault();
+    openDetail(info.event.extendedProps.resource);
   };
 
-  const handleDoubleClickEvent = (event: { resource: AdminTourSchedule }) => {
-    // Double-click vào event → cũng chỉ hiện detail
-    openDetail(event.resource);
-  };
-
-  const handleSelectSlot = (slot: { start: Date; end: Date }) => {
-    // Click vào slot trống → mở form tạo mới
-    openForm(undefined, slot);
+  const handleDateClick = (info: { dateStr: string; date: Date }) => {
+    const start = info.date;
+    const end = dayjs(start).add(1, "day").toDate();
+    openForm(undefined, { start, end });
   };
 
   const columns: ColumnsType<AdminTourSchedule> = [
@@ -581,7 +599,7 @@ export default function TourScheduleManagement() {
           border: "1px solid #e5e7eb",
           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
         }}
-        bodyStyle={{ padding: 24 }}
+        styles={{ body: { padding: 24 } }}
       >
         <div
           style={{
@@ -650,36 +668,41 @@ export default function TourScheduleManagement() {
             <Spin size="large" />
           </div>
         ) : viewMode === "calendar" ? (
-          <div style={{ height: 600 }}>
-            <Calendar
-              localizer={localizer}
-              events={calendarEvents}
-              startAccessor="start"
-              endAccessor="end"
-              titleAccessor="title"
-              resourceAccessor="resource"
-              onSelectEvent={handleSelectEvent}
-              onDoubleClickEvent={handleDoubleClickEvent}
-              onSelectSlot={handleSelectSlot}
-              onNavigate={(date) => setCalendarDate(date)}
-              date={calendarDate}
-              selectable
-              messages={messages}
-              views={["month", "week", "day", "agenda"]}
-              defaultView="month"
-              popup
-              style={{ height: "100%" }}
-              eventPropGetter={(event) => {
-                const status = event.resource?.status;
-                const color = STATUS_CONFIG[status]?.color ?? "blue";
-                const colors: Record<string, string> = {
-                  blue: "#1890ff",
-                  green: "#52c41a",
-                  red: "#ff4d4f",
-                  default: "#8c8c8c",
-                };
-                return { style: { backgroundColor: colors[color] ?? colors.blue } };
+          <div className="tour-schedule-fullcalendar">
+            <FullCalendar
+              ref={calendarRef}
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
+              initialView="dayGridMonth"
+              initialDate={calendarDate}
+              locale={viLocale}
+              headerToolbar={{
+                start: "today prev next",
+                center: "title",
+                end: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
               }}
+              buttonText={{
+                today: "Hôm nay",
+                prev: "Trước",
+                next: "Sau",
+                month: "Tháng",
+                week: "Tuần",
+                day: "Ngày",
+                list: "Lịch trình",
+              }}
+              events={calendarEvents}
+              eventDisplay="block"
+              eventClick={handleEventClick}
+              dateClick={handleDateClick}
+              datesSet={(arg) => setCalendarDate(arg.view.currentStart)}
+              height="auto"
+              contentHeight={600}
+              slotMinTime="06:00:00"
+              slotMaxTime="22:00:00"
+              allDaySlot={false}
+              nowIndicator
+              dayMaxEvents={3}
+              moreLinkClick="popover"
+              noEventsContent="Không có lịch trình trong khoảng này"
             />
           </div>
         ) : (
@@ -826,6 +849,7 @@ export default function TourScheduleManagement() {
             <Select
               options={[
                 { value: "SCHEDULED", label: "Đã lên lịch" },
+                { value: "FULL", label: "Đã đầy" },
                 { value: "CANCELLED", label: "Đã hủy" },
                 { value: "COMPLETED", label: "Hoàn thành" },
               ]}
