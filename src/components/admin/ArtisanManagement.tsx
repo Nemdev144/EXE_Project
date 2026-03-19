@@ -528,21 +528,21 @@ export default function ArtisanManagement() {
         }
       }
 
-      // Sau đó cập nhật thông tin nghệ nhân - PUT /api/artisans/{id}
-      try {
-        await updateArtisan(artisanId, payload);
-      } catch (err) {
-        console.error("[ArtisanManagement] Error updating artisan:", err);
-        if (roleChanged || statusChanged) {
-          message.warning(
-            "Đã cập nhật vai trò/trạng thái nhưng cập nhật thông tin nghệ nhân thất bại.",
-          );
-        } else {
+      // Khi đã chuyển role sang CUSTOMER/STAFF thì không cần cập nhật thông tin nghệ nhân
+      if (!roleChanged) {
+        try {
+          await updateArtisan(artisanId, payload);
+        } catch (err) {
+          console.error("[ArtisanManagement] Error updating artisan:", err);
           throw err;
         }
       }
 
-      message.success("Cập nhật nghệ nhân thành công");
+      message.success(
+        roleChanged
+          ? "Đã cập nhật vai trò/trạng thái thành công"
+          : "Cập nhật nghệ nhân thành công",
+      );
       setEditModalOpen(false);
       setSelectedArtisan(null);
       fetchArtisans();
