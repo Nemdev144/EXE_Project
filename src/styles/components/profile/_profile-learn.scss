@@ -183,9 +183,20 @@
     color: $color-gray-500;
   }
 
-  // Bài đã lưu - Carousel
+  // Divider giữa Khóa đang học và Bài đã lưu
+  &__divider {
+    height: 1px;
+    background: $color-gray-200;
+    margin: 2rem 0;
+  }
+
+  // Khóa đang học / Bài đã lưu - Carousel
   &__saved {
     margin-top: 2rem;
+
+    &:first-of-type {
+      margin-top: 0;
+    }
   }
 
   &__saved-title {

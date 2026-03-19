@@ -201,12 +201,37 @@ export interface Voucher {
 }
 
 /**
- * GET /api/vouchers/public/validate/{code}
- * Validate 1 mã voucher cụ thể — trả về thông tin voucher nếu hợp lệ.
+ * GET /api/vouchers/public/by-tour/{tourId}
+ * Lấy danh sách voucher áp dụng cho tour.
  */
-export const validateVoucher = async (code: string): Promise<Voucher> => {
+export const getVouchersByTourId = async (tourId: number): Promise<Voucher[]> => {
+  const response = await api.get<ApiResponse<Voucher[]>>(
+    `/api/vouchers/public/by-tour/${tourId}`,
+  );
+  const raw = response.data.data ?? [];
+  return raw.map((v: Record<string, unknown>) => ({
+    id: Number(v.id ?? 0),
+    code: (v.code as string) ?? "",
+    discountType: (v.discountType as string) ?? "PERCENTAGE",
+    discountValue: Number(v.discountValue ?? 0),
+    minPurchase: Number(v.minPurchase ?? 0),
+    maxUsage: Number(v.maxUsage ?? 1),
+    currentUsage: Number(v.currentUsage ?? 0),
+    validFrom: (v.validFrom as string) ?? "",
+    validUntil: (v.validUntil as string) ?? "",
+    isActive: (v.isActive as boolean) ?? true,
+    createdAt: (v.createdAt as string) ?? "",
+  }));
+};
+
+/**
+ * GET /api/vouchers/public/validate/{code}
+ * Validate voucher — trả về thông tin nếu hợp lệ. Có thể truyền purchaseAmount để kiểm tra minPurchase.
+ */
+export const validateVoucher = async (code: string, purchaseAmount?: number): Promise<Voucher> => {
+  const params = purchaseAmount != null ? `?purchaseAmount=${purchaseAmount}` : '';
   const response = await api.get<ApiResponse<Voucher>>(
-    `/api/vouchers/public/validate/${encodeURIComponent(code)}`,
+    `/api/vouchers/public/validate/${encodeURIComponent(code)}${params}`,
   );
   return response.data.data;
 };

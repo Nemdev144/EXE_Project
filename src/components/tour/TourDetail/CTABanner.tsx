@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import type { Tour, Province } from '../../../types';
+import type { Tour } from '../../../types';
 
 interface CTABannerProps {
   tour: Tour;
-  province: Province | null;
+  province: { id?: number; name?: string } | null;
 }
 
 export default function CTABanner({ tour, province }: CTABannerProps) {

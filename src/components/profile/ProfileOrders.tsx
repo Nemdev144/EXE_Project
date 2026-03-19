@@ -3,18 +3,19 @@ import {
   Search, Eye, Download, X, Calendar, Clock, MapPin, Users, Mail, Phone,
   User as UserIcon, CreditCard, Tag, ChevronLeft, ChevronRight, Star, Package, Sparkles, CheckCircle2,
 } from 'lucide-react';
-import type { UserBooking } from '../../services/profileApi';
+import type { UserBooking, MyReview } from '../../services/profileApi';
 import { ReviewModal } from '../bookingReview';
 import '../../styles/components/profile/_profile-orders.scss';
 
 interface ProfileOrdersProps {
   bookings: UserBooking[];
+  myReviews?: MyReview[];
   onReviewSuccess?: () => void;
 }
 
 const ITEMS_PER_PAGE = 10;
 
-type TabKey = 'all' | 'upcoming' | 'completed';
+type TabKey = 'all' | 'upcoming' | 'completed' | 'reviewed';
 
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
   PENDING: { label: 'Chờ xác nhận', cls: 'pending' },
@@ -93,9 +94,13 @@ function isEligibleForFeedback(booking: UserBooking): boolean {
   return isCompleted(booking);
 }
 
-/** Có thể đánh giá: đủ điều kiện VÀ chưa đánh giá (isReview !== true) */
-function canShowReview(booking: UserBooking): boolean {
-  return isEligibleForFeedback(booking) && !(booking as { isReview?: boolean }).isReview;
+/** Có thể đánh giá: đủ điều kiện VÀ chưa đánh giá (isReview !== true) VÀ tour chưa có trong myReviews */
+function canShowReview(booking: UserBooking, reviewedTourIds: Set<number>): boolean {
+  return (
+    isEligibleForFeedback(booking) &&
+    !(booking as { isReview?: boolean }).isReview &&
+    !reviewedTourIds.has(booking.tourId)
+  );
 }
 
 /** Tải ticket dạng HTML, mở cửa sổ in (user có thể Save as PDF) */
@@ -143,9 +148,9 @@ function downloadTicket(booking: UserBooking) {
 // ---------------------------------------------------------------------------
 // Ticket Modal
 // ---------------------------------------------------------------------------
-function TicketModal({ booking, onClose, onFeedback, onDownloadTicket }: { booking: UserBooking; onClose: () => void; onFeedback?: (id: number) => void; onDownloadTicket?: () => void }) {
+function TicketModal({ booking, onClose, onFeedback, onDownloadTicket, reviewedTourIds }: { booking: UserBooking; onClose: () => void; onFeedback?: (id: number) => void; onDownloadTicket?: () => void; reviewedTourIds: Set<number> }) {
   const statusInfo = STATUS_MAP[booking.status] ?? { label: booking.status, cls: 'default' };
-  const canFeedback = canShowReview(booking);
+  const canFeedback = canShowReview(booking, reviewedTourIds);
 
   return (
     <div className="ticket-modal-overlay" onClick={onClose}>
@@ -272,7 +277,7 @@ function TicketModal({ booking, onClose, onFeedback, onDownloadTicket }: { booki
             >
               <Download size={18} /> Tải ticket
             </button>
-            {canShowReview(booking) && onFeedback && (
+            {canFeedback && onFeedback && (
               <button
                 type="button"
                 className="ticket-modal__feedback-btn"
@@ -291,13 +296,15 @@ function TicketModal({ booking, onClose, onFeedback, onDownloadTicket }: { booki
 // ---------------------------------------------------------------------------
 // ProfileOrders – Tabs + Table
 // ---------------------------------------------------------------------------
-const TABS: { key: TabKey; label: string; icon: React.ReactNode; filter: (b: UserBooking) => boolean }[] = [
+const TABS: { key: TabKey; label: string; icon: React.ReactNode; filter?: (b: UserBooking) => boolean }[] = [
   { key: 'all', label: 'Tất cả', icon: <Package size={18} />, filter: (b) => b.status !== 'CANCELLED' },
   { key: 'upcoming', label: 'Sắp đi (3 ngày)', icon: <Sparkles size={18} />, filter: isUpcomingWithin3Days },
   { key: 'completed', label: 'Đã hoàn thành', icon: <CheckCircle2 size={18} />, filter: isCompleted },
+  { key: 'reviewed', label: 'Đã đánh giá', icon: <Star size={18} /> },
 ];
 
-export default function ProfileOrders({ bookings, onReviewSuccess }: ProfileOrdersProps) {
+export default function ProfileOrders({ bookings, myReviews = [], onReviewSuccess }: ProfileOrdersProps) {
+  const reviewedTourIds = useMemo(() => new Set(myReviews.map((r) => r.tourId)), [myReviews]);
   const [activeTab, setActiveTab] = useState<TabKey>('all');
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -322,9 +329,27 @@ export default function ProfileOrders({ bookings, onReviewSuccess }: ProfileOrde
     );
   }, [bookings, activeTab, search]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const filteredReviews = useMemo(() => {
+    if (activeTab !== 'reviewed') return [];
+    let list = [...myReviews];
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        (r) =>
+          r.tourTitle.toLowerCase().includes(q) ||
+          (r.comment ?? '').toLowerCase().includes(q),
+      );
+    }
+    return list.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+  }, [activeTab, myReviews, search]);
+
+  const isReviewedTab = activeTab === 'reviewed';
+  const displayList = isReviewedTab ? filteredReviews : filtered;
+  const totalPages = Math.max(1, Math.ceil(displayList.length / ITEMS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
-  const paginatedItems = filtered.slice(
+  const paginatedItems = displayList.slice(
     (safePage - 1) * ITEMS_PER_PAGE,
     safePage * ITEMS_PER_PAGE,
   );
@@ -346,7 +371,7 @@ export default function ProfileOrders({ bookings, onReviewSuccess }: ProfileOrde
     return pages;
   };
 
-  const reviewableCount = useMemo(() => bookings.filter(canShowReview).length, [bookings]);
+  const reviewableCount = useMemo(() => bookings.filter((b) => canShowReview(b, reviewedTourIds)).length, [bookings, reviewedTourIds]);
 
   return (
     <div className="profile-orders">
@@ -359,7 +384,9 @@ export default function ProfileOrders({ bookings, onReviewSuccess }: ProfileOrde
             ? bookings.filter((b) => b.status !== 'CANCELLED').length
             : tab.key === 'upcoming'
               ? bookings.filter(isUpcomingWithin3Days).length
-              : bookings.filter(isCompleted).length;
+              : tab.key === 'completed'
+                ? bookings.filter(isCompleted).length
+                : myReviews.length;
           return (
             <button
               key={tab.key}
@@ -396,17 +423,88 @@ export default function ProfileOrders({ bookings, onReviewSuccess }: ProfileOrde
       </div>
 
       <div className="profile-orders__result-info">
-        Hiển thị {paginatedItems.length} / {filtered.length} đơn hàng
+        {isReviewedTab
+          ? `Hiển thị ${paginatedItems.length} / ${filteredReviews.length} đánh giá`
+          : `Hiển thị ${paginatedItems.length} / ${filtered.length} đơn hàng`}
       </div>
 
-      {filtered.length === 0 ? (
+      {displayList.length === 0 ? (
         <div className="profile-orders__empty">
           <p>
             {activeTab === 'all' && 'Chưa có đơn hàng nào.'}
             {activeTab === 'upcoming' && 'Không có tour nào khởi hành trong 3 ngày tới.'}
             {activeTab === 'completed' && 'Chưa có tour nào đã hoàn thành.'}
+            {activeTab === 'reviewed' && 'Chưa có đánh giá nào.'}
           </p>
         </div>
+      ) : isReviewedTab ? (
+        /* Tab Đã đánh giá - hiển thị preview review */
+        <>
+          <div className="profile-orders__reviews">
+            {(paginatedItems as MyReview[]).map((r) => (
+              <div key={r.id} className="profile-orders__review-preview">
+                <div className="profile-orders__review-preview-main">
+                  <h4 className="profile-orders__review-preview-title">{r.tourTitle}</h4>
+                  <div className="profile-orders__review-preview-meta">
+                    <span className="profile-orders__review-preview-stars">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <Star key={i} size={14} fill={i <= r.rating ? 'currentColor' : 'none'} />
+                      ))}
+                      <span className="profile-orders__review-preview-rating">{r.rating}/5</span>
+                    </span>
+                    <span className="profile-orders__review-preview-date">{formatDate(r.createdAt)}</span>
+                  </div>
+                  {r.comment && (
+                    <p className="profile-orders__review-preview-comment">
+                      {r.comment.length > 100 ? `${r.comment.slice(0, 100)}…` : r.comment}
+                    </p>
+                  )}
+                </div>
+                {r.images && r.images.length > 0 && (
+                  <div className="profile-orders__review-preview-thumb">
+                    <img src={r.images[0]} alt="" />
+                    {r.images.length > 1 && (
+                      <span className="profile-orders__review-preview-more">+{r.images.length - 1}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <div className="profile-orders__pagination">
+              <button
+                className="profile-orders__page-btn profile-orders__page-btn--nav"
+                disabled={safePage <= 1}
+                onClick={() => handlePageChange(safePage - 1)}
+                aria-label="Trang trước"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              {getPageNumbers().map((p, i) =>
+                p === '...' ? (
+                  <span key={`ellipsis-${i}`} className="profile-orders__page-ellipsis">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    className={`profile-orders__page-btn ${p === safePage ? 'profile-orders__page-btn--active' : ''}`}
+                    onClick={() => handlePageChange(p as number)}
+                  >
+                    {p}
+                  </button>
+                ),
+              )}
+              <button
+                className="profile-orders__page-btn profile-orders__page-btn--nav"
+                disabled={safePage >= totalPages}
+                onClick={() => handlePageChange(safePage + 1)}
+                aria-label="Trang sau"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
+        </>
       ) : (
         <>
           {/* Mobile: danh sách card xếp dọc */}
@@ -414,7 +512,7 @@ export default function ProfileOrders({ bookings, onReviewSuccess }: ProfileOrde
             {paginatedItems.map((b) => {
               const statusInfo = STATUS_MAP[b.status] ?? { label: b.status, cls: 'default' };
               const paymentInfo = PAYMENT_STATUS_MAP[b.paymentStatus] ?? { label: b.paymentStatus, cls: 'default' };
-              const canReview = canShowReview(b);
+              const canReview = canShowReview(b, reviewedTourIds);
 
               return (
                 <div key={b.id} className="profile-orders__card">
@@ -483,7 +581,7 @@ export default function ProfileOrders({ bookings, onReviewSuccess }: ProfileOrde
                 {paginatedItems.map((b) => {
                   const statusInfo = STATUS_MAP[b.status] ?? { label: b.status, cls: 'default' };
                   const paymentInfo = PAYMENT_STATUS_MAP[b.paymentStatus] ?? { label: b.paymentStatus, cls: 'default' };
-                  const canReview = canShowReview(b);
+                  const canReview = canShowReview(b, reviewedTourIds);
 
                   return (
                     <tr key={b.id}>
@@ -577,6 +675,8 @@ export default function ProfileOrders({ bookings, onReviewSuccess }: ProfileOrde
             setSelectedBooking(null);
             if (b) setReviewBooking(b);
           }}
+          onDownloadTicket={() => downloadTicket(selectedBooking)}
+          reviewedTourIds={reviewedTourIds}
         />
       )}
 

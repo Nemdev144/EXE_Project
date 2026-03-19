@@ -4,6 +4,8 @@ import type {
   HomePageResponse,
   Province,
   Tour,
+  TourProvince,
+  TourArtisan,
   CultureItem,
   Artisan,
   BlogPost,
@@ -224,20 +226,94 @@ const parseTourImages = (images?: string | string[]): string[] => {
     .filter(Boolean);
 };
 
+export interface TourProvinceRaw {
+  id?: number;
+  name?: string;
+  slug?: string;
+  region?: string;
+  latitude?: number;
+  longitude?: number;
+  thumbnailUrl?: string;
+  description?: string;
+  bestSeason?: string;
+  transportation?: string;
+  culturalTips?: string;
+}
+
+export interface TourArtisanRaw {
+  id?: number;
+  fullName?: string;
+  specialization?: string;
+  bio?: string;
+  profileImageUrl?: string;
+  province?: TourProvinceRaw;
+  workshopAddress?: string;
+  ethnicity?: string;
+  dateOfBirth?: string;
+  heroSubtitle?: string;
+  narrativeContent?: string;
+}
+
 /** Chuẩn hóa Tour từ API (hỗ trợ nested province/artisan) */
 function normalizeTour(raw: Record<string, unknown>): Tour {
-  const province = raw.province as { id?: number; name?: string } | undefined;
-  const artisan = raw.artisan as { id?: number; fullName?: string } | undefined;
+  const province = raw.province as TourProvinceRaw | undefined;
+  const artisan = raw.artisan as TourArtisanRaw | undefined;
+
+  const tourProvince: TourProvince | undefined = province?.id
+    ? {
+        id: province.id,
+        name: province.name ?? "",
+        slug: province.slug ?? "",
+        region: province.region,
+        latitude: province.latitude,
+        longitude: province.longitude,
+        thumbnailUrl: province.thumbnailUrl,
+        description: province.description,
+        bestSeason: province.bestSeason,
+        transportation: province.transportation,
+        culturalTips: province.culturalTips,
+      }
+    : undefined;
+
+  const tourArtisan: TourArtisan | undefined = artisan?.id
+    ? {
+        id: artisan.id,
+        fullName: artisan.fullName ?? "",
+        specialization: artisan.specialization ?? "",
+        bio: artisan.bio ?? "",
+        profileImageUrl: artisan.profileImageUrl,
+        workshopAddress: artisan.workshopAddress,
+        ethnicity: artisan.ethnicity,
+        dateOfBirth: artisan.dateOfBirth,
+        heroSubtitle: artisan.heroSubtitle,
+        narrativeContent: artisan.narrativeContent,
+        province: artisan.province?.id
+          ? {
+              id: artisan.province.id,
+              name: artisan.province.name ?? "",
+              slug: artisan.province.slug ?? "",
+              region: artisan.province.region,
+              description: artisan.province.description,
+              bestSeason: artisan.province.bestSeason,
+              transportation: artisan.province.transportation,
+              culturalTips: artisan.province.culturalTips,
+            }
+          : undefined,
+      }
+    : undefined;
+
   return {
     id: raw.id as number,
     provinceId: (raw.provinceId as number) ?? province?.id ?? 0,
     provinceName: (raw.provinceName as string) ?? province?.name,
+    province: tourProvince,
     title: raw.title as string,
     slug: raw.slug as string,
     description: raw.description as string,
     bestSeason: raw.bestSeason as string | undefined,
     transportation: raw.transportation as string | undefined,
     culturalTips: raw.culturalTips as string | undefined,
+    preparationTips: raw.preparationTips as string | undefined,
     durationHours: raw.durationHours as number | undefined,
     maxParticipants: (raw.maxParticipants as number) ?? 0,
     price: raw.price as number,
@@ -245,6 +321,7 @@ function normalizeTour(raw: Record<string, unknown>): Tour {
     images: parseTourImages(raw.images as string | string[]),
     artisanId: (raw.artisanId as number) ?? artisan?.id,
     artisanName: (raw.artisanName as string) ?? artisan?.fullName,
+    artisan: tourArtisan,
     averageRating: (raw.averageRating as number) ?? 0,
     totalReviews: (raw.totalReviews as number) ?? 0,
     totalBookings: raw.totalBookings as number | undefined,
