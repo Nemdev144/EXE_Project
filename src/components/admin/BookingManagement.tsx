@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   Table,
@@ -22,9 +22,7 @@ const { Title, Text } = Typography;
 import {
   EyeOutlined,
   CloseOutlined,
-  DollarOutlined,
   SearchOutlined,
-  ExportOutlined,
 } from "@ant-design/icons";
 import BookingSummaryCards from "./BookingSummaryCards";
 import type { ColumnsType } from "antd/es/table";
@@ -73,7 +71,6 @@ import {
   getAdminBookings,
   getAdminBookingById,
   cancelBooking,
-  refundBooking,
   getBookingCancellationFee,
   type AdminBooking,
 } from "../../services/adminApi";
@@ -126,22 +123,128 @@ const calculateCancelFee = (tourDate: string, totalAmount: number) => {
   return { fee: totalAmount, percent: 100 };
 };
 
+function CancelModalBody({
+  selectedBooking,
+  cancelFeeFromApi,
+  setCancelFeeFromApi,
+  calculateCancelFee,
+  getBookingCancellationFee,
+  onCancel,
+  onConfirm,
+}: {
+  selectedBooking: BookingRow;
+  cancelFeeFromApi: { fee: number; percent?: number } | null;
+  setCancelFeeFromApi: (v: { fee: number; percent?: number } | null) => void;
+  calculateCancelFee: (tourDate: string, totalAmount: number) => { fee: number; percent: number };
+  getBookingCancellationFee: (id: number) => Promise<{ fee: number; percent?: number }>;
+  onCancel: () => void;
+  onConfirm: (b: BookingRow) => void;
+}) {
+  const totalAmount =
+    selectedBooking.finalAmount ?? selectedBooking.totalAmount ?? 0;
+  const cancelFee =
+    cancelFeeFromApi ??
+    calculateCancelFee(selectedBooking.tourDate, totalAmount);
+
+  useEffect(() => {
+    if (!selectedBooking?.id) return;
+    getBookingCancellationFee(selectedBooking.id)
+      .then((res) =>
+        setCancelFeeFromApi({ fee: res.fee ?? 0, percent: res.percent })
+      )
+      .catch(() => setCancelFeeFromApi(null));
+  }, [selectedBooking?.id, getBookingCancellationFee, setCancelFeeFromApi]);
+
+  return (
+    <div>
+      <Alert
+        message="Điều khoản hủy tour"
+        description={
+          <div style={{ marginTop: 8 }}>
+            <div>• Trước &gt;10 ngày: Phí hủy 10-20%</div>
+            <div>• 6-10 ngày: Phí hủy 30-50%</div>
+            <div>• 3-5 ngày: Phí hủy 70-80%</div>
+            <div>• &lt;3 ngày / No-show: Phí hủy 100%</div>
+          </div>
+        }
+        type="warning"
+        style={{ marginBottom: 16 }}
+      />
+      <Descriptions column={1} bordered>
+        <Descriptions.Item label="Booking ID">
+          {selectedBooking.id}
+        </Descriptions.Item>
+        <Descriptions.Item label="Mã đặt chỗ">
+          {selectedBooking.bookingCode || "—"}
+        </Descriptions.Item>
+        <Descriptions.Item label="Khách hàng">
+          {selectedBooking.contactName || "—"}
+        </Descriptions.Item>
+        <Descriptions.Item label="Tour">
+          {selectedBooking.tourTitle || "—"}
+        </Descriptions.Item>
+        <Descriptions.Item label="Thành tiền">
+          {totalAmount.toLocaleString("vi-VN")}đ
+        </Descriptions.Item>
+        <Descriptions.Item label="Ngày tour">
+          {selectedBooking.tourDate
+            ? dayjs(selectedBooking.tourDate).format("DD/MM/YYYY")
+            : "—"}
+        </Descriptions.Item>
+      </Descriptions>
+      <div style={{ marginTop: 16 }}>
+        <Alert
+          message={`Phí hủy: ${cancelFee.percent}%${cancelFeeFromApi ? " (từ hệ thống)" : " (ước tính)"}`}
+          description={
+            <div>
+              <div>
+                Phí hủy:{" "}
+                <strong style={{ color: "#ff4d4f" }}>
+                  {cancelFee.fee.toLocaleString("vi-VN")}đ
+                </strong>
+              </div>
+              <div>
+                Số tiền hoàn:{" "}
+                <strong style={{ color: "#52c41a" }}>
+                  {(totalAmount - cancelFee.fee).toLocaleString("vi-VN")}đ
+                </strong>
+              </div>
+            </div>
+          }
+          type={cancelFee.percent === 100 ? "error" : "warning"}
+        />
+      </div>
+      <div style={{ marginTop: 16, textAlign: "right" }}>
+        <Space>
+          <Button onClick={onCancel}>Hủy</Button>
+          <Button
+            type="primary"
+            danger
+            onClick={() => onConfirm(selectedBooking)}
+          >
+            Xác nhận hủy
+          </Button>
+        </Space>
+      </div>
+    </div>
+  );
+}
+
 export default function BookingManagement() {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [totalBookings, setTotalBookings] = useState<number>(0);
   const [tours, setTours] = useState<Tour[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const hasFetchedRef = useRef(false);
 
   const [filter, setFilter] = useState<{
     status: string;
     tour: string;
-    dateRange?: any;
   }>({
     status: "all",
     tour: "all",
   });
+  const [pagination, setPagination] = useState({ page: 1, pageSize: 10 });
   const [searchText, setSearchText] = useState("");
   const [selectedBooking, setSelectedBooking] = useState<BookingRow | null>(
     null,
@@ -149,6 +252,10 @@ export default function BookingManagement() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelFeeFromApi, setCancelFeeFromApi] = useState<{
+    fee: number;
+    percent?: number;
+  } | null>(null);
 
   const openDetailModal = async (record: BookingRow) => {
     setSelectedBooking(record);
@@ -164,73 +271,86 @@ export default function BookingManagement() {
     }
   };
 
-  useEffect(() => {
-    // Tránh duplicate requests - chỉ fetch 1 lần
-    if (hasFetchedRef.current) return;
-    
-    let cancelled = false;
-    const fetchData = async () => {
-      try {
-        hasFetchedRef.current = true;
-        setLoading(true);
-        setError(null);
-        const [bookingsResult, toursData] = await Promise.all([
-          getAdminBookings({ limit: 100 }), // Lấy tất cả booking (30 booking trong DB)
-          getPublicTours(),
-        ]);
-        // Tránh set state nếu component đã unmount (StrictMode)
-        if (cancelled) {
-          hasFetchedRef.current = false;
-          return;
-        }
+  const hasFilter = filter.status !== "all" || filter.tour !== "all" || !!searchText.trim();
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      let toursData = tours;
+      if (toursData.length === 0) {
+        toursData = await getPublicTours();
         setTours(toursData);
-        const rows: BookingRow[] = (bookingsResult.data ?? []).map((b) => ({
-          ...b,
-          key: String(b.id),
-        }));
-        setBookings(rows);
-        setTotalBookings(bookingsResult.total ?? rows.length);
-      } catch (err) {
-        hasFetchedRef.current = false; // Reset để có thể retry
-        if (cancelled) return;
-        console.error("Error fetching bookings data:", err);
-        setError("Không thể tải dữ liệu bookings. Vui lòng thử lại sau.");
-        message.error("Không thể tải dữ liệu bookings");
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
       }
+      if (hasFilter) {
+        const result = await getAdminBookings({
+          page: 0,
+          size: 500,
+        });
+        const all = (result.data ?? []).map((b) => ({ ...b, key: String(b.id) }));
+        const filtered = all.filter((b) => {
+          if (filter.status !== "all" && b.status !== filter.status) return false;
+          if (filter.tour !== "all" && b.tourTitle !== filter.tour) return false;
+          if (!searchText.trim()) return true;
+          const s = searchText.toLowerCase();
+          return (
+            String(b.id).toLowerCase().includes(s) ||
+            (b.bookingCode || "").toLowerCase().includes(s) ||
+            (b.contactName || "").toLowerCase().includes(s) ||
+            (b.contactEmail || "").toLowerCase().includes(s) ||
+            (b.contactPhone || "").toLowerCase().includes(s)
+          );
+        });
+        setBookings(filtered);
+        setTotalBookings(filtered.length);
+      } else {
+        const result = await getAdminBookings({
+          page: pagination.page - 1,
+          size: pagination.pageSize,
+        });
+        const rows = (result.data ?? []).map((b) => ({ ...b, key: String(b.id) }));
+        setBookings(rows);
+        setTotalBookings(result.total ?? rows.length);
+      }
+    } catch (err) {
+      console.error("Error fetching bookings data:", err);
+      setError("Không thể tải dữ liệu bookings. Vui lòng thử lại sau.");
+      message.error("Không thể tải dữ liệu bookings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      await fetchData();
     };
-    fetchData();
+    load();
     return () => {
       cancelled = true;
-      // Reset khi component unmount để có thể fetch lại khi mount lại
-      hasFetchedRef.current = false;
     };
-  }, []);
+  }, [filter.status, filter.tour, pagination.page, pagination.pageSize]);
 
-  const filteredBookings = bookings
-    .filter((b) => {
-      if (filter.status !== "all" && b.status !== filter.status) return false;
-      if (filter.tour !== "all" && b.tourTitle !== filter.tour) return false;
-      if (searchText) {
-        const s = searchText.toLowerCase();
-        return (
-          String(b.id).toLowerCase().includes(s) ||
-          (b.bookingCode || "").toLowerCase().includes(s) ||
-          (b.contactName || "").toLowerCase().includes(s) ||
-          (b.contactEmail || "").toLowerCase().includes(s) ||
-          (b.contactPhone || "").toLowerCase().includes(s)
-        );
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      const dateA = a.createdAt ? dayjs(a.createdAt).valueOf() : 0;
-      const dateB = b.createdAt ? dayjs(b.createdAt).valueOf() : 0;
-      return dateB - dateA; // Mới nhất trên cùng (theo ngày tạo giảm dần)
-    });
+  useEffect(() => {
+    if (!searchText.trim()) {
+      setPagination((p) => ({ ...p, page: 1 }));
+      fetchData();
+      return;
+    }
+    const t = setTimeout(() => {
+      setPagination((p) => ({ ...p, page: 1 }));
+      fetchData();
+    }, 400);
+    return () => clearTimeout(t);
+  }, [searchText]);
+
+  const filteredBookings = hasFilter
+    ? bookings.slice(
+        (pagination.page - 1) * pagination.pageSize,
+        pagination.page * pagination.pageSize
+      )
+    : bookings;
 
   const handleCancelBooking = async (booking: BookingRow) => {
     try {
@@ -248,7 +368,7 @@ export default function BookingManagement() {
         fee = local.fee;
         percent = local.percent;
       }
-      await cancelBooking(booking.id, `Phí hủy ${percent}%`);
+      await cancelBooking(booking.id);
 
       setBookings(
         bookings.map((b) =>
@@ -266,46 +386,11 @@ export default function BookingManagement() {
         `Đã hủy booking. Phí hủy: ${fee.toLocaleString("vi-VN")}đ${percent ? ` (${percent}%)` : ""}`,
       );
       setIsCancelModalOpen(false);
+      setCancelFeeFromApi(null);
+      fetchData();
     } catch (err) {
       console.error("Error cancelling booking:", err);
       message.error("Không thể hủy booking");
-    }
-  };
-
-  const handleRefund = async (id: string) => {
-    try {
-      const booking = bookings.find((b) => String(b.id) === id);
-      if (
-        booking &&
-        booking.cancellationFee != null &&
-        booking.cancellationFee > 0
-      ) {
-        const refundAmount =
-          (booking.finalAmount || booking.totalAmount) -
-          booking.cancellationFee;
-        await refundBooking(Number(id), refundAmount);
-        setBookings(
-          bookings.map((b) =>
-            String(b.id) === id
-              ? { ...b, status: "REFUNDED" as const, refundAmount }
-              : b,
-          ),
-        );
-        message.success(
-          `Đã hoàn tiền: ${refundAmount.toLocaleString("vi-VN")}đ (Sau khi trừ phí hủy ${booking.cancellationFee.toLocaleString("vi-VN")}đ)`,
-        );
-      } else {
-        await refundBooking(Number(id));
-        setBookings(
-          bookings.map((b) =>
-            String(b.id) === id ? { ...b, status: "REFUNDED" as const } : b,
-          ),
-        );
-        message.success("Đã hoàn tiền");
-      }
-    } catch (err) {
-      console.error("Error refunding booking:", err);
-      message.error("Không thể hoàn tiền");
     }
   };
 
@@ -422,6 +507,7 @@ export default function BookingManagement() {
                 }
                 onConfirm={() => {
                   setSelectedBooking(record);
+                  setCancelFeeFromApi(null);
                   setIsCancelModalOpen(true);
                 }}
                 okText="Xác nhận"
@@ -436,16 +522,6 @@ export default function BookingManagement() {
                   Hủy booking
                 </Button>
               </Popconfirm>
-            )}
-            {record.status === "CANCELLED" && (
-              <Button
-                type="link"
-                icon={<DollarOutlined />}
-                size="small"
-                onClick={() => handleRefund(String(record.id))}
-              >
-                Hoàn tiền
-              </Button>
             )}
           </Space>
         );
@@ -516,7 +592,10 @@ export default function BookingManagement() {
               style={{ width: "100%" }}
               placeholder="Trạng thái"
               value={filter.status}
-              onChange={(value) => setFilter({ ...filter, status: value })}
+              onChange={(value) => {
+                setFilter({ ...filter, status: value });
+                setPagination((p) => ({ ...p, page: 1 }));
+              }}
             >
               <Select.Option value="all">Tất cả</Select.Option>
               <Select.Option value="PENDING">Chờ xử lý</Select.Option>
@@ -529,7 +608,10 @@ export default function BookingManagement() {
               style={{ width: "100%" }}
               placeholder="Tour"
               value={filter.tour}
-              onChange={(value) => setFilter({ ...filter, tour: value })}
+              onChange={(value) => {
+                setFilter({ ...filter, tour: value });
+                setPagination((p) => ({ ...p, page: 1 }));
+              }}
             >
               <Select.Option value="all">Tất cả</Select.Option>
               {tours.map((tour) => (
@@ -554,19 +636,14 @@ export default function BookingManagement() {
                 ))}
             </Select>
           </Col>
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} md={12}>
             <Input
-              placeholder="Tìm kiếm ID, tên, email..."
+              placeholder="Tìm kiếm ID, mã đặt chỗ, tên, email, SĐT..."
               prefix={<SearchOutlined />}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               allowClear
             />
-          </Col>
-          <Col xs={24} sm={12} md={4}>
-            <Button icon={<ExportOutlined />} style={{ width: "100%" }}>
-              Xuất Excel
-            </Button>
           </Col>
         </Row>
 
@@ -589,10 +666,18 @@ export default function BookingManagement() {
             dataSource={filteredBookings}
             scroll={{ x: 900 }}
             pagination={{
-              pageSize: 10,
+              current: pagination.page,
+              pageSize: pagination.pageSize,
+              total: totalBookings,
               showSizeChanger: true,
-              showTotal: (total, range) => 
-                `Hiển thị ${range[0]}-${range[1]} / Tổng ${totalBookings} booking`,
+              showTotal: (total, range) =>
+                `Hiển thị ${range[0]}-${range[1]} / Tổng ${total} booking`,
+              onChange: (page, pageSize) =>
+                setPagination((p) => ({
+                  ...p,
+                  page,
+                  pageSize: pageSize ?? p.pageSize,
+                })),
             }}
           />
         )}
@@ -729,100 +814,26 @@ export default function BookingManagement() {
       <Modal
         title="Xác nhận hủy booking"
         open={isCancelModalOpen}
-        onCancel={() => setIsCancelModalOpen(false)}
+        onCancel={() => {
+          setIsCancelModalOpen(false);
+          setCancelFeeFromApi(null);
+        }}
         footer={null}
         width={600}
       >
         {selectedBooking && (
-          <div>
-            <Alert
-              message="Điều khoản hủy tour"
-              description={
-                <div style={{ marginTop: 8 }}>
-                  <div>• Trước &gt;10 ngày: Phí hủy 10-20%</div>
-                  <div>• 6-10 ngày: Phí hủy 30-50%</div>
-                  <div>• 3-5 ngày: Phí hủy 70-80%</div>
-                  <div>• &lt;3 ngày / No-show: Phí hủy 100%</div>
-                </div>
-              }
-              type="warning"
-              style={{ marginBottom: 16 }}
-            />
-            <Descriptions column={1} bordered>
-              <Descriptions.Item label="Booking ID">
-                {selectedBooking.id}
-              </Descriptions.Item>
-              <Descriptions.Item label="Mã đặt chỗ">
-                {selectedBooking.bookingCode || "—"}
-              </Descriptions.Item>
-              <Descriptions.Item label="Khách hàng">
-                {selectedBooking.contactName || "—"}
-              </Descriptions.Item>
-              <Descriptions.Item label="Tour">
-                {selectedBooking.tourTitle || "—"}
-              </Descriptions.Item>
-              <Descriptions.Item label="Thành tiền">
-                {(
-                  selectedBooking.finalAmount ??
-                  selectedBooking.totalAmount ??
-                  0
-                ).toLocaleString("vi-VN")}
-                đ
-              </Descriptions.Item>
-              <Descriptions.Item label="Ngày tour">
-                {selectedBooking.tourDate
-                  ? dayjs(selectedBooking.tourDate).format("DD/MM/YYYY")
-                  : "—"}
-              </Descriptions.Item>
-            </Descriptions>
-            {(() => {
-              const cancelFee = calculateCancelFee(
-                selectedBooking.tourDate,
-                selectedBooking.finalAmount ?? selectedBooking.totalAmount ?? 0,
-              );
-              return (
-                <div style={{ marginTop: 16 }}>
-                  <Alert
-                    message={`Phí hủy: ${cancelFee.percent}%`}
-                    description={
-                      <div>
-                        <div>
-                          Phí hủy:{" "}
-                          <strong style={{ color: "#ff4d4f" }}>
-                            {cancelFee.fee.toLocaleString("vi-VN")}đ
-                          </strong>
-                        </div>
-                        <div>
-                          Số tiền hoàn:{" "}
-                          <strong style={{ color: "#52c41a" }}>
-                            {(
-                              (selectedBooking.finalAmount ??
-                                selectedBooking.totalAmount ??
-                                0) - cancelFee.fee
-                            ).toLocaleString("vi-VN")}
-                            đ
-                          </strong>
-                        </div>
-                      </div>
-                    }
-                    type={cancelFee.percent === 100 ? "error" : "warning"}
-                  />
-                </div>
-              );
-            })()}
-            <div style={{ marginTop: 16, textAlign: "right" }}>
-              <Space>
-                <Button onClick={() => setIsCancelModalOpen(false)}>Hủy</Button>
-                <Button
-                  type="primary"
-                  danger
-                  onClick={() => handleCancelBooking(selectedBooking)}
-                >
-                  Xác nhận hủy
-                </Button>
-              </Space>
-            </div>
-          </div>
+          <CancelModalBody
+            selectedBooking={selectedBooking}
+            cancelFeeFromApi={cancelFeeFromApi}
+            setCancelFeeFromApi={setCancelFeeFromApi}
+            calculateCancelFee={calculateCancelFee}
+            getBookingCancellationFee={getBookingCancellationFee}
+            onCancel={() => {
+              setIsCancelModalOpen(false);
+              setCancelFeeFromApi(null);
+            }}
+            onConfirm={handleCancelBooking}
+          />
         )}
       </Modal>
     </div>

@@ -38,6 +38,7 @@ import {
   updateUserStatus,
   updateUserRole,
   updateUserRoleAndStatus,
+  adminResetUserPassword,
   type AdminUser,
 } from "../../services/adminApi";
 import { getApiErrorMessage } from "../../services/api";
@@ -100,58 +101,64 @@ export default function UserManagement() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
+  const [resetPwdForm] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
+  const [resetPwdModalOpen, setResetPwdModalOpen] = useState(false);
+  const [resetPwdSubmitting, setResetPwdSubmitting] = useState(false);
 
-  const fetchUsers = useCallback(async (forceRefresh = false) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const params: { role?: string; status?: string; search?: string } = {};
-      if (filter.role !== "all") params.role = filter.role;
-      if (filter.status !== "all") params.status = filter.status;
-      if (filter.search?.trim()) params.search = filter.search.trim();
+  const fetchUsers = useCallback(
+    async (forceRefresh = false) => {
+      try {
+        setLoading(true);
+        setError(null);
+        const params: { role?: string; status?: string; search?: string } = {};
+        if (filter.role !== "all") params.role = filter.role;
+        if (filter.status !== "all") params.status = filter.status;
+        if (filter.search?.trim()) params.search = filter.search.trim();
 
-      // Force refresh bằng cách thêm timestamp vào params
-      const response = await getAdminUsers(forceRefresh ? { ...params, _force: Date.now() } : params);
-      if (!response?.data || !Array.isArray(response.data)) {
-        throw new Error("Invalid API response format");
+        // Force refresh bằng cách thêm timestamp vào params
+        const response = await getAdminUsers(
+          forceRefresh ? { ...params, _force: Date.now() } : params,
+        );
+        if (!response?.data || !Array.isArray(response.data)) {
+          throw new Error("Invalid API response format");
+        }
+
+        const mappedUsers: User[] = response.data
+          .filter((user: AdminUser) => user.role === "CUSTOMER")
+          .map((user: AdminUser) => ({
+            key: user.id.toString(),
+            id: user.id.toString(),
+            username: user.username || "",
+            name: user.fullName || "",
+            email: user.email || "",
+            phone: user.phone,
+            avatarUrl: user.avatarUrl,
+            dateOfBirth: user.dateOfBirth,
+            gender: user.gender,
+            role: (user.role || "CUSTOMER") as User["role"],
+            status: user.status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
+            createdAt: user.createdAt
+              ? new Date(user.createdAt).toLocaleDateString("vi-VN")
+              : "-",
+            lastLogin: user.lastLogin
+              ? new Date(user.lastLogin).toLocaleDateString("vi-VN")
+              : undefined,
+          }));
+        setUsers(mappedUsers);
+      } catch (err: unknown) {
+        const errMsg =
+          (err as any)?.response?.data?.message ||
+          (err as Error)?.message ||
+          "Không thể tải dữ liệu member. Vui lòng thử lại sau.";
+        setError(errMsg);
+        message.error(errMsg);
+      } finally {
+        setLoading(false);
       }
-
-      const mappedUsers: User[] = response.data
-        .filter(
-          (user: AdminUser) => user.role === "CUSTOMER",
-        )
-        .map((user: AdminUser) => ({
-          key: user.id.toString(),
-          id: user.id.toString(),
-          username: user.username || "",
-          name: user.fullName || "",
-          email: user.email || "",
-          phone: user.phone,
-          avatarUrl: user.avatarUrl,
-          dateOfBirth: user.dateOfBirth,
-          gender: user.gender,
-          role: (user.role || "CUSTOMER") as User["role"],
-          status: user.status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
-          createdAt: user.createdAt
-            ? new Date(user.createdAt).toLocaleDateString("vi-VN")
-            : "-",
-          lastLogin: user.lastLogin
-            ? new Date(user.lastLogin).toLocaleDateString("vi-VN")
-            : undefined,
-        }));
-      setUsers(mappedUsers);
-    } catch (err: unknown) {
-      const errMsg =
-        (err as any)?.response?.data?.message ||
-        (err as Error)?.message ||
-        "Không thể tải dữ liệu member. Vui lòng thử lại sau.";
-      setError(errMsg);
-      message.error(errMsg);
-    } finally {
-      setLoading(false);
-    }
-  }, [filter.role, filter.status, filter.search, message]);
+    },
+    [filter.role, filter.status, filter.search, message],
+  );
 
   useEffect(() => {
     fetchUsers();
@@ -186,7 +193,6 @@ export default function UserManagement() {
     setEditModalOpen(true);
   };
 
-
   const handleDeleteUser = async (id: string) => {
     try {
       await deleteUser(parseInt(id));
@@ -200,29 +206,28 @@ export default function UserManagement() {
     }
   };
 
-  const handleResetPassword = (_record: User) => {
-    Modal.info({
-      title: "Reset mật khẩu",
-      content: (
-        <div>
-          <p>
-            Backend hiện chưa hỗ trợ admin reset mật khẩu cho user khác. Endpoint{" "}
-            <code>POST /api/users/change-password</code> chỉ dùng để user đổi mật
-            khẩu của chính mình (cần oldPassword).
-          </p>
-          <p style={{ marginTop: 8 }}>
-            <strong>Giải pháp tạm thời:</strong> Member có thể đổi mật khẩu tại
-            trang Profile (Đổi mật khẩu) với mật khẩu hiện tại.
-          </p>
-          <p style={{ marginTop: 8, color: "#8c8c8c" }}>
-            Yêu cầu backend thêm endpoint:{" "}
-            <code>POST /api/admin/users/{"{id}"}/reset-password</code> với body{" "}
-            <code>{"{ newPassword }"}</code>
-          </p>
-        </div>
-      ),
-      okText: "Đã hiểu",
-    });
+  const handleOpenResetPassword = (record: User) => {
+    setSelectedUser(record);
+    resetPwdForm.resetFields();
+    setResetPwdModalOpen(true);
+  };
+
+  const handleResetPassword = async () => {
+    if (!selectedUser) return;
+    try {
+      const values = await resetPwdForm.validateFields();
+      setResetPwdSubmitting(true);
+      await adminResetUserPassword(parseInt(selectedUser.id), values.newPassword);
+      message.success("Đã đổi mật khẩu thành công");
+      setResetPwdModalOpen(false);
+      setSelectedUser(null);
+      resetPwdForm.resetFields();
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "errorFields" in err) return;
+      message.error(getApiErrorMessage(err) || "Đổi mật khẩu thất bại");
+    } finally {
+      setResetPwdSubmitting(false);
+    }
   };
 
   const handleCreate = async () => {
@@ -257,7 +262,7 @@ export default function UserManagement() {
       const values = await editForm.validateFields();
       setSubmitting(true);
       const userId = parseInt(selectedUser.id);
-      
+
       // Cập nhật thông tin cơ bản (username, email, fullName, phone, dateOfBirth)
       await updateUser(userId, {
         username: values.username,
@@ -268,11 +273,11 @@ export default function UserManagement() {
           ? dayjs(values.dateOfBirth).format("YYYY-MM-DD")
           : undefined,
       });
-      
+
       // Cập nhật role và status nếu có thay đổi
       const roleChanged = values.role !== selectedUser.role;
       const statusChanged = values.status !== selectedUser.status;
-      
+
       if (roleChanged && statusChanged) {
         // Cả 2 đều thay đổi → gọi hàm cập nhật cả 2
         await updateUserRoleAndStatus(userId, values.role, values.status);
@@ -283,7 +288,7 @@ export default function UserManagement() {
         // Chỉ status thay đổi
         await updateUserStatus(userId, values.status);
       }
-      
+
       message.success("Cập nhật member thành công");
       setEditModalOpen(false);
       setSelectedUser(null);
@@ -573,9 +578,7 @@ export default function UserManagement() {
             }
             status={selectedUser.status}
             statusLabel={
-              selectedUser.status === "ACTIVE"
-                ? "Hoạt động"
-                : "Không hoạt động"
+              selectedUser.status === "ACTIVE" ? "Hoạt động" : "Không hoạt động"
             }
             infoSections={[
               {
@@ -702,17 +705,14 @@ export default function UserManagement() {
         footer={
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <Space>
-              <Popconfirm
-                title="Reset mật khẩu"
-                description="Member sẽ phải đăng nhập lại bằng mật khẩu mới. Tiếp tục?"
-                onConfirm={() =>
-                  selectedUser && handleResetPassword(selectedUser)
+              <Button
+                icon={<KeyOutlined />}
+                onClick={() =>
+                  selectedUser && handleOpenResetPassword(selectedUser)
                 }
-                okText="Đồng ý"
-                cancelText="Hủy"
               >
-                <Button icon={<KeyOutlined />}>Reset mật khẩu</Button>
-              </Popconfirm>
+                Đổi mật khẩu
+              </Button>
               <Popconfirm
                 title="Xóa member"
                 description="Bạn có chắc muốn xóa member này? Hành động này không thể hoàn tác."
@@ -784,15 +784,73 @@ export default function UserManagement() {
             <Select>
               <Select.Option value="CUSTOMER">Khách hàng</Select.Option>
               <Select.Option value="STAFF">Nhân viên</Select.Option>
-              <Select.Option value="ADMIN">Quản trị viên</Select.Option>
+              {selectedUser?.role !== "CUSTOMER" && (
+                <Select.Option value="ADMIN">Quản trị viên</Select.Option>
+              )}
               <Select.Option value="ARTISAN">Nghệ nhân</Select.Option>
             </Select>
           </Form.Item>
-          <Form.Item label="Trạng thái" name="status" rules={[{ required: true }]}>
+          <Form.Item
+            label="Trạng thái"
+            name="status"
+            rules={[{ required: true }]}
+          >
             <Select>
               <Select.Option value="ACTIVE">Hoạt động</Select.Option>
               <Select.Option value="INACTIVE">Không hoạt động</Select.Option>
             </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Đổi mật khẩu"
+        open={resetPwdModalOpen}
+        onCancel={() => {
+          setResetPwdModalOpen(false);
+          setSelectedUser(null);
+          resetPwdForm.resetFields();
+        }}
+        onOk={handleResetPassword}
+        okText="Đổi mật khẩu"
+        cancelText="Hủy"
+        confirmLoading={resetPwdSubmitting}
+        destroyOnClose
+      >
+        {selectedUser && (
+          <p style={{ marginBottom: 16 }}>
+            Đổi mật khẩu cho{" "}
+            <strong>{selectedUser.name || selectedUser.username}</strong>
+          </p>
+        )}
+        <Form form={resetPwdForm} layout="vertical">
+          <Form.Item
+            name="newPassword"
+            label="Mật khẩu mới"
+            rules={[
+              { required: true, message: "Vui lòng nhập mật khẩu mới" },
+              { min: 6, message: "Mật khẩu tối thiểu 6 ký tự" },
+            ]}
+          >
+            <Input.Password placeholder="••••••••" />
+          </Form.Item>
+          <Form.Item
+            name="confirmPassword"
+            label="Xác nhận mật khẩu"
+            dependencies={["newPassword"]}
+            rules={[
+              { required: true, message: "Vui lòng xác nhận mật khẩu" },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue("newPassword") === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error("Mật khẩu không khớp"));
+                },
+              }),
+            ]}
+          >
+            <Input.Password placeholder="••••••••" />
           </Form.Item>
         </Form>
       </Modal>

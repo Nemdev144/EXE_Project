@@ -88,7 +88,14 @@ export interface AdminTour {
   minParticipants: number;
   maxParticipants: number;
   durationHours: number;
-  status: "OPEN" | "NEAR_DEADLINE" | "FULL" | "NOT_ENOUGH" | "CANCELLED" | "ACTIVE" | "INACTIVE";
+  status:
+    | "OPEN"
+    | "NEAR_DEADLINE"
+    | "FULL"
+    | "NOT_ENOUGH"
+    | "CANCELLED"
+    | "ACTIVE"
+    | "INACTIVE";
   thumbnailUrl: string;
   images: string[];
   artisanId?: number;
@@ -119,11 +126,16 @@ function parseTourImages(images?: string | string[]): string[] {
       return [];
     }
   }
-  return trimmed.split(",").map((s) => s.trim()).filter(Boolean);
+  return trimmed
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 /** Chuẩn hóa PublicTourDetail thành AdminTour - chỉ dùng field từ API */
-export function normalizePublicTourDetail(raw: PublicTourDetail | Record<string, unknown>): AdminTour {
+export function normalizePublicTourDetail(
+  raw: PublicTourDetail | Record<string, unknown>,
+): AdminTour {
   const r = raw as Record<string, unknown>;
   const province = r.province as { id?: number; name?: string } | undefined;
   const artisan = r.artisan as { id?: number; fullName?: string } | undefined;
@@ -153,7 +165,7 @@ export function normalizePublicTourDetail(raw: PublicTourDetail | Record<string,
   };
 }
 
-/** Payload cho POST /api/tours và PUT /api/tours/{id} - khớp Swagger */
+/** Payload cho POST /api/tours và PUT /api/tours/{id} - khớp BE (multipart/form-data) */
 export interface CreateTourRequest {
   title: string;
   description: string;
@@ -162,14 +174,19 @@ export interface CreateTourRequest {
   durationHours: number;
   maxParticipants: number;
   slug?: string;
-  thumbnailUrl?: string;
-  images?: string | string[];
+  /** BE nhận MultipartFile - gửi File thay vì URL */
+  thumbnail?: File;
+  /** BE nhận MultipartFile[] - gửi File[] */
+  images?: File[];
   artisanId?: number | null;
+  /** true khi cần xóa nghệ nhân khỏi tour (chỉ PUT) */
+  clearArtisan?: boolean;
+  cultureItemIds?: number[];
   preparationTips?: string;
   bestSeason?: string;
   transportation?: string;
   culturalTips?: string;
-  status?: "OPEN" | "NEAR_DEADLINE" | "FULL" | "NOT_ENOUGH" | "CANCELLED" | "ACTIVE" | "INACTIVE";
+  status?: "ACTIVE" | "INACTIVE";
 }
 
 export interface UpdateTourRequest extends Partial<CreateTourRequest> {
@@ -194,7 +211,11 @@ export const getAdminTours = async (params?: {
     ApiResponse<
       | PublicTourDetail[]
       | AdminTour[]
-      | { tours?: PublicTourDetail[] | AdminTour[]; content?: PublicTourDetail[] | AdminTour[]; total?: number }
+      | {
+          tours?: PublicTourDetail[] | AdminTour[];
+          content?: PublicTourDetail[] | AdminTour[];
+          total?: number;
+        }
     >
   >("/api/tours/public", { params });
   const raw = response.data.data;
@@ -205,33 +226,48 @@ export const getAdminTours = async (params?: {
     total = items.length;
   } else if (raw && typeof raw === "object") {
     const obj = raw as Record<string, unknown>;
-    items = (obj.tours as (PublicTourDetail | AdminTour)[]) ?? (obj.content as (PublicTourDetail | AdminTour)[]) ?? [];
+    items =
+      (obj.tours as (PublicTourDetail | AdminTour)[]) ??
+      (obj.content as (PublicTourDetail | AdminTour)[]) ??
+      [];
     total = (obj.total as number) ?? items.length;
   }
   const data = items.map((item) =>
     "provinceId" in item && typeof item.provinceId === "number"
       ? (item as AdminTour)
-      : normalizePublicTourDetail(item as PublicTourDetail)
+      : normalizePublicTourDetail(item as PublicTourDetail),
   );
   return { data, total };
 };
 
 /** GET /api/tours/public/{id} - Chi tiết tour theo JSON spec */
 export const getAdminTourById = async (id: number): Promise<AdminTour> => {
-  const response = await api.get<ApiResponse<PublicTourDetail | Record<string, unknown>>>(
-    `/api/tours/public/${id}`,
-  );
+  const response = await api.get<
+    ApiResponse<PublicTourDetail | Record<string, unknown>>
+  >(`/api/tours/public/${id}`);
   const raw = response.data.data;
   if (!raw || typeof raw !== "object") throw new Error("API không trả về data");
   return normalizePublicTourDetail(raw as PublicTourDetail);
 };
 
-/** API Tour yêu cầu multipart/form-data (theo .md docs). Build FormData từ payload. */
-function buildTourFormData(data: CreateTourRequest | Partial<CreateTourRequest>): FormData {
+/** BE: multipart/form-data - thumbnail (File), images (File[]), cultureItemIds (List) */
+function buildTourFormData(
+  data: CreateTourRequest | Partial<CreateTourRequest>,
+): FormData {
   const form = new FormData();
   const entries: (keyof CreateTourRequest)[] = [
-    "provinceId", "title", "slug", "description", "bestSeason", "transportation",
-    "culturalTips", "preparationTips", "durationHours", "maxParticipants", "price", "artisanId", "status",
+    "provinceId",
+    "title",
+    "slug",
+    "description",
+    "bestSeason",
+    "transportation",
+    "culturalTips",
+    "preparationTips",
+    "durationHours",
+    "maxParticipants",
+    "price",
+    "artisanId",
   ];
   for (const k of entries) {
     const v = data[k];
@@ -240,13 +276,19 @@ function buildTourFormData(data: CreateTourRequest | Partial<CreateTourRequest>)
     if (typeof v === "string" && !v.trim()) continue;
     form.append(k, typeof v === "number" ? String(v) : String(v).trim());
   }
-  if (data.thumbnailUrl && typeof data.thumbnailUrl === "string" && data.thumbnailUrl.trim()) {
-    form.append("thumbnailUrl", data.thumbnailUrl.trim());
+  if (data.clearArtisan === true) {
+    form.append("clearArtisan", "true");
   }
-  if (data.images) {
-    const img = data.images;
-    const str = typeof img === "string" ? img : (Array.isArray(img) ? JSON.stringify(img) : "");
-    if (str.trim()) form.append("images", str.trim());
+  if (data.cultureItemIds?.length) {
+    data.cultureItemIds.forEach((id) => form.append("cultureItemIds", String(id)));
+  }
+  if (data.thumbnail instanceof File) {
+    form.append("thumbnail", data.thumbnail);
+  }
+  if (data.images && Array.isArray(data.images)) {
+    data.images.forEach((f) => {
+      if (f instanceof File) form.append("images", f);
+    });
   }
   return form;
 }
@@ -255,13 +297,14 @@ export const createTour = async (
   data: CreateTourRequest,
 ): Promise<AdminTour> => {
   const formData = buildTourFormData(data);
-  const response = await api.post<ApiResponse<PublicTourDetail | Record<string, unknown>>>(
-    "/api/tours",
-    formData,
-  );
-  const raw = response.data.data;
-  if (!raw || typeof raw !== "object") throw new Error("API không trả về data");
-  return normalizePublicTourDetail(raw as PublicTourDetail);
+  const response = await api.post<
+    ApiResponse<PublicTourDetail | Record<string, unknown>>
+  >("/api/tours", formData);
+  const raw = response.data?.data;
+  if (raw && typeof raw === "object") {
+    return normalizePublicTourDetail(raw as PublicTourDetail);
+  }
+  throw new Error("API không trả về data");
 };
 
 export const updateTour = async (
@@ -269,17 +312,38 @@ export const updateTour = async (
   data: Partial<CreateTourRequest>,
 ): Promise<AdminTour> => {
   const formData = buildTourFormData(data);
-  const response = await api.put<ApiResponse<PublicTourDetail | Record<string, unknown>>>(
-    `/api/tours/${id}`,
-    formData,
-  );
-  const raw = response.data.data;
-  if (!raw || typeof raw !== "object") throw new Error("API không trả về data");
-  return normalizePublicTourDetail(raw as PublicTourDetail);
+  const response = await api.put<
+    ApiResponse<PublicTourDetail | Record<string, unknown>>
+  >(`/api/tours/${id}`, formData);
+  const raw = response.data?.data;
+  if (raw && typeof raw === "object") {
+    return normalizePublicTourDetail(raw as PublicTourDetail);
+  }
+  return { id, title: "", provinceId: 0, price: 0, minParticipants: 0, maxParticipants: 0, durationHours: 0, status: "ACTIVE", thumbnailUrl: "", images: [], createdAt: "" } as AdminTour;
 };
 
 export const deleteTour = async (id: number): Promise<void> => {
   await api.delete(`/api/tours/${id}`);
+};
+
+/** POST /api/tours/{id}/culture-items - Gắn culture items (thay thế toàn bộ, rỗng = xóa hết) */
+export const setTourCultureItems = async (
+  tourId: number,
+  cultureItemIds: number[],
+): Promise<void> => {
+  const params = new URLSearchParams();
+  cultureItemIds.forEach((id) => params.append("cultureItemIds", String(id)));
+  const query = params.toString();
+  const url = `/api/tours/${tourId}/culture-items${query ? `?${query}` : ""}`;
+  await api.post(url);
+};
+
+/** DELETE /api/tours/{id}/culture-items/{cultureItemId} - Bỏ 1 culture item khỏi tour */
+export const removeTourCultureItem = async (
+  tourId: number,
+  cultureItemId: number,
+): Promise<void> => {
+  await api.delete(`/api/tours/${tourId}/culture-items/${cultureItemId}`);
 };
 
 // ========== Admin Bookings API ==========
@@ -359,13 +423,25 @@ function parseBookingResponse(raw: unknown): AdminBooking[] {
 
 export const getAdminBookings = async (params?: {
   page?: number;
+  size?: number;
   limit?: number;
   status?: string;
   tourId?: number;
   startDate?: string;
   endDate?: string;
+  search?: string;
 }): Promise<{ data: AdminBooking[]; total: number }> => {
-  const response = await api.get<unknown>("/api/bookings", { params });
+  const { limit, ...rest } = params ?? {};
+  const apiParams: Record<string, string | number> = {
+    page: rest.page ?? 0,
+    size: rest.size ?? limit ?? 10,
+  };
+  if (rest.status != null && rest.status !== "") apiParams.status = rest.status;
+  if (rest.tourId != null) apiParams.tourId = rest.tourId;
+  if (rest.startDate) apiParams.startDate = rest.startDate;
+  if (rest.endDate) apiParams.endDate = rest.endDate;
+  if (rest.search) apiParams.search = rest.search;
+  const response = await api.get<unknown>("/api/bookings", { params: apiParams });
   const body = response.data as Record<string, unknown>;
   const raw = body.data ?? body;
   let data = parseBookingResponse(raw);
@@ -387,37 +463,9 @@ export const getAdminBookingById = async (
   return response.data.data;
 };
 
-export const updateBooking = async (
-  id: number,
-  data: UpdateBookingRequest,
-): Promise<AdminBooking> => {
-  const response = await api.put<ApiResponse<AdminBooking>>(
-    `/api/bookings/${id}`,
-    data,
-  );
-  return response.data.data;
-};
-
-export const cancelBooking = async (
-  id: number,
-  reason?: string,
-): Promise<AdminBooking> => {
-  const response = await api.post<ApiResponse<AdminBooking>>(
-    `/api/bookings/${id}/cancel`,
-    { reason },
-  );
-  return response.data.data;
-};
-
-export const refundBooking = async (
-  id: number,
-  amount?: number,
-): Promise<AdminBooking> => {
-  const response = await api.post<ApiResponse<AdminBooking>>(
-    `/api/bookings/${id}/refund`,
-    { amount },
-  );
-  return response.data.data;
+/** BE: DELETE /api/bookings/{id} - Hủy booking */
+export const cancelBooking = async (id: number): Promise<void> => {
+  await api.delete(`/api/bookings/${id}`);
 };
 
 // --- Theo Swagger: GET /api/bookings/{id}/cancellation-fee ---
@@ -701,115 +749,182 @@ export const deleteUser = async (id: number): Promise<void> => {
 };
 
 /**
- * Đổi mật khẩu user (chỉ dùng cho user tự đổi mật khẩu của chính mình)
- *
- * LƯU Ý: Endpoint POST /api/users/change-password yêu cầu:
- * - oldPassword: string (required) - Mật khẩu hiện tại
- * - newPassword: string (required) - Mật khẩu mới
- *
- * Endpoint này KHÔNG phù hợp để admin reset password cho user khác vì:
- * - Admin không biết oldPassword của user
- * - API không hỗ trợ reset password mà không cần oldPassword
- *
- * Để admin reset password cho user khác, backend cần endpoint riêng:
- * POST /api/admin/users/{id}/reset-password với body { newPassword }
- *
- * @deprecated Hàm này không thể dùng để admin reset password cho user khác
- * Sử dụng changePassword trong profileApi.ts cho user tự đổi mật khẩu
+ * Admin reset mật khẩu cho user.
+ * Theo Swagger BE hiện tại: admin-user-controller có PUT /api/admin/users/{id}/status và /role.
+ * Không có reset-password trong Swagger. Thử PUT /api/admin/users/{id}/password
+ * (cùng pattern với status, role - admin cập nhật field của user).
  */
-export const resetUserPassword = async (
-  oldPassword: string,
+export const adminResetUserPassword = async (
+  userId: number,
   newPassword: string,
 ): Promise<void> => {
-  await api.post("/api/users/change-password", {
-    oldPassword,
-    newPassword,
-  });
+  await api.put(`/api/admin/users/${userId}/password`, { newPassword });
 };
 
-// ========== Admin Content API ==========
-export interface AdminContent {
+// ========== Admin Culture Items API (Quản lý Nội dung) ==========
+// Backend: /api/culture-items - FESTIVAL, FOOD, COSTUME, INSTRUMENT, DANCE, LEGEND, CRAFT
+export type CultureCategory =
+  | "FESTIVAL"
+  | "FOOD"
+  | "COSTUME"
+  | "INSTRUMENT"
+  | "DANCE"
+  | "LEGEND"
+  | "CRAFT";
+
+export type CultureItemStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
+
+export interface AdminCultureItem {
   id: number;
   title: string;
-  slug: string;
-  content: string;
-  blocksJson?: string;
-  featuredImageUrl: string;
-  images: string[];
+  description?: string;
+  category: CultureCategory;
   provinceId?: number;
-  provinceName?: string;
-  authorId: number;
-  authorName?: string;
-  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
-  viewCount: number;
-  publishedAt?: string;
+  province?: { id: number; name: string; [key: string]: unknown };
+  thumbnailUrl?: string;
+  images?: string;
+  videoUrl?: string;
+  status: CultureItemStatus;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
-export interface CreateContentRequest {
+export interface CreateCultureItemRequest {
+  provinceId: number;
+  category: CultureCategory;
   title: string;
-  content: string;
-  blocksJson?: string;
-  featuredImageUrl: string;
-  images: string[];
-  provinceId?: number;
-  status: "DRAFT" | "PUBLISHED";
+  description?: string;
+  videoUrl?: string;
+  thumbnail?: File;
+  images?: File[];
 }
 
-export interface UpdateContentRequest extends Partial<CreateContentRequest> {
-  id: number;
+export interface UpdateCultureItemRequest {
+  provinceId?: number;
+  category?: CultureCategory;
+  title?: string;
+  description?: string;
+  videoUrl?: string;
+  thumbnail?: File;
+  images?: File[];
 }
 
-export const getAdminContent = async (params?: {
-  page?: number;
-  limit?: number;
-  status?: string;
+/** Lấy danh sách culture items từ BE */
+export const getAdminCultureItems = async (params?: {
   provinceId?: number;
-  search?: string;
-}): Promise<{ data: AdminContent[]; total: number }> => {
-  const response = await api.get<
-    ApiResponse<{ content: AdminContent[]; total: number }>
-  >("/api/admin/content", { params });
-  return {
-    data: response.data.data.content || response.data.data,
-    total: response.data.data.total || 0,
-  };
+  category?: CultureCategory;
+}): Promise<{ data: AdminCultureItem[]; total: number }> => {
+  const provincesRes = await api.get<ApiResponse<{ id: number }[]>>(
+    "/api/provinces/public",
+  );
+  const provinces =
+    (provincesRes.data?.data as { id: number }[]) ??
+    (Array.isArray(provincesRes.data?.data) ? provincesRes.data.data : []);
+
+  let items: AdminCultureItem[] = [];
+
+  if (params?.provinceId != null && params?.category) {
+    const res = await api.get<ApiResponse<AdminCultureItem[]>>(
+      `/api/culture-items/public/province/${params.provinceId}/category/${params.category}`,
+    );
+    items = (res.data?.data as AdminCultureItem[]) ?? [];
+  } else if (params?.provinceId != null) {
+    const res = await api.get<ApiResponse<AdminCultureItem[]>>(
+      `/api/culture-items/public/province/${params.provinceId}`,
+    );
+    items = (res.data?.data as AdminCultureItem[]) ?? [];
+  } else if (params?.category) {
+    const res = await api.get<ApiResponse<AdminCultureItem[]>>(
+      `/api/culture-items/public/category/${params.category}`,
+    );
+    items = (res.data?.data as AdminCultureItem[]) ?? [];
+  } else {
+    const results = await Promise.all(
+      provinces.map((p) =>
+        api.get<ApiResponse<AdminCultureItem[]>>(
+          `/api/culture-items/public/province/${p.id}`,
+        ),
+      ),
+    );
+    const seen = new Set<number>();
+    for (const r of results) {
+      const arr = (r.data?.data as AdminCultureItem[]) ?? [];
+      for (const item of arr) {
+        if (!seen.has(item.id)) {
+          seen.add(item.id);
+          items.push(item);
+        }
+      }
+    }
+  }
+
+  return { data: items, total: items.length };
 };
 
-export const getAdminContentById = async (
+export const getAdminCultureItemById = async (
   id: number,
-): Promise<AdminContent> => {
-  const response = await api.get<ApiResponse<AdminContent>>(
-    `/api/admin/content/${id}`,
+): Promise<AdminCultureItem> => {
+  const response = await api.get<ApiResponse<AdminCultureItem>>(
+    `/api/culture-items/public/${id}`,
   );
   return response.data.data;
 };
 
-export const createContent = async (
-  data: CreateContentRequest,
-): Promise<AdminContent> => {
-  const response = await api.post<ApiResponse<AdminContent>>(
-    "/api/admin/content",
-    data,
+export const createCultureItem = async (
+  data: CreateCultureItemRequest,
+): Promise<AdminCultureItem> => {
+  const form = new FormData();
+  form.append("provinceId", String(data.provinceId));
+  form.append("category", data.category);
+  form.append("title", data.title);
+  if (data.description) form.append("description", data.description);
+  if (data.videoUrl) form.append("videoUrl", data.videoUrl);
+  if (data.thumbnail) form.append("thumbnail", data.thumbnail);
+  if (data.images?.length) data.images.forEach((f) => form.append("images", f));
+  const response = await api.post<ApiResponse<AdminCultureItem>>(
+    "/api/culture-items",
+    form,
   );
   return response.data.data;
 };
 
-export const updateContent = async (
+export const updateCultureItem = async (
   id: number,
-  data: Partial<CreateContentRequest>,
-): Promise<AdminContent> => {
-  const response = await api.put<ApiResponse<AdminContent>>(
-    `/api/admin/content/${id}`,
-    data,
+  data: UpdateCultureItemRequest,
+): Promise<AdminCultureItem> => {
+  const form = new FormData();
+  if (data.provinceId != null) form.append("provinceId", String(data.provinceId));
+  if (data.category) form.append("category", data.category);
+  if (data.title) form.append("title", data.title);
+  if (data.description !== undefined) form.append("description", data.description ?? "");
+  if (data.videoUrl !== undefined) form.append("videoUrl", data.videoUrl ?? "");
+  if (data.thumbnail) form.append("thumbnail", data.thumbnail);
+  if (data.images?.length) data.images.forEach((f) => form.append("images", f));
+  const response = await api.put<ApiResponse<AdminCultureItem>>(
+    `/api/culture-items/${id}`,
+    form,
   );
   return response.data.data;
 };
 
-export const deleteContent = async (id: number): Promise<void> => {
-  await api.delete(`/api/admin/content/${id}`);
+export const updateCultureItemStatus = async (
+  id: number,
+  status: CultureItemStatus,
+): Promise<AdminCultureItem> => {
+  const response = await api.put<ApiResponse<AdminCultureItem>>(
+    `/api/culture-items/${id}/status`,
+    null,
+    { params: { status } },
+  );
+  return response.data.data;
 };
+
+export const deleteCultureItem = async (id: number): Promise<void> => {
+  await api.delete(`/api/culture-items/${id}`);
+};
+
+/** @deprecated Dùng getAdminCultureItems */
+export const getAdminContent = getAdminCultureItems;
 
 // ========== Admin Feedback API ==========
 export interface AdminFeedback {
@@ -860,6 +975,63 @@ export const getAdminFeedbackById = async (
     `/api/admin/feedback/${id}`,
   );
   return response.data?.data ?? null;
+};
+
+// ========== Admin Reviews (Feedback Tour) API ==========
+/** Review từ GET /api/reviews - đánh giá tour của khách */
+export interface AdminReview {
+  id: number;
+  bookingId: number;
+  userId: number;
+  userName?: string;
+  userAvatar?: string;
+  tourId: number;
+  tourTitle?: string;
+  rating: number;
+  comment: string;
+  images: string[];
+  status?: string; // VISIBLE, HIDDEN, etc.
+  createdAt: string;
+}
+
+/** GET /api/reviews - Danh sách đánh giá tour (feedback tour) */
+export const getAdminReviews = async (): Promise<{
+  data: AdminReview[];
+  total: number;
+}> => {
+  const response = await api.get<ApiResponse<AdminReview[]>>("/api/reviews");
+  const d = response.data?.data;
+  if (!d) return { data: [], total: 0 };
+  const data = Array.isArray(d) ? d : [];
+  return { data, total: data.length };
+};
+
+/** GET /api/reviews/{id} - Chi tiết đánh giá theo ID */
+export const getAdminReviewById = async (
+  id: number,
+): Promise<AdminReview | null> => {
+  const response = await api.get<ApiResponse<AdminReview>>(
+    `/api/reviews/${id}`,
+  );
+  return response.data?.data ?? null;
+};
+
+/** DELETE /api/reviews/{id} - Xóa đánh giá (Admin auth qua Bearer token) */
+export const deleteAdminReview = async (id: number): Promise<void> => {
+  await api.delete<ApiResponse<unknown>>(`/api/reviews/${id}`);
+};
+
+/** GET /api/reviews/tour/{tourId} - Đánh giá theo tour */
+export const getAdminReviewsByTourId = async (
+  tourId: number,
+): Promise<{ data: AdminReview[]; total: number }> => {
+  const response = await api.get<ApiResponse<AdminReview[]>>(
+    `/api/reviews/tour/${tourId}`,
+  );
+  const d = response.data?.data;
+  if (!d) return { data: [], total: 0 };
+  const data = Array.isArray(d) ? d : [];
+  return { data, total: data.length };
 };
 
 // ========== Admin Mail API ==========
@@ -1146,8 +1318,21 @@ export interface AdminArtisanDetail {
   images: string[];
   panoramaImageUrl: string | null;
   narrativeContent: { title: string; content: string; imageUrl?: string }[];
-  relatedTours: { id: number; title: string; slug: string; thumbnailUrl: string; location: string; description: string; price: number }[];
-  relatedCultureItems: { id: number; title: string; thumbnailUrl: string; description: string }[];
+  relatedTours: {
+    id: number;
+    title: string;
+    slug: string;
+    thumbnailUrl: string;
+    location: string;
+    description: string;
+    price: number;
+  }[];
+  relatedCultureItems: {
+    id: number;
+    title: string;
+    thumbnailUrl: string;
+    description: string;
+  }[];
   otherArtisans: { id: number; fullName: string; profileImageUrl: string }[];
 }
 
@@ -1869,12 +2054,14 @@ function parseScheduleResponse(raw: unknown): AdminTourSchedule[] {
 
 export const getTourSchedulesByTourId = async (
   tourId: number,
+  date?: string,
 ): Promise<AdminTourSchedule[]> => {
+  const params = date ? { date } : undefined;
   const response = await api.get<
     TourScheduleApiResponse<
       AdminTourSchedule[] | { content?: AdminTourSchedule[] }
     >
-  >(`/api/tour-schedules/tour/${tourId}`);
+  >(`/api/tour-schedules/tour/${tourId}`, { params });
   const body = response.data;
   const raw = body.data;
   if (Array.isArray(raw)) return raw;
@@ -1894,25 +2081,56 @@ export const getTourScheduleById = async (
   return body.data;
 };
 
+/** Chuyển startTime (object hoặc string) thành "HH:mm" cho BE @RequestParam */
+function startTimeToHHmm(st: TourScheduleStartTime | string | undefined): string {
+  if (!st) return "08:00";
+  if (typeof st === "string") {
+    const parts = st.trim().split(":");
+    return `${(parts[0] ?? "08").padStart(2, "0")}:${(parts[1] ?? "00").padStart(2, "0")}`;
+  }
+  const h = st.hour ?? 8;
+  const m = st.minute ?? 0;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+/** BE dùng @RequestParam - gửi params trong query string */
 export const createTourSchedule = async (
   data: CreateTourScheduleRequest,
 ): Promise<AdminTourSchedule> => {
+  const params = new URLSearchParams();
+  params.append("tourId", String(data.tourId));
+  params.append("tourDate", data.tourDate);
+  params.append("startTime", startTimeToHHmm(data.startTime));
+  params.append("maxSlots", String(data.maxSlots));
+  params.append("currentPrice", String(data.currentPrice));
+  if (data.discountPercent != null && data.discountPercent > 0) {
+    params.append("discountPercent", String(data.discountPercent));
+  }
+  if (data.status) params.append("status", data.status);
   const response = await api.post<TourScheduleApiResponse<AdminTourSchedule>>(
-    "/api/tour-schedules",
-    data,
+    `/api/tour-schedules?${params.toString()}`,
   );
   const body = response.data;
   if (!body.data) throw new Error("API không trả về data");
   return body.data;
 };
 
+/** BE dùng @RequestParam - gửi params trong query string, startTime format "HH:mm" */
 export const updateTourSchedule = async (
   id: number,
   data: UpdateTourScheduleRequest,
 ): Promise<AdminTourSchedule> => {
+  const params: Record<string, string | number | undefined> = {};
+  if (data.tourDate != null) params.tourDate = data.tourDate;
+  if (data.startTime != null) params.startTime = startTimeToHHmm(data.startTime);
+  if (data.maxSlots != null) params.maxSlots = data.maxSlots;
+  if (data.currentPrice != null) params.currentPrice = data.currentPrice;
+  if (data.discountPercent != null) params.discountPercent = data.discountPercent;
+  if (data.status != null) params.status = data.status;
   const response = await api.put<TourScheduleApiResponse<AdminTourSchedule>>(
     `/api/tour-schedules/${id}`,
-    data,
+    null,
+    { params },
   );
   const body = response.data;
   if (!body.data) throw new Error("API không trả về data");

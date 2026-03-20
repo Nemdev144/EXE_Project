@@ -35,6 +35,9 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  updateUserRole,
+  updateUserStatus,
+  updateUserRoleAndStatus,
   type AdminUser,
 } from "../../services/adminApi";
 import { getApiErrorMessage } from "../../services/api";
@@ -42,7 +45,6 @@ import dayjs from "dayjs";
 
 const staffRoleConfig: Record<string, { label: string; color: string }> = {
   STAFF: { label: "Nhân viên", color: "orange" },
-  ADMIN: { label: "Quản trị viên", color: "red" },
 };
 
 const statusConfig: Record<string, { label: string; color: string }> = {
@@ -112,7 +114,7 @@ export default function StaffManagement() {
       }
 
       const mapped: StaffUser[] = response.data
-        .filter((u: AdminUser) => u.role === "STAFF" || u.role === "ADMIN")
+        .filter((u: AdminUser) => u.role === "STAFF")
         .map((u: AdminUser) => ({
           key: String(u.id),
           id: String(u.id),
@@ -123,9 +125,7 @@ export default function StaffManagement() {
           avatarUrl: u.avatarUrl,
           dateOfBirth: u.dateOfBirth,
           gender: u.gender,
-          role: (u.role === "STAFF" || u.role === "ADMIN"
-            ? u.role
-            : "STAFF") as StaffUser["role"],
+          role: "STAFF" as StaffUser["role"],
           status: u.status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
           createdAt: u.createdAt
             ? new Date(u.createdAt).toLocaleDateString("vi-VN")
@@ -180,6 +180,7 @@ export default function StaffManagement() {
       phone: record.phone,
       dateOfBirth: record.dateOfBirth ? dayjs(record.dateOfBirth) : null,
       role: record.role,
+      status: record.status,
     });
     setEditModalOpen(true);
   };
@@ -205,6 +206,7 @@ export default function StaffManagement() {
         phone: values.phone || "",
         password: values.password,
         fullName: values.fullName,
+        role: "STAFF",
         dateOfBirth: values.dateOfBirth
           ? dayjs(values.dateOfBirth).format("YYYY-MM-DD")
           : undefined,
@@ -226,7 +228,9 @@ export default function StaffManagement() {
     try {
       const values = await editForm.validateFields();
       setSubmitting(true);
-      await updateUser(parseInt(selectedStaff.id), {
+      const userId = parseInt(selectedStaff.id);
+
+      await updateUser(userId, {
         username: values.username,
         email: values.email,
         fullName: values.fullName,
@@ -234,8 +238,18 @@ export default function StaffManagement() {
         dateOfBirth: values.dateOfBirth
           ? dayjs(values.dateOfBirth).format("YYYY-MM-DD")
           : undefined,
-        role: values.role,
       });
+
+      const roleChanged = values.role !== selectedStaff.role;
+      const statusChanged = values.status !== selectedStaff.status;
+      if (roleChanged && statusChanged) {
+        await updateUserRoleAndStatus(userId, values.role, values.status);
+      } else if (roleChanged) {
+        await updateUserRole(userId, values.role);
+      } else if (statusChanged) {
+        await updateUserStatus(userId, values.status);
+      }
+
       message.success("Cập nhật nhân viên thành công");
       setEditModalOpen(false);
       setSelectedStaff(null);
@@ -401,7 +415,6 @@ export default function StaffManagement() {
             >
               <Select.Option value="all">Tất cả vai trò</Select.Option>
               <Select.Option value="STAFF">Nhân viên</Select.Option>
-              <Select.Option value="ADMIN">Quản trị viên</Select.Option>
             </Select>
           </Col>
           <Col xs={24} sm={12} md={6}>
@@ -638,7 +651,6 @@ export default function StaffManagement() {
           <Form.Item label="Vai trò" name="role" initialValue="STAFF">
             <Select>
               <Select.Option value="STAFF">Nhân viên</Select.Option>
-              <Select.Option value="ADMIN">Quản trị viên</Select.Option>
             </Select>
           </Form.Item>
           <Form.Item>
@@ -747,7 +759,16 @@ export default function StaffManagement() {
           <Form.Item label="Vai trò" name="role" rules={[{ required: true }]}>
             <Select>
               <Select.Option value="STAFF">Nhân viên</Select.Option>
-              <Select.Option value="ADMIN">Quản trị viên</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            label="Trạng thái"
+            name="status"
+            rules={[{ required: true }]}
+          >
+            <Select>
+              <Select.Option value="ACTIVE">Hoạt động</Select.Option>
+              <Select.Option value="INACTIVE">Không hoạt động</Select.Option>
             </Select>
           </Form.Item>
         </Form>

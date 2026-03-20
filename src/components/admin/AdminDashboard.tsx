@@ -33,7 +33,7 @@ import {
   getDashboardSummary,
   getAdminTours,
   getAdminBookings,
-  getAdminContent,
+  getAdminCultureItems,
   getAdminArtisans,
   type AdminTour,
   type AdminBooking,
@@ -175,7 +175,7 @@ export default function AdminDashboard() {
             getDashboardSummary(),
             getAdminTours({ limit: 100 }),
             getAdminBookings({ limit: 100 }),
-            getAdminContent({ limit: 500 }),
+            getAdminCultureItems(),
             getAdminArtisans({ limit: 500 }),
           ]);
 
