@@ -1,6 +1,10 @@
 import type { ApiResponse, User } from "../types";
 import { API_BASE_URL, api } from "./api";
 
+const OAUTH2_BASE_URL =
+  (import.meta as { env?: { VITE_OAUTH2_BASE_URL?: string } }).env?.VITE_OAUTH2_BASE_URL ||
+  API_BASE_URL;
+
 export type LoginRequest = {
   username: string;
   password: string;
@@ -50,7 +54,7 @@ export type GoogleLoginRequest = {
   idToken: string;
 };
 
-export const GOOGLE_OAUTH2_URL = `${API_BASE_URL}oauth2/authorization/google`;
+export const GOOGLE_OAUTH2_URL = `${OAUTH2_BASE_URL}oauth2/authorization/google`;
 
 /** Chuẩn hóa response login — backend có thể trả role/userId ở top-level hoặc trong user */
 function normalizeLoginResponse(raw: unknown): AuthLoginResponse {

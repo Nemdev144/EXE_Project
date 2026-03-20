@@ -1,13 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { authGoogleLogin, authRegister } from "../services/authApi";
+import { authRegister, startGoogleOAuth2Login } from "../services/authApi";
 import { message } from "antd";
-import { getGoogleIdToken } from "../utils/googleAuth";
-import { persistAuthSession } from "../utils/authSession";
-
-const GOOGLE_CLIENT_ID =
-  (import.meta as any).env?.VITE_GOOGLE_CLIENT_ID ||
-  "87846938671-76pcjrb3ucf7ngmkai7b2qni7uvrn9qt.apps.googleusercontent.com";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -62,22 +56,9 @@ const Register = () => {
     }
   };
 
-  const handleGoogleRegister = async () => {
+  const handleGoogleRegister = () => {
     setError("");
-    try {
-      setLoading(true);
-      const idToken = await getGoogleIdToken(GOOGLE_CLIENT_ID);
-      const response = await authGoogleLogin({ idToken });
-      persistAuthSession(response);
-      message.success("Đăng ký với Google thành công!");
-      navigate("/");
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message || err.message || "Đăng ký Google thất bại";
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
+    startGoogleOAuth2Login();
   };
 
   // Ẩn scrollbar của body khi ở trang register

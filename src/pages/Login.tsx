@@ -1,15 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { authLogin, authGoogleLogin, type LoginRequest } from "../services/authApi";
+import { authLogin, startGoogleOAuth2Login, type LoginRequest } from "../services/authApi";
 import { getCurrentUser } from "../services/profileApi";
 import { message } from "antd";
 import { persistAuthSession, syncUserInfoFromProfile } from "../utils/authSession";
 import { consumeLoginRedirect } from "../utils/loginRedirectCookie";
-import { getGoogleIdToken } from "../utils/googleAuth";
-
-const GOOGLE_CLIENT_ID =
-  (import.meta as any).env?.VITE_GOOGLE_CLIENT_ID ||
-  "87846938671-76pcjrb3ucf7ngmkai7b2qni7uvrn9qt.apps.googleusercontent.com";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -162,65 +157,9 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = () => {
     setError("");
-    try {
-      setLoading(true);
-      const idToken = await getGoogleIdToken(GOOGLE_CLIENT_ID);
-      const response = await authGoogleLogin({ idToken });
-      persistAuthSession(response);
-
-      // Đồng bộ avatar & thông tin từ profile (đảm bảo avatar lưu lại sau khi login)
-      if (response.userId) {
-        await syncUserInfoFromProfile(response.userId);
-      }
-
-      message.success("Đăng nhập Google thành công!");
-
-      const redirect = consumeLoginRedirect();
-      if (redirect?.path) {
-        navigate(redirect.path, {
-          replace: true,
-          state: redirect.state ? {
-            contactInfo: redirect.state.contactInfo,
-            bookingDetails: redirect.state.bookingDetails,
-          } : undefined,
-        });
-        return;
-      }
-
-      let role = response.role;
-      if (role === "CUSTOMER") {
-        try {
-          const me = await getCurrentUser();
-          role = me.role;
-          const stored = localStorage.getItem("userInfo");
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            parsed.role = role;
-            localStorage.setItem("userInfo", JSON.stringify(parsed));
-          }
-        } catch {
-          role = "CUSTOMER";
-        }
-      }
-      if (role === "ADMIN") {
-        navigate("/admin");
-      } else if (role === "STAFF") {
-        navigate("/staff");
-      } else if (role === "ARTISAN") {
-        navigate("/artisan");
-      } else {
-        navigate("/");
-      }
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message || err.message || "Đăng nhập Google thất bại";
-      setError(errorMessage);
-      message.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
+    startGoogleOAuth2Login();
   };
 
   return (
