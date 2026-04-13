@@ -5,6 +5,27 @@
 @use '../variables';
 @use '../mixins';
 
+// Biến --navbar-h dùng chung cho padding-top của content (phải set ở root để inherit)
+:root {
+  --navbar-h: 56px;
+
+  @media (min-width: 768px) {
+    --navbar-h: 64px;
+  }
+
+  @media (min-width: 1024px) {
+    --navbar-h: 72px;
+  }
+
+  @media (min-width: 1280px) {
+    --navbar-h: 80px;
+  }
+
+  @media (min-width: 1536px) {
+    --navbar-h: 88px;
+  }
+}
+
 // Custom Font for Brand Name
 @font-face {
   font-family: 'iCiel Lodestone';
@@ -33,7 +54,6 @@
 }
 
 .navbar {
-  --navbar-h: 88px;
   width: 100%;
   height: var(--navbar-h);
   background: rgba(0, 0, 0, 0.2);
@@ -45,6 +65,7 @@
   right: 0;
   z-index: 50;
   font-family: 'Be Vietnam Pro', sans-serif;
+  transition: height 0.25s ease;
 
   &__container {
     width: 100%;
@@ -53,29 +74,42 @@
     position: relative;
   }
 
-  // Logo Section - Góc trái ngoài cùng
+  // Logo Section - Thu nhỏ theo màn hình
   &__logo {
     position: fixed;
-    left: 24px;
+    left: 12px;
     top: 50%;
     transform: translateY(-50%);
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 6px;
     white-space: nowrap;
     z-index: 10;
+    max-width: calc(100vw - 100px);
 
     @include mixins.respond-to(md) {
-      left: 40px;
+      left: 16px;
+      gap: 8px;
     }
 
     @include mixins.respond-to(lg) {
+      left: 24px;
+      gap: 10px;
+    }
+
+    @include mixins.respond-to(xl) {
+      left: 48px;
+      gap: 12px;
+    }
+
+    @include mixins.respond-to(2xl) {
       left: 100px;
     }
 
     &-link {
       display: block;
+      flex-shrink: 0;
       transition: opacity variables.$transition-base;
 
       &:hover {
@@ -84,18 +118,56 @@
     }
 
     &-image {
-      width: 64px;
-      height: 64px;
+      width: 36px;
+      height: 36px;
       object-fit: contain;
       display: block;
+
+      @include mixins.respond-to(md) {
+        width: 44px;
+        height: 44px;
+      }
+
+      @include mixins.respond-to(lg) {
+        width: 52px;
+        height: 52px;
+      }
+
+      @include mixins.respond-to(xl) {
+        width: 58px;
+        height: 58px;
+      }
+
+      @include mixins.respond-to(2xl) {
+        width: 64px;
+        height: 64px;
+      }
     }
 
     &-text {
       font-family: 'iCiel Lodestone', 'Be Vietnam Pro', sans-serif;
-      font-size: 30px;
+      font-size: 16px;
       font-weight: normal;
       color: red;
       line-height: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      @include mixins.respond-to(md) {
+        font-size: 20px;
+      }
+
+      @include mixins.respond-to(lg) {
+        font-size: 24px;
+      }
+
+      @include mixins.respond-to(xl) {
+        font-size: 27px;
+      }
+
+      @include mixins.respond-to(2xl) {
+        font-size: 30px;
+      }
     }
   }
 
@@ -118,26 +190,52 @@
 
     &-container {
       background: #e0e0e0;
-      height: 56px;
-      width: 70%;
+      height: 44px;
+      width: min(65%, 720px);
+      max-width: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0 32px;
-      border-radius: 28px;
-      gap: 40px;
+      padding: 0 16px;
+      border-radius: 22px;
+      gap: clamp(12px, 2vw, 32px);
+
+      @include mixins.respond-to(xl) {
+        height: 48px;
+        padding: 0 20px;
+        border-radius: 24px;
+        gap: clamp(16px, 2.5vw, 36px);
+      }
+
+      @include mixins.respond-to(2xl) {
+        height: 56px;
+        width: min(70%, 800px);
+        padding: 0 24px;
+        border-radius: 28px;
+        gap: clamp(16px, 3vw, 40px);
+      }
     }
 
     &-link {
       font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
-      font-size: 18px;
+      font-size: 14px;
       font-weight: 400;
       color: #000000;
       transition: color variables.$transition-base;
       white-space: nowrap;
       text-align: center;
       text-decoration: none;
-      padding: 8px 12px;
+      padding: 6px 10px;
+
+      @include mixins.respond-to(xl) {
+        font-size: 16px;
+        padding: 7px 11px;
+      }
+
+      @include mixins.respond-to(2xl) {
+        font-size: 18px;
+        padding: 8px 12px;
+      }
 
       &:hover {
         color: #1f2937;
@@ -152,7 +250,7 @@
     }
   }
 
-  // Auth Buttons - Góc phải ngoài cùng
+  // Auth Buttons - Thu nhỏ theo màn hình, giống ảnh 2 khi nhỏ
   &__auth {
     display: none;
 
@@ -160,27 +258,42 @@
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      gap: 16px;
+      gap: 10px;
       flex-shrink: 0;
       position: fixed;
-      right: 24px;
+      right: 12px;
       top: 50%;
       transform: translateY(-50%);
     }
 
     @include mixins.respond-to(lg) {
+      right: 20px;
+      gap: 12px;
+    }
+
+    @include mixins.respond-to(xl) {
+      right: 40px;
+      gap: 14px;
+    }
+
+    @include mixins.respond-to(2xl) {
       right: 100px;
+      gap: 16px;
     }
 
     &-logged-in {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
+
+      @include mixins.respond-to(xl) {
+        gap: 12px;
+      }
     }
 
     &-avatar {
-      width: 44px;
-      height: 44px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       overflow: hidden;
       background: #f3f4f6;
@@ -189,6 +302,16 @@
       align-items: center;
       justify-content: center;
       text-decoration: none;
+
+      @include mixins.respond-to(lg) {
+        width: 40px;
+        height: 40px;
+      }
+
+      @include mixins.respond-to(2xl) {
+        width: 44px;
+        height: 44px;
+      }
     }
 
     &-avatar-image {
@@ -200,9 +323,17 @@
 
     &-avatar-fallback {
       font-family: 'Afacad', 'Be Vietnam Pro', sans-serif;
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 700;
       color: #111827;
+
+      @include mixins.respond-to(lg) {
+        font-size: 13px;
+      }
+
+      @include mixins.respond-to(2xl) {
+        font-size: 14px;
+      }
     }
 
     &-button {
@@ -211,16 +342,37 @@
       align-items: center;
       justify-content: center;
       border-radius: 8px;
-      font-size: 18px;
+      font-size: 13px;
       font-weight: 600;
       transition: all variables.$transition-base;
       white-space: nowrap;
       text-decoration: none;
       cursor: pointer;
       border: 1px solid;
-      min-width: 120px;
-      height: 40px;
-      padding: 0 24px;
+      min-width: 80px;
+      height: 34px;
+      padding: 0 12px;
+
+      @include mixins.respond-to(lg) {
+        font-size: 14px;
+        min-width: 90px;
+        height: 36px;
+        padding: 0 14px;
+      }
+
+      @include mixins.respond-to(xl) {
+        font-size: 15px;
+        min-width: 100px;
+        height: 38px;
+        padding: 0 18px;
+      }
+
+      @include mixins.respond-to(2xl) {
+        font-size: 18px;
+        min-width: 120px;
+        height: 40px;
+        padding: 0 24px;
+      }
 
       &--login {
         background: white;
@@ -245,13 +397,25 @@
       }
 
       &--profile {
-        width: 44px;
-        height: 44px;
-        min-width: 44px;
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
         padding: 0;
         background: #f3f4f6;
         border: none;
         border-radius: 50%;
+
+        @include mixins.respond-to(lg) {
+          width: 40px;
+          height: 40px;
+          min-width: 40px;
+        }
+
+        @include mixins.respond-to(2xl) {
+          width: 44px;
+          height: 44px;
+          min-width: 44px;
+        }
 
         &:hover {
           background: #e5e7eb;
@@ -271,17 +435,17 @@
     }
   }
 
-  // Mobile Hamburger
+  // Mobile Hamburger - vị trí thu nhỏ theo màn hình
   &__mobile-toggle {
     display: flex;
     align-items: center;
     position: absolute;
-    right: 24px;
+    right: 12px;
     top: 50%;
     transform: translateY(-50%);
 
     @include mixins.respond-to(md) {
-      right: 40px;
+      right: 16px;
     }
 
     @include mixins.respond-to(lg) {
@@ -289,7 +453,7 @@
     }
 
     &-button {
-      padding: 8px;
+      padding: 6px;
       color: white;
       background: transparent;
       border: none;
@@ -299,6 +463,10 @@
       display: flex;
       align-items: center;
       justify-content: center;
+
+      @include mixins.respond-to(md) {
+        padding: 8px;
+      }
 
       &:hover {
         background: rgba(255, 255, 255, 0.1);
