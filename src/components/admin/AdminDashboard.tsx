@@ -187,7 +187,7 @@ export default function AdminDashboard() {
 
         const todayStr = now.format("YYYY-MM-DD");
         const upcomingSchedules = schedulesData.filter(
-          (s) => s.tourDate && dayjs(s.tourDate).isSameOrAfter(now, "day")
+          (s) => s.tourDate && !dayjs(s.tourDate).isBefore(now, "day")
         );
         setSchedulesUpcoming(upcomingSchedules.length);
 

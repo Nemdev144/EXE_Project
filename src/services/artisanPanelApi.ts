@@ -11,10 +11,12 @@ import {
   getAdminArtisanDetail,
   getAdminArtisanById,
   getTourSchedules,
+  parseScheduleResponse,
   updateArtisan,
   type AdminArtisan,
   type AdminArtisanDetail,
   type AdminTourSchedule,
+  type TourScheduleStatus,
   type UpdateArtisanRequest,
 } from "./adminApi";
 
@@ -72,16 +74,27 @@ export async function getMyArtisanForEdit(
   }
 }
 
+export type GetMySchedulesOptions = {
+  /** Query `status` — khớp Swagger GET /api/artisans/me/schedules */
+  status?: TourScheduleStatus;
+};
+
 /** GET /api/artisans/me/schedules - Lịch trình của nghệ nhân. Fallback: filter từ tour-schedules */
 export async function getMySchedules(
-  artisanId: number
+  artisanId: number,
+  options?: GetMySchedulesOptions
 ): Promise<AdminTourSchedule[]> {
+  const params =
+    options?.status != null && String(options.status).trim() !== ""
+      ? { status: options.status }
+      : undefined;
   try {
-    const res = await api.get<ApiResponse<AdminTourSchedule[]>>(
-      "/api/artisans/me/schedules"
+    const res = await api.get<ApiResponse<unknown>>(
+      "/api/artisans/me/schedules",
+      { params }
     );
     const raw = res.data?.data;
-    const arr = Array.isArray(raw) ? raw : [];
+    const arr = parseScheduleResponse(raw);
     arr.sort(
       (a, b) => dayjs(a.tourDate).valueOf() - dayjs(b.tourDate).valueOf()
     );
@@ -92,7 +105,9 @@ export async function getMySchedules(
       const forArtisan = (data ?? []).filter((s) => {
         const aid =
           s.tour?.artisan?.id ?? (s.tour as { artisanId?: number })?.artisanId;
-        return aid === artisanId;
+        if (aid !== artisanId) return false;
+        if (options?.status && s.status !== options.status) return false;
+        return true;
       });
       forArtisan.sort(
         (a, b) => dayjs(a.tourDate).valueOf() - dayjs(b.tourDate).valueOf()

@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import axios from 'axios';
 import { ArrowLeft } from 'lucide-react';
+import { Pagination } from 'antd';
 import Breadcrumbs from '../Breadcrumbs';
 import BookingSteps from '../tourBooking/BookingSteps';
 import PaymentMethodSelect from './PaymentMethodSelect';
@@ -12,6 +13,7 @@ import {
   createPayment,
   validateVoucher,
   getVouchersByTourId,
+  calcVoucherDiscount,
   type PaymentMethod,
   type Voucher,
 } from '../../services/paymentApi';
@@ -50,6 +52,8 @@ interface PaymentLocationState {
 }
 
 const PAYMENT_STATE_KEY = (tourId: number) => `paymentFormState_${tourId}`;
+
+const VOUCHER_LIST_PAGE_SIZE = 5;
 
 interface PaymentFormState {
   paymentMethod: PaymentMethod;
@@ -107,6 +111,7 @@ export default function PaymentPage() {
   const [voucherAnimating, setVoucherAnimating] = useState(false);
   const [userVouchers, setUserVouchers] = useState<UserVoucherWithSource[]>([]);
   const [tourVouchers, setTourVouchers] = useState<Voucher[]>([]);
+  const [voucherListPage, setVoucherListPage] = useState(1);
 
   useEffect(() => {
     if (!id) return;
@@ -150,6 +155,49 @@ export default function PaymentPage() {
     }
     return available;
   }, [userVouchers, tourVoucherCodes]);
+
+  /** Tổng tiền đơn hiện tại — dùng để so sánh mức giảm thực tế giữa các voucher */
+  const orderTotalForVouchers = useMemo(() => {
+    if (!tour) return 0;
+    const unit = bookingDetails.schedulePrice ?? tour.price;
+    return Math.max(0, bookingDetails.participants * unit);
+  }, [tour, bookingDetails.schedulePrice, bookingDetails.participants]);
+
+  /** Giảm sâu nhất (VNĐ) theo đơn này lên đầu; không đủ điều kiện minPurchase (0đ giảm) xuống cuối */
+  const sortedEligibleUserVouchers = useMemo(() => {
+    const list = [...eligibleUserVouchers];
+    list.sort((a, b) => {
+      const da = calcVoucherDiscount(a as Voucher, orderTotalForVouchers);
+      const db = calcVoucherDiscount(b as Voucher, orderTotalForVouchers);
+      if (db !== da) return db - da;
+      return (a.code ?? '').localeCompare(b.code ?? '', 'vi');
+    });
+    return list;
+  }, [eligibleUserVouchers, orderTotalForVouchers]);
+
+  /** Mức giảm tối đa (VNĐ) trong danh sách — để gắn badge “Giảm sâu nhất” */
+  const maxVoucherDiscountOnOrder = useMemo(() => {
+    if (!sortedEligibleUserVouchers.length) return 0;
+    return Math.max(
+      0,
+      ...sortedEligibleUserVouchers.map((v) =>
+        calcVoucherDiscount(v as Voucher, orderTotalForVouchers),
+      ),
+    );
+  }, [sortedEligibleUserVouchers, orderTotalForVouchers]);
+
+  const paginatedEligibleVouchers = useMemo(() => {
+    const start = (voucherListPage - 1) * VOUCHER_LIST_PAGE_SIZE;
+    return sortedEligibleUserVouchers.slice(start, start + VOUCHER_LIST_PAGE_SIZE);
+  }, [sortedEligibleUserVouchers, voucherListPage]);
+
+  useEffect(() => {
+    const maxPage = Math.max(
+      1,
+      Math.ceil(sortedEligibleUserVouchers.length / VOUCHER_LIST_PAGE_SIZE),
+    );
+    setVoucherListPage((p) => (p > maxPage ? maxPage : p));
+  }, [sortedEligibleUserVouchers]);
 
   // Restore payment form state from sessionStorage when tour loads (chỉ 1 lần khi quay lại)
   const hasRestoredRef = useRef(false);
@@ -514,35 +562,76 @@ export default function PaymentPage() {
                 Voucher từ Quiz/Lesson hoặc hệ thống áp dụng mọi tour. Voucher theo tour (tour sắp hết hạn) chỉ áp
                 dụng tour đó. Chọn hoặc nhập mã và bấm Áp dụng để kiểm tra.
               </p>
-              {eligibleUserVouchers.length > 0 && (
+              {sortedEligibleUserVouchers.length > 0 && (
                 <div className="payment-page__voucher-mine">
                   <p className="payment-page__voucher-mine-title">
                     {tourVouchers.length > 0 ? 'Voucher của bạn (áp dụng cho tour này)' : 'Voucher của bạn'}
                   </p>
+                  <p className="payment-page__voucher-mine-sort-hint">
+                    Đã sắp theo mức giảm cao nhất cho tổng đơn hiện tại (nhiều → ít).
+                  </p>
                   <div className="payment-page__voucher-mine-list">
-                    {eligibleUserVouchers.map((v) => {
+                    {paginatedEligibleVouchers.map((v) => {
                         const unitPrice = bookingDetails.schedulePrice ?? tour!.price;
                         const totalPrice = bookingDetails.participants * unitPrice;
                         const canUse = totalPrice >= v.minPurchase;
                         const isSelected = appliedVoucher?.code === v.code;
+                        const discountAmt = calcVoucherDiscount(
+                          v as Voucher,
+                          orderTotalForVouchers,
+                        );
+                        const isBestValue =
+                          maxVoucherDiscountOnOrder > 0 &&
+                          discountAmt === maxVoucherDiscountOnOrder;
                         return (
                           <button
                             key={`${v.code}-${v.source ?? 'default'}`}
                             type="button"
-                            className={`payment-page__voucher-mine-item ${isSelected ? 'payment-page__voucher-mine-item--selected' : ''} ${!canUse ? 'payment-page__voucher-mine-item--disabled' : ''}`}
+                            className={`payment-page__voucher-mine-item ${isSelected ? 'payment-page__voucher-mine-item--selected' : ''} ${!canUse ? 'payment-page__voucher-mine-item--disabled' : ''} ${isBestValue ? 'payment-page__voucher-mine-item--best' : ''}`}
                             onClick={() => canUse && handleSelectUserVoucher(v)}
                             disabled={!canUse}
                           >
+                            {isBestValue && (
+                              <span className="payment-page__voucher-mine-badge" title="Mức giảm cao nhất cho đơn hiện tại">
+                                <span className="payment-page__voucher-mine-badge-icon" aria-hidden>
+                                  %
+                                </span>
+                                Giảm sâu nhất
+                              </span>
+                            )}
                             <span className="payment-page__voucher-mine-code">{v.code}</span>
-                            <span className="payment-page__voucher-mine-desc">
+                            <span
+                              className={`payment-page__voucher-mine-desc ${isBestValue ? 'payment-page__voucher-mine-desc--best' : ''}`}
+                            >
                               {v.discountType === 'PERCENTAGE'
                                 ? `Giảm ${v.discountValue}%`
                                 : `Giảm ${v.discountValue.toLocaleString('vi-VN')}đ`}
+                              {isBestValue && discountAmt > 0 && (
+                                <>
+                                  {' '}
+                                  <strong className="payment-page__voucher-mine-est">
+                                    (~{discountAmt.toLocaleString('vi-VN')}đ)
+                                  </strong>
+                                </>
+                              )}
                               {!canUse && ` — Đơn tối thiểu ${v.minPurchase.toLocaleString('vi-VN')}đ`}
                             </span>
                           </button>
                         );
                       })}
+                  </div>
+                  <div className="payment-page__voucher-mine-pagination">
+                    <Pagination
+                      current={voucherListPage}
+                      pageSize={VOUCHER_LIST_PAGE_SIZE}
+                      total={sortedEligibleUserVouchers.length}
+                      onChange={setVoucherListPage}
+                      showSizeChanger={false}
+                      hideOnSinglePage
+                      size="small"
+                      showTotal={(total, range) =>
+                        `${range[0]}-${range[1]} / ${total} voucher`}
+                    />
                   </div>
                 </div>
               )}
@@ -566,7 +655,7 @@ export default function PaymentPage() {
                 </div>
               ) : (
                 <>
-                  {eligibleUserVouchers.length > 0 && (
+                  {sortedEligibleUserVouchers.length > 0 && (
                     <p className="payment-page__voucher-or">Hoặc nhập mã khác</p>
                   )}
                   <div className="payment-page__voucher-input-row">

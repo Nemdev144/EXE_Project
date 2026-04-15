@@ -2061,7 +2061,7 @@ export const getTourSchedules = async (params?: {
 };
 
 /** Parse linh hoạt response - backend có thể trả data trực tiếp hoặc nested */
-function parseScheduleResponse(raw: unknown): AdminTourSchedule[] {
+export function parseScheduleResponse(raw: unknown): AdminTourSchedule[] {
   if (Array.isArray(raw)) return raw as AdminTourSchedule[];
   if (raw && typeof raw === "object") {
     const obj = raw as Record<string, unknown>;

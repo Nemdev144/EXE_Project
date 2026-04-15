@@ -83,7 +83,8 @@ export default function ArtisanDashboard() {
     (s) => s.tourDate && dayjs(s.tourDate).format("YYYY-MM-DD") === today
   );
   const upcomingSchedules = schedules.filter(
-    (s) => s.tourDate && dayjs(s.tourDate).isSameOrAfter(dayjs(), "day")
+    (s) =>
+      s.tourDate && !dayjs(s.tourDate).isBefore(dayjs(), "day")
   );
 
   const recentSchedules = [...upcomingSchedules]
